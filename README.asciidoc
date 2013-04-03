@@ -1,0 +1,22 @@
+== Jentrata - B2B Gateway
+
+=== Introduction
+Jentrata is an Open Standard based B2B Gateway that implements a number of messaging standards such as the AS4 Conformance Profile of the OASIS ebMS 3.0 specification.
+
+=== Getting Started
+TODO
+
+=== Build from Source
+Requires maven 3.0+ and Java 7+
+
+Run the following
+[source,bash]
+----
+mvn clean install
+----
+This will create jentrata-dist.tar.gz in jentrata/dist/target/ as well as an uncompressed version
+
+=== License
+The Apache Software License, Version 2.0 - http://www.apache.org/licenses/LICENSE-2.0
+
+
