@@ -5,7 +5,7 @@ Jentrata is an Open Standard based B2B Gateway that implements a number of messa
 
 == Build Status
 
-image::https://jentrata.ci.cloudbees.com/job/jentrata-ci/badge/icon[CI Build Status, link="https://jentrata.ci.cloudbees.com/job/jentrata-ci/"]
+Jentrata CI Build Status image:https://jentrata.ci.cloudbees.com/job/jentrata-ci/badge/icon[title="Jentrata CI Build Status", link="https://jentrata.ci.cloudbees.com/job/jentrata-ci/"]
 
 
 === Getting Started
