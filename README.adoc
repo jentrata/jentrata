@@ -56,7 +56,7 @@ jentrata@jentrata> list
 [ 186] [Active     ] [            ] [       ] [   80] Apache Commons IO Bundle (1.4)
 [ 187] [Active     ] [Created     ] [       ] [   80] Jentrata :: ebms3 - AS4 Conformance Profile (2.0.0.SNAPSHOT)
 ----
-You should see that the *Jentrata \:: ebms3 - AS4 Conformance Profile* bundle is in the Created state
+You should see that the `Jentrata :: ebms3 - AS4 Conformance Profile` bundle is in the Created state
 
 By default Jentrata exposes a single http endpoint http://localhost:8081/jentrata/ebms/inbound for ebMS AS4 support.
 
