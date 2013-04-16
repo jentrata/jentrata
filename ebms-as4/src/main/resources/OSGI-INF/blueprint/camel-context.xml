@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Licensed to the Apache Software Foundation (ASF) under one or more
+    contributor license agreements.  See the NOTICE file distributed with
+    this work for additional information regarding copyright ownership.
+    The ASF licenses this file to You under the Apache License, Version 2.0
+    (the "License"); you may not use this file except in compliance with
+    the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.0.0"
+           xmlns:camel="http://camel.apache.org/schema/blueprint"
+           xsi:schemaLocation="
+             http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
+           ">
+    <!-- blueprint property placeholders -->
+    <cm:property-placeholder persistent-id="jentrata-ebms">
+        <cm:default-properties>
+            <cm:property name="activemq.broker.url" value="tcp://localhost:61616"/>
+            <cm:property name="activemq.broker.username" value="jentrata"/>
+            <cm:property name="activemq.broker.password" value="jentrata"/>
+            <cm:property name="jentrata.ebms.inbound.endpoint" value="jetty:http://0.0.0.0:8081/jentrata/ebms/inbound"/>
+            <cm:property name="jentrata.ebms.inbound.queue" value="activemq:queue:jentrata_internal_ebms_inbound"/>
+            <cm:property name="jentrata.message.store.location" value="./data/jentrata/messageStore"/>
+
+        </cm:default-properties>
+    </cm:property-placeholder>
+
+    <bean id="messageDetector" class="org.jentrata.ebms.messaging.MessageDetector"/>
+
+    <bean id="messageStore" class="org.jentrata.ebms.messaging.internal.FileMessageStore">
+        <property name="baseDir" value="${jentrata.message.store.location}"/>
+    </bean>
+
+    <bean id="messageStoreRouteBuilder" class="org.jentrata.ebms.as4.internal.routes.MessageStoreRouteBuilder">
+        <property name="messageStore" ref="messageStore"/>
+    </bean>
+
+    <bean id="validatePartnerAgreementRouteBuilder" class="org.jentrata.ebms.as4.internal.routes.ValidatePartnerAgreementRouteBuilder"/>
+
+    <bean id="ebms3RouteBuilder" class="org.jentrata.ebms.as4.internal.routes.EbMS3RouteBuilder">
+        <property name="ebmsHttpEndpoint" value="${jentrata.ebms.inbound.endpoint}"/>
+        <property name="inboundEbmsQueue" value="${jentrata.ebms.inbound.queue}"/>
+        <property name="messageDetector" ref="messageDetector"/>
+
+    </bean>
+
+    <bean id="jmsConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+        <property name="brokerURL" value="${activemq.broker.url}" />
+        <property name="userName" value="${activemq.broker.username}" />
+        <property name="password" value="${activemq.broker.password}" />
+    </bean>
+
+    <bean id="pooledConnectionFactory" class="org.apache.activemq.pool.PooledConnectionFactory" init-method="start" destroy-method="stop">
+        <property name="maxConnections" value="20" />
+        <property name="connectionFactory" ref="jmsConnectionFactory" />
+    </bean>
+
+    <bean id="jmsConfig" class="org.apache.camel.component.jms.JmsConfiguration">
+        <property name="connectionFactory" ref="pooledConnectionFactory"/>
+        <property name="concurrentConsumers" value="10"/>
+    </bean>
+
+    <bean id="activemq" class="org.apache.activemq.camel.component.ActiveMQComponent">
+        <property name="configuration" ref="jmsConfig"/>
+    </bean>
+
+    <camelContext id="jentrata-ebms" xmlns="http://camel.apache.org/schema/blueprint">
+        <contextScan/>
+    </camelContext>
+
+</blueprint>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<S12:Envelope xmlns:S12="http://www.w3.org/2003/05/soap-envelope"
+              xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
+              xmlns:ebbp="http://docs.oasis-open.org/ebxml-bp/ebbp-signals-2.0"
+              xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+              xmlns:eb3="http://docs.oasis-open.org/ebxml-msg/ebms/v3.0/ns/core/200704/"
+              xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
+              xmlns:ebint="http://docs.oasis-open.org/ebxml-msg/ebms/v3.0/ns/multihop/200902/"
+              xmlns:wsa="http://www.w3.org/2005/08/addressing">
+    <S12:Header>
+        <eb3:Messaging id="_ebmessaging_N1000D" S12:mustUnderstand="true">
+            <eb3:SignalMessage>
+                <eb3:MessageInfo>
+                    <eb3:Timestamp>2012-02-05T19:43:11.735Z</eb3:Timestamp>
+                    <eb3:MessageId>someuniqueid@receiver.example.com</eb3:MessageId>
+                    <eb3:RefToMessageId>orders123@buyer.example.com</eb3:RefToMessageId>
+                </eb3:MessageInfo>
+                <eb3:Receipt>
+                    <eb3:UserMessage xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                        <eb3:MessageInfo>
+                            <eb3:Timestamp>2009-05-21T10:49:28.886Z</eb3:Timestamp>
+                            <eb3:MessageId>orders123@buyer.example.com</eb3:MessageId>
+                        </eb3:MessageInfo>
+                        <eb3:PartyInfo>
+                            <eb3:From>
+                                <eb3:PartyId type="urn:oasis:names:tc:ebxml-cppa:partyid-type:0002"
+                                        >123456789</eb3:PartyId>
+                                <eb3:Role>Buyer</eb3:Role>
+                            </eb3:From>
+                            <eb3:To>
+                                <eb3:PartyId type="urn:oasis:names:tc:ebxml-cppa:partyid-type:0106"
+                                        >192837465</eb3:PartyId>
+                                <eb3:Role>Seller</eb3:Role>
+                            </eb3:To>
+                        </eb3:PartyInfo>
+                        <eb3:CollaborationInfo>
+                            <eb3:Service>Sales</eb3:Service>
+                            <eb3:Action>ProcessPurchaseOrder</eb3:Action>
+                            <eb3:ConversationId>ecae53d4-7473-45a6-ad70-61970dd7c4b0</eb3:ConversationId>
+                        </eb3:CollaborationInfo>
+                        <eb3:PayloadInfo>
+                            <eb3:PartInfo
+                                    href="cid:a1d7fdf5-d67e-403a-ad92-3b9deff25d43@buyer.example.com"/>
+                        </eb3:PayloadInfo>
+                    </eb3:UserMessage>
+                </eb3:Receipt>
+            </eb3:SignalMessage>
+        </eb3:Messaging>
+    </S12:Header>
+    <S12:Body/>
+</S12:Envelope>
