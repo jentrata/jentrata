@@ -3,6 +3,11 @@
 === Introduction
 Jentrata is an Open Standard based B2B Gateway that implements a number of messaging standards such as the AS4 Conformance Profile of the OASIS ebMS 3.0 specification.
 
+== Build Status
+
+image::https://jentrata.ci.cloudbees.com/job/jentrata-ci/badge/icon[CI Build Status, link="https://jentrata.ci.cloudbees.com/job/jentrata-ci/"]
+
+
 === Getting Started
 TODO
 
