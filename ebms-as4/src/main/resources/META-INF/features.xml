@@ -14,6 +14,7 @@
         <feature version="${camel.version}">camel-cxf</feature>
         <feature version="${camel.version}">camel-jms</feature>
         <feature version="${camel.version}">camel-spring</feature>
+        <feature version="${camel.version}">camel-freemarker</feature>
         <bundle dependency="true">wrap:mvn:org.apache.activemq/activemq-camel/${activemq.version}</bundle>
         <bundle dependency="true">mvn:commons-io/commons-io/${commons-io.version}</bundle>
         <bundle>mvn:${project.groupId}/${project.artifactId}/${project.version}</bundle>

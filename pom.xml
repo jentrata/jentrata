@@ -81,6 +81,7 @@
 
     <properties>
         <junit.version>4.10</junit.version>
+        <hamcrest.version>1.2.1</hamcrest.version>
         <slf4j.version>1.7.2</slf4j.version>
         <log4j.version>1.2.17</log4j.version>
         <karaf.version>2.3.1</karaf.version>
@@ -150,6 +151,11 @@
                 <version>${camel.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-freemarker</artifactId>
+                <version>${camel.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
                 <version>${commons-io.version}</version>
@@ -158,6 +164,18 @@
     </dependencyManagement>
 
     <dependencies>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-integration</artifactId>
+            <version>${hamcrest.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+            <version>${hamcrest.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
