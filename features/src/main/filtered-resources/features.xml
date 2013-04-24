@@ -1,0 +1,12 @@
+<features name="jentrata-features-${pom.version}" xmlns="http://karaf.apache.org/xmlns/features/v1.0.0">
+    <repository>mvn:org.jentrata/jentrata-ebms3-as4/${project.version}/xml/features</repository>
+
+    <feature name="jentrata-as4-core" version="${pom.version}">
+        <feature version="${pom.version}">jentrata-ebms3-as4</feature>
+    </feature>
+
+    <feature name="jentrata-postgres-store" version="${pom.version}">
+        <bundle dependency="true">mvn:postgresql/postgresql/${postgres.version}</bundle>
+    </feature>
+
+</features>

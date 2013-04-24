@@ -146,7 +146,7 @@
                                 <descriptor>mvn:org.apache.karaf.assemblies.features/standard/${karaf.version}/xml/features</descriptor>
                                 <descriptor>mvn:org.apache.camel.karaf/apache-camel/${camel.version}/xml/features</descriptor>
                                 <descriptor>mvn:org.apache.activemq/activemq-karaf/${activemq.version}/xml/features</descriptor>
-                                <descriptor>mvn:org.jentrata/jentrata-ebms3-as4/${project.version}/xml/features</descriptor>
+                                <descriptor>mvn:org.jentrata/jentrata-features/${project.version}/xml/features</descriptor>
                             </descriptors>
                             <features>
                                 <feature>config</feature>
@@ -154,7 +154,7 @@
                                 <feature>camel-context</feature>
                                 <feature>activemq-broker</feature>
                                 <feature>camel-cxf</feature>
-                                <feature>jentrata-ebms3-as4</feature>
+                                <feature>jentrata-as4-core</feature>
                             </features>
                             <includeMvnBasedDescriptors>true</includeMvnBasedDescriptors>
                             <repository>target/features-repo</repository>
