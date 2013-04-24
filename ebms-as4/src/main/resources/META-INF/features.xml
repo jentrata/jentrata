@@ -17,6 +17,8 @@
         <feature version="${camel.version}">camel-freemarker</feature>
         <bundle dependency="true">wrap:mvn:org.apache.activemq/activemq-camel/${activemq.version}</bundle>
         <bundle dependency="true">mvn:commons-io/commons-io/${commons-io.version}</bundle>
+        <bundle dependency="true">mvn:org.jentrata/jentrata-ebms3-msh-api/${project.version}</bundle>
+        <bundle dependency="true">mvn:org.jentrata/jentrata-ebms3-msh-file-store/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/${project.artifactId}/${project.version}</bundle>
     </feature>
 

@@ -6,16 +6,19 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.impl.DefaultExchange;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.apache.commons.io.IOUtils;
+import org.jentrata.ebms.messaging.MessageRef;
 import org.jentrata.ebms.messaging.MessageStore;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
 
 /**
  * Unit tests for org.jentrata.ebms.as4.internal.routes.MessageStoreRouteBuilder
@@ -35,7 +38,7 @@ public class MessageStoreRouteBuilderTest extends CamelTestSupport {
         String msgId = response.getIn().getHeader(MessageStore.JENTRATA_MESSAGE_ID, String.class);
         String msgStoreRef = response.getIn().getHeader(MessageStore.MESSAGE_STORE_REF,String.class);
         assertThat(msgId,equalTo(request.getIn().getMessageId()));
-        assertThat(IOUtils.toString(messageStore.findByMessageRef(msgStoreRef)),equalTo("test"));
+        assertThat(IOUtils.toString(messageStore.findByMessageRefId(msgStoreRef)),equalTo("test"));
     }
 
     @Override
@@ -58,7 +61,7 @@ public class MessageStoreRouteBuilderTest extends CamelTestSupport {
         }
 
         @Override
-        public InputStream findByMessageRef(Object messageRef) {
+        public InputStream findByMessageRefId(Object messageRef) {
             return messageStore.get(messageRef);
         }
     }

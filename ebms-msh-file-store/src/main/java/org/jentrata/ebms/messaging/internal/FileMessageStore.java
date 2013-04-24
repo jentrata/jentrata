@@ -31,8 +31,8 @@ public class FileMessageStore implements MessageStore {
             File outputFile = new File(baseDir,fileName);
             fos = new FileOutputStream(outputFile);
             IOUtils.copyLarge(input,fos);
-            exchange.getIn().setHeader(MESSAGE_STORE_REF,outputFile.getAbsolutePath());
-            exchange.getIn().setHeader(JENTRATA_MESSAGE_ID,exchange.getIn().getMessageId());
+            exchange.getIn().setHeader(MessageStore.MESSAGE_STORE_REF,outputFile.getAbsolutePath());
+            exchange.getIn().setHeader(MessageStore.JENTRATA_MESSAGE_ID,exchange.getIn().getMessageId());
         } catch (IOException e) {
             //throw this so it propergates back to the sender because if we can't persist message we shouldn't accept them
             throw new RuntimeException("currently unable to persist messages in message store " + e,e);
@@ -42,7 +42,7 @@ public class FileMessageStore implements MessageStore {
     }
 
     @Override
-    public InputStream findByMessageRef(Object messageRef) {
+    public InputStream findByMessageRefId(Object messageRef) {
         try {
             return new FileInputStream(new File((String) messageRef));
         } catch (FileNotFoundException e) {
@@ -68,5 +68,13 @@ public class FileMessageStore implements MessageStore {
 
     public void setFileNameExpression(String fileNameExpression) {
         this.fileNameExpression = fileNameExpression;
+    }
+
+    @Override
+    public String toString() {
+        return "FileMessageStore{" +
+                "baseDir='" + baseDir + '\'' +
+                ", fileNameExpression='" + fileNameExpression + '\'' +
+                '}';
     }
 }

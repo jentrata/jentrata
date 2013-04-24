@@ -1,6 +1,5 @@
 package org.jentrata.ebms.messaging;
 
-import org.apache.camel.Body;
 import org.apache.camel.Exchange;
 
 import java.io.InputStream;
@@ -17,7 +16,7 @@ public interface MessageStore {
     public static final String MESSAGE_STORE_REF = "JentrataMessageStoreRef";
     public static final String JENTRATA_MESSAGE_ID = "JentrataMessageId";
 
-    public void store(@Body InputStream input, Exchange exchange);
+    public void store(InputStream message, Exchange exchange);
 
-    public InputStream findByMessageRef(Object messageRef);
+    public InputStream findByMessageRefId(Object messageRefId);
 }

@@ -31,15 +31,12 @@
             <cm:property name="jentrata.ebms.inbound.endpoint" value="jetty:http://0.0.0.0:8081/jentrata/ebms/inbound"/>
             <cm:property name="jentrata.ebms.inbound.queue" value="activemq:queue:jentrata_internal_ebms_inbound"/>
             <cm:property name="jentrata.message.store.location" value="./data/jentrata/messageStore"/>
-
         </cm:default-properties>
     </cm:property-placeholder>
 
-    <bean id="messageDetector" class="org.jentrata.ebms.messaging.MessageDetector"/>
+    <reference id="messageStore" interface="org.jentrata.ebms.messaging.MessageStore"/>
 
-    <bean id="messageStore" class="org.jentrata.ebms.messaging.internal.FileMessageStore">
-        <property name="baseDir" value="${jentrata.message.store.location}"/>
-    </bean>
+    <bean id="messageDetector" class="org.jentrata.ebms.internal.messaging.MessageDetector"/>
 
     <bean id="messageStoreRouteBuilder" class="org.jentrata.ebms.as4.internal.routes.MessageStoreRouteBuilder">
         <property name="messageStore" ref="messageStore"/>

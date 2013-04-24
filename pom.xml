@@ -101,12 +101,20 @@
     </properties>
 
     <modules>
+        <module>ebms-msh-api</module>
+        <module>ebms-msh-file-store</module>
         <module>ebms-as4</module>
         <module>dist</module>
     </modules>
 
     <dependencyManagement>
         <dependencies>
+            <!-- Modules -->
+            <dependency>
+                <groupId>org.jentrata</groupId>
+                <artifactId>jentrata-ebms3-msh-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>

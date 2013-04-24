@@ -31,10 +31,19 @@
     <description>Implementation of the ebMS 3.0 AS4 Conformance profile version 1.0</description>
 
     <properties>
-        <osgi.private>org.jentrata.*</osgi.private>
+        <osgi.private>org.jentrata.ebms.*</osgi.private>
+        <osgi.import>
+            org.jentrata.ebms;version=${project.version},
+            org.jentrata.ebms.messaging;version=${project.version},
+            *
+        </osgi.import>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.jentrata</groupId>
+            <artifactId>jentrata-ebms3-msh-api</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-core</artifactId>

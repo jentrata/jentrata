@@ -1,4 +1,4 @@
-package org.jentrata.ebms.messaging;
+package org.jentrata.ebms.internal.messaging;
 
 import org.apache.camel.Body;
 import org.apache.camel.Headers;

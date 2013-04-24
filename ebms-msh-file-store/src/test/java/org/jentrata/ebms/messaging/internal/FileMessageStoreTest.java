@@ -6,7 +6,6 @@ import org.apache.camel.impl.DefaultExchange;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.apache.commons.io.IOUtils;
 import org.jentrata.ebms.EbmsConstants;
-import org.jentrata.ebms.as4.internal.routes.MessageStoreRouteBuilder;
 import org.jentrata.ebms.messaging.MessageStore;
 import org.junit.Test;
 
@@ -35,7 +34,7 @@ public class FileMessageStoreTest extends CamelTestSupport {
         String msgId = response.getIn().getHeader(MessageStore.JENTRATA_MESSAGE_ID, String.class);
         Object msgStoreRef = response.getIn().getHeader(MessageStore.MESSAGE_STORE_REF);
         assertThat(msgId,equalTo(request.getIn().getMessageId()));
-        assertThat(IOUtils.toString(messageStore.findByMessageRef(msgStoreRef)),equalTo("test"));
+        assertThat(IOUtils.toString(messageStore.findByMessageRefId(msgStoreRef)),equalTo("test"));
     }
 
     @Override
@@ -43,8 +42,13 @@ public class FileMessageStoreTest extends CamelTestSupport {
         messageStore = new FileMessageStore();
         baseDir = System.getProperty("java.io.tmpdir");
         messageStore.setBaseDir(baseDir);
-        MessageStoreRouteBuilder routeBuilder = new MessageStoreRouteBuilder();
-        routeBuilder.setMessageStore(messageStore);
-        return routeBuilder;
+        return new RouteBuilder() {
+            @Override
+            public void configure() throws Exception {
+            from(MessageStore.DEFAULT_MESSAGE_STORE_ENDPOINT)
+                    .bean(messageStore,"store")
+                    .routeId("_jentrataMessageStoreTest");
+            }
+        };
     }
 }

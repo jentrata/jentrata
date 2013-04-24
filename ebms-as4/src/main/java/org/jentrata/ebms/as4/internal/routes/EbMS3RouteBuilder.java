@@ -2,24 +2,12 @@ package org.jentrata.ebms.as4.internal.routes;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
-import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.freemarker.FreemarkerConstants;
-import org.apache.camel.spi.DataFormat;
 import org.jentrata.ebms.EbmsConstants;
-import org.jentrata.ebms.messaging.MessageDetector;
+import org.jentrata.ebms.internal.messaging.MessageDetector;
 import org.jentrata.ebms.messaging.MessageStore;
 import org.jentrata.ebms.soap.SoapMessageDataFormat;
-import org.w3c.dom.Document;
-
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.MimeHeaders;
-import javax.xml.soap.SOAPConstants;
-import javax.xml.soap.SOAPHeader;
-import javax.xml.soap.SOAPMessage;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Iterator;
 
 /**
  * Exposes an HTTP endpoint that consumes AS4 Messages
@@ -60,7 +48,7 @@ public class EbMS3RouteBuilder extends RouteBuilder {
              .end()
             .bean(messageDetector, "parse") //Determine what type of message it is for example SOAP 1.1 or SOAP 1.2 ebms2 or ebms3 etc
             .to(messgeStoreEndpoint) //essentially we claim check the raw incoming message/payload
-            .unmarshal(new SoapMessageDataFormat())
+            .unmarshal(new SoapMessageDataFormat()) //extract the SOAP Envelope as set it has the message body
             .convertBodyTo(String.class)
             .choice()
                 .when(header(EbmsConstants.EBMS_VERSION).isEqualTo(EbmsConstants.EBMS_V3))
