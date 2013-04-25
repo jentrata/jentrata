@@ -8,6 +8,7 @@ import javax.xml.soap.SOAPConstants;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Determines ebxml message types and versions and set header attributes accordingly
@@ -39,6 +40,9 @@ public class MessageDetector {
                 //next determine what version of ebms message is it, by default assume ebms V2
                 String ebmsVersion = msg.contains(EbmsConstants.EBXML_V3_NAMESPACE) ? EbmsConstants.EBMS_V3 : EbmsConstants.EBMS_V2;
                 headers.put(EbmsConstants.EBMS_VERSION,ebmsVersion);
+
+                //TODO: replace this with something that extracts this from the incoming message
+                headers.put(EbmsConstants.MESSAGE_ID,UUID.randomUUID().toString());
             }
         } finally {
             input.reset();

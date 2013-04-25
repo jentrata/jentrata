@@ -1,5 +1,7 @@
 package org.jentrata.ebms;
 
+import org.apache.camel.Exchange;
+
 public class EbmsConstants {
 
     //Jentrata Message Header keys
@@ -18,4 +20,11 @@ public class EbmsConstants {
     public static final String EBMS_V2 = "ebMSV2";
     public static final String EBMS_V3 = "ebMSV3";
 
+    public static final String CONTENT_ID = "Content-ID";
+    public static final String CONTENT_TYPE = Exchange.CONTENT_TYPE;
+    public static final String CONTENT_LENGTH = Exchange.CONTENT_LENGTH;
+
+    public static final String MESSAGE_ID = "JentrataMessageID";
+    public static final String MESSAGE_DIRECTION = "JentrataMessageDirection";
+    public static final String MESSAGE_DIRECTION_INBOUND = "inbox";
 }

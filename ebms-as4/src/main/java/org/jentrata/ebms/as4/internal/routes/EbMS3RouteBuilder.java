@@ -42,6 +42,7 @@ public class EbMS3RouteBuilder extends RouteBuilder {
                 .to("direct:errorHandler")
              .end()
             .log(LoggingLevel.INFO, "Request:${headers}")
+            .setHeader(EbmsConstants.MESSAGE_DIRECTION,constant(EbmsConstants.MESSAGE_DIRECTION_INBOUND))
             .choice()
                 .when(header(Exchange.HTTP_METHOD).isNotEqualTo("POST"))
                     .throwException(new UnsupportedOperationException("Http Method Not Allowed"))
