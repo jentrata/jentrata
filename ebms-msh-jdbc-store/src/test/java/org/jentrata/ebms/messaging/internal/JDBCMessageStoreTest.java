@@ -34,16 +34,6 @@ public class JDBCMessageStoreTest extends CamelTestSupport {
 
     private JdbcConnectionPool dataSource;
 
-    @Before
-    public void setup() {
-        dataSource = JdbcConnectionPool.create("jdbc:h2:mem:test", "sa", "sa");
-    }
-
-    @After
-    public void tearDown() {
-        dataSource.dispose();
-    }
-
     @Test
     public void testShouldCreateMessageStoreTablesByDefault() throws Exception {
         try(Connection conn = dataSource.getConnection()) {
@@ -92,7 +82,8 @@ public class JDBCMessageStoreTest extends CamelTestSupport {
 
     @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
-        dataSource = JdbcConnectionPool.create("jdbc:h2:mem:test", "sa", "sa");
+        dataSource = JdbcConnectionPool.create("jdbc:h2:mem:" + getTestMethodName(), "sa", "sa");
+        assertThatTableDoesNotExist("repository");
         RepositoryManagerFactory repositoryManagerFactory = new RepositoryManagerFactory();
         repositoryManagerFactory.setDataSource(dataSource);
         final JDBCMessageStore messageStore = new JDBCMessageStore();
@@ -106,6 +97,17 @@ public class JDBCMessageStoreTest extends CamelTestSupport {
                 .routeId("testPostsgresMessageStore");
             }
         };
+    }
+
+    private void assertThatTableDoesNotExist(String tableName) throws SQLException {
+        try(Connection conn = dataSource.getConnection()) {
+            try (Statement st = conn.createStatement()) {
+                ResultSet resultSet = st.executeQuery("select count(*) from " + tableName);
+                fail("DB tables shouldn't exists");
+            } catch (SQLException ex) {
+
+            }
+        }
     }
 
     private static void assertTableGotCreated(Statement st, String tableName) throws SQLException {
