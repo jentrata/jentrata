@@ -5,6 +5,8 @@ import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.freemarker.FreemarkerConstants;
 import org.jentrata.ebms.EbmsConstants;
+import org.jentrata.ebms.MessageStatusType;
+import org.jentrata.ebms.messaging.SplitAttachmentsToBody;
 import org.jentrata.ebms.internal.messaging.MessageDetector;
 import org.jentrata.ebms.messaging.MessageStore;
 import org.jentrata.ebms.soap.SoapMessageDataFormat;
@@ -18,9 +20,9 @@ public class EbMS3RouteBuilder extends RouteBuilder {
 
     private String ebmsHttpEndpoint = "jetty:http://0.0.0.0:8081/jentrata/ebms/inbound";
     private String inboundEbmsQueue = "activemq:queue:jentrata_internal_ebms_inbound";
+    private String inboundEbmsPayloadQueue = "activemq:queue:jentrata_internal_ebms_inbound_payload";
     private String messgeStoreEndpoint = MessageStore.DEFAULT_MESSAGE_STORE_ENDPOINT;
     private String validateTradingPartner = "direct:validatePartner";
-
     private MessageDetector messageDetector;
 
     @Override
@@ -31,7 +33,7 @@ public class EbMS3RouteBuilder extends RouteBuilder {
             .onException(UnsupportedOperationException.class)
                 .handled(true)
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(405))
-                .setHeader("Allow",constant("POST"))
+                .setHeader("Allow", constant("POST"))
                 .to("direct:errorHandler")
             .end()
             .onException(Exception.class)
@@ -42,7 +44,7 @@ public class EbMS3RouteBuilder extends RouteBuilder {
                 .to("direct:errorHandler")
              .end()
             .log(LoggingLevel.INFO, "Request:${headers}")
-            .setHeader(EbmsConstants.MESSAGE_DIRECTION,constant(EbmsConstants.MESSAGE_DIRECTION_INBOUND))
+            .setHeader(EbmsConstants.MESSAGE_DIRECTION, constant(EbmsConstants.MESSAGE_DIRECTION_INBOUND))
             .choice()
                 .when(header(Exchange.HTTP_METHOD).isNotEqualTo("POST"))
                     .throwException(new UnsupportedOperationException("Http Method Not Allowed"))
@@ -50,17 +52,25 @@ public class EbMS3RouteBuilder extends RouteBuilder {
             .bean(messageDetector, "parse") //Determine what type of message it is for example SOAP 1.1 or SOAP 1.2 ebms2 or ebms3 etc
             .to(messgeStoreEndpoint) //essentially we claim check the raw incoming message/payload
             .unmarshal(new SoapMessageDataFormat()) //extract the SOAP Envelope as set it has the message body
+            .setHeader(EbmsConstants.MESSAGE_STATUS,constant(MessageStatusType.RECEIVED.name()))
             .convertBodyTo(String.class)
             .choice()
                 .when(header(EbmsConstants.EBMS_VERSION).isEqualTo(EbmsConstants.EBMS_V3))
                     .to(validateTradingPartner)
-                    .inOnly(inboundEbmsQueue)
+                    .to("direct:processPayloads")
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(204))
-                    .setBody(constant(null))
+
                     .to("direct:removeHeaders")
                 .otherwise()
                     .throwException(new UnsupportedOperationException("currently only ebMS V3.0 is supported by Jentrata"))
         .routeId("_jentrataEbmsInbound");
+
+        from("direct:processPayloads")
+                .inOnly(inboundEbmsQueue)
+                .setBody(constant(null))
+                .split(new SplitAttachmentsToBody(false,false))
+                    .inOnly(inboundEbmsPayloadQueue)
+        .routeId("_jentrataEbmsPayloadProcessing");
 
         from("direct:errorHandler")
             .to("direct:removeHeaders")
@@ -95,6 +105,14 @@ public class EbMS3RouteBuilder extends RouteBuilder {
 
     public void setInboundEbmsQueue(String inboundEbmsQueue) {
         this.inboundEbmsQueue = inboundEbmsQueue;
+    }
+
+    public String getInboundEbmsPayloadQueue() {
+        return inboundEbmsPayloadQueue;
+    }
+
+    public void setInboundEbmsPayloadQueue(String inboundEbmsPayloadQueue) {
+        this.inboundEbmsPayloadQueue = inboundEbmsPayloadQueue;
     }
 
     public String getMessgeStoreEndpoint() {

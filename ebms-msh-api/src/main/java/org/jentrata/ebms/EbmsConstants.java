@@ -27,4 +27,5 @@ public class EbmsConstants {
     public static final String MESSAGE_ID = "JentrataMessageID";
     public static final String MESSAGE_DIRECTION = "JentrataMessageDirection";
     public static final String MESSAGE_DIRECTION_INBOUND = "inbox";
+    public static final String MESSAGE_STATUS = "JentrataMessageStatus";
 }

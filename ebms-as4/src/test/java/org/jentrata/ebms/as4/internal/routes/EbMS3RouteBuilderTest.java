@@ -31,9 +31,13 @@ public class EbMS3RouteBuilderTest extends CamelTestSupport {
     @EndpointInject(uri = "mock:mockEbmsInbound")
     protected MockEndpoint mockEbmsInbound;
 
+    @EndpointInject(uri = "mock:mockEbmsInboundPayload")
+    protected MockEndpoint mockEbmsInboundPayload;
+
     @Test
     public void testValidMultipartEBM3UserMessage() throws Exception {
         mockEbmsInbound.setExpectedMessageCount(1);
+        mockEbmsInboundPayload.setExpectedMessageCount(1);
 
         Exchange request = new DefaultExchange(context());
         request.getIn().setHeader(Exchange.CONTENT_TYPE,"Multipart/Related; boundary=\"----=_Part_7_10584188.1123489648993\"; type=\"application/soap+xml\"; start=\"<soapPart@jentrata.org>\"");
@@ -64,6 +68,7 @@ public class EbMS3RouteBuilderTest extends CamelTestSupport {
     @Test
     public void testValidEBM3ReceiptMessage() throws Exception {
         mockEbmsInbound.setExpectedMessageCount(1);
+        mockEbmsInboundPayload.setExpectedMessageCount(0);
 
         Exchange request = new DefaultExchange(context());
         request.getIn().setHeader(Exchange.CONTENT_TYPE,"application/soap+xml");
@@ -104,6 +109,7 @@ public class EbMS3RouteBuilderTest extends CamelTestSupport {
         EbMS3RouteBuilder routeBuilder = new EbMS3RouteBuilder();
         routeBuilder.setEbmsHttpEndpoint("direct:testEbmsInbound");
         routeBuilder.setInboundEbmsQueue(mockEbmsInbound.getEndpointUri());
+        routeBuilder.setInboundEbmsPayloadQueue(mockEbmsInboundPayload.getEndpointUri());
         routeBuilder.setMessageDetector(new MessageDetector());
         return new RouteBuilder[] {
                 routeBuilder,
