@@ -10,6 +10,8 @@ import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.messaging.MessageStore;
 import org.jentrata.ebms.messaging.internal.sql.RepositoryManager;
 import org.jentrata.ebms.messaging.internal.sql.RepositoryManagerFactory;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
@@ -31,6 +33,16 @@ import static org.hamcrest.CoreMatchers.*;
 public class JDBCMessageStoreTest extends CamelTestSupport {
 
     private JdbcConnectionPool dataSource;
+
+    @Before
+    public void setup() {
+        dataSource = JdbcConnectionPool.create("jdbc:h2:mem:test", "sa", "sa");
+    }
+
+    @After
+    public void tearDown() {
+        dataSource.dispose();
+    }
 
     @Test
     public void testShouldCreateMessageStoreTablesByDefault() throws Exception {
@@ -94,14 +106,6 @@ public class JDBCMessageStoreTest extends CamelTestSupport {
                 .routeId("testPostsgresMessageStore");
             }
         };
-    }
-
-    @Override
-    protected void stopCamelContext() throws Exception {
-        super.stopCamelContext();
-        if(dataSource != null) {
-            dataSource.dispose();
-        }
     }
 
     private static void assertTableGotCreated(Statement st, String tableName) throws SQLException {
