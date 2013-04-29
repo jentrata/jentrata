@@ -26,15 +26,19 @@ public class EbmsConstants {
     public static final String CONTENT_LENGTH = Exchange.CONTENT_LENGTH;
     public static final String CONTENT_TYPE = Exchange.CONTENT_TYPE;
 
+    public static final String SOAP_XML_CONTENT_TYPE = "application/soap+xml";
+
     public static final String MESSAGE_ID = "JentrataMessageID";
     public static final String REF_TO_MESSAGE_ID = "JentrataRefMessageID";
     public static final String MESSAGE_FROM = "JentrataFrom";
     public static final String MESSAGE_TO = "JentrataTo";
     public static final String MESSAGE_DIRECTION = "JentrataMessageDirection";
     public static final String MESSAGE_DIRECTION_INBOUND = "inbox";
+    public static final String MESSAGE_DIRECTION_OUTBOUND = "outbox";
     public static final String MESSAGE_STATUS = "JentrataMessageStatus";
     public static final String MESSAGE_TYPE = "JentrataMessageType";
     public static final String MESSAGE_SERVICE = "JentrataService";
     public static final String MESSAGE_ACTION = "JentrataAction";
     public static final String MESSAGE_CONVERSATION_ID = "JentrataConversationId";
+    public static final String CPA_ID = "JentrataCPAId";
 }
