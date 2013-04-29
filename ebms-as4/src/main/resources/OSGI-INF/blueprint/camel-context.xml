@@ -38,18 +38,21 @@
 
     <bean id="messageDetector" class="org.jentrata.ebms.internal.messaging.MessageDetector"/>
 
+    <bean id="uuidGenerator" class="org.jentrata.ebms.messaging.UUIDGenerator"/>
+
     <bean id="messageStoreRouteBuilder" class="org.jentrata.ebms.as4.internal.routes.MessageStoreRouteBuilder">
         <property name="messageStore" ref="messageStore"/>
     </bean>
 
     <bean id="validatePartnerAgreementRouteBuilder" class="org.jentrata.ebms.as4.internal.routes.ValidatePartnerAgreementRouteBuilder"/>
 
-    <bean id="ebms3RouteBuilder" class="org.jentrata.ebms.as4.internal.routes.EbMS3InboundRouteBuilder">
+    <bean id="ebmsInboundRouteBuilder" class="org.jentrata.ebms.as4.internal.routes.EbMS3InboundRouteBuilder">
         <property name="ebmsHttpEndpoint" value="${jentrata.ebms.inbound.endpoint}"/>
         <property name="inboundEbmsQueue" value="${jentrata.ebms.inbound.queue}"/>
         <property name="messageDetector" ref="messageDetector"/>
-
     </bean>
+
+    <bean id="ebmsSignalMessageRouteBuilder" class="org.jentrata.ebms.as4.internal.routes.EbmsSignalMessageRouteBuilder"/>
 
     <bean id="jmsConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
         <property name="brokerURL" value="${activemq.broker.url}" />
