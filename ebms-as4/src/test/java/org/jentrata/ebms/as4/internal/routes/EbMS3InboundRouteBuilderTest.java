@@ -66,6 +66,9 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
         assertThat(msg.getHeader(EbmsConstants.REF_TO_MESSAGE_ID,String.class),nullValue());
         assertThat(msg.getHeader(EbmsConstants.MESSAGE_TO,String.class),equalTo("5209999001295"));
         assertThat(msg.getHeader(EbmsConstants.MESSAGE_FROM,String.class),equalTo("5209999001264"));
+        assertThat(msg.getHeader(EbmsConstants.MESSAGE_SERVICE,String.class),equalTo("http://docs.oasis-open.org/ebxml-msg/as4/200902/service"));
+        assertThat(msg.getHeader(EbmsConstants.MESSAGE_ACTION,String.class),equalTo("http://docs.oasis-open.org/ebxml-msg/as4/200902/action"));
+        assertThat(msg.getHeader(EbmsConstants.MESSAGE_CONVERSATION_ID,String.class),equalTo("2011-921"));
 
         String message = msg.getBody(String.class);
         assertThat(message,notNullValue());
@@ -103,6 +106,9 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
         assertThat(msg.getHeader(EbmsConstants.REF_TO_MESSAGE_ID,String.class),equalTo("orders123@buyer.jentrata.org"));
         assertThat(msg.getHeader(EbmsConstants.MESSAGE_FROM,String.class),equalTo("123456789"));
         assertThat(msg.getHeader(EbmsConstants.MESSAGE_TO,String.class),equalTo("192837465"));
+        assertThat(msg.getHeader(EbmsConstants.MESSAGE_SERVICE,String.class),equalTo("Sales"));
+        assertThat(msg.getHeader(EbmsConstants.MESSAGE_ACTION,String.class),equalTo("ProcessPurchaseOrder"));
+        assertThat(msg.getHeader(EbmsConstants.MESSAGE_CONVERSATION_ID,String.class),equalTo("ecae53d4-7473-45a6-ad70-61970dd7c4b0"));
         String message = msg.getBody(String.class);
         assertThat(message,notNullValue());
         assertStringContains(message, "<S12:Envelope xmlns:S12=\"http://www.w3.org/2003/05/soap-envelope\"");

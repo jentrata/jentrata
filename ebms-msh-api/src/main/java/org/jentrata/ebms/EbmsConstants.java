@@ -20,9 +20,11 @@ public class EbmsConstants {
     public static final String EBMS_V2 = "ebMSV2";
     public static final String EBMS_V3 = "ebMSV3";
 
+    public static final String EBMS_RECEIPT_REQUIRED = "JentrataReceiptRequired";
+
     public static final String CONTENT_ID = "Content-ID";
-    public static final String CONTENT_TYPE = Exchange.CONTENT_TYPE;
     public static final String CONTENT_LENGTH = Exchange.CONTENT_LENGTH;
+    public static final String CONTENT_TYPE = Exchange.CONTENT_TYPE;
 
     public static final String MESSAGE_ID = "JentrataMessageID";
     public static final String REF_TO_MESSAGE_ID = "JentrataRefMessageID";
@@ -32,4 +34,7 @@ public class EbmsConstants {
     public static final String MESSAGE_DIRECTION_INBOUND = "inbox";
     public static final String MESSAGE_STATUS = "JentrataMessageStatus";
     public static final String MESSAGE_TYPE = "JentrataMessageType";
+    public static final String MESSAGE_SERVICE = "JentrataService";
+    public static final String MESSAGE_ACTION = "JentrataAction";
+    public static final String MESSAGE_CONVERSATION_ID = "JentrataConversationId";
 }
