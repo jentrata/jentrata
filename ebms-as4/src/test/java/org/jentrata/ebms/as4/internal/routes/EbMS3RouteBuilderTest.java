@@ -34,10 +34,15 @@ public class EbMS3RouteBuilderTest extends CamelTestSupport {
     @EndpointInject(uri = "mock:mockEbmsInboundPayload")
     protected MockEndpoint mockEbmsInboundPayload;
 
+    @EndpointInject(uri = "mock:mockEbmsInboundSignals")
+    protected MockEndpoint mockEbmsInboundSignals;
+
     @Test
     public void testValidMultipartEBM3UserMessage() throws Exception {
         mockEbmsInbound.setExpectedMessageCount(1);
         mockEbmsInboundPayload.setExpectedMessageCount(1);
+        mockEbmsInboundSignals.setExpectedMessageCount(0);
+
 
         Exchange request = new DefaultExchange(context());
         request.getIn().setHeader(Exchange.CONTENT_TYPE,"Multipart/Related; boundary=\"----=_Part_7_10584188.1123489648993\"; type=\"application/soap+xml\"; start=\"<soapPart@jentrata.org>\"");
@@ -72,8 +77,9 @@ public class EbMS3RouteBuilderTest extends CamelTestSupport {
 
     @Test
     public void testValidEBM3ReceiptMessage() throws Exception {
-        mockEbmsInbound.setExpectedMessageCount(1);
+        mockEbmsInbound.setExpectedMessageCount(0);
         mockEbmsInboundPayload.setExpectedMessageCount(0);
+        mockEbmsInboundSignals.setExpectedMessageCount(1);
 
         Exchange request = new DefaultExchange(context());
         request.getIn().setHeader(Exchange.CONTENT_TYPE,"application/soap+xml");
@@ -87,7 +93,7 @@ public class EbMS3RouteBuilderTest extends CamelTestSupport {
         assertThat("should have gotten http 204 response code",response.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE,Integer.class),equalTo(204));
         assertThat("should have gotten no content in the http response",response.getIn().getBody(),nullValue());
 
-        Message msg = mockEbmsInbound.getExchanges().get(0).getIn();
+        Message msg = mockEbmsInboundSignals.getExchanges().get(0).getIn();
         assertThat(msg.getBody(), notNullValue());
         assertThat(msg.getBody(),instanceOf(String.class));
         assertThat(msg.getHeader(EbmsConstants.SOAP_VERSION, String.class),equalTo(SOAPConstants.SOAP_1_2_PROTOCOL));
@@ -120,6 +126,7 @@ public class EbMS3RouteBuilderTest extends CamelTestSupport {
         routeBuilder.setEbmsHttpEndpoint("direct:testEbmsInbound");
         routeBuilder.setInboundEbmsQueue(mockEbmsInbound.getEndpointUri());
         routeBuilder.setInboundEbmsPayloadQueue(mockEbmsInboundPayload.getEndpointUri());
+        routeBuilder.setInboundEbmsSignalsQueue(mockEbmsInboundSignals.getEndpointUri());
         routeBuilder.setMessageDetector(new MessageDetector());
         return new RouteBuilder[] {
                 routeBuilder,

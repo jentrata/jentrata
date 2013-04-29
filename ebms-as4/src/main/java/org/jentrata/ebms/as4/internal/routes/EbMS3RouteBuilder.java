@@ -7,6 +7,7 @@ import org.apache.camel.builder.xml.Namespaces;
 import org.apache.camel.component.freemarker.FreemarkerConstants;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.MessageStatusType;
+import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.messaging.SplitAttachmentsToBody;
 import org.jentrata.ebms.internal.messaging.MessageDetector;
 import org.jentrata.ebms.messaging.MessageStore;
@@ -22,6 +23,7 @@ public class EbMS3RouteBuilder extends RouteBuilder {
     private String ebmsHttpEndpoint = "jetty:http://0.0.0.0:8081/jentrata/ebms/inbound";
     private String inboundEbmsQueue = "activemq:queue:jentrata_internal_ebms_inbound";
     private String inboundEbmsPayloadQueue = "activemq:queue:jentrata_internal_ebms_inbound_payload";
+    private String inboundEbmsSignalsQueue = "activemq:queue:jentrata_internal_ebms_inbound_signals";
     private String messgeStoreEndpoint = MessageStore.DEFAULT_MESSAGE_STORE_ENDPOINT;
     private String validateTradingPartner = "direct:validatePartner";
     private MessageDetector messageDetector;
@@ -57,25 +59,32 @@ public class EbMS3RouteBuilder extends RouteBuilder {
             .to(messgeStoreEndpoint) //essentially we claim check the raw incoming message/payload
             .unmarshal(new SoapMessageDataFormat()) //extract the SOAP Envelope as set it has the message body
             .setHeader(EbmsConstants.MESSAGE_STATUS, constant(MessageStatusType.RECEIVED.name()))
-            .setHeader(EbmsConstants.MESSAGE_TO,ns.xpath("//eb3:To/eb3:PartyId/text()",String.class))
-            .setHeader(EbmsConstants.MESSAGE_FROM, ns.xpath("//eb3:From/eb3:PartyId/text()",String.class))
+            .setHeader(EbmsConstants.MESSAGE_TO, ns.xpath("//eb3:To/eb3:PartyId/text()", String.class))
+            .setHeader(EbmsConstants.MESSAGE_FROM, ns.xpath("//eb3:From/eb3:PartyId/text()", String.class))
             .choice()
                 .when(header(EbmsConstants.EBMS_VERSION).isEqualTo(EbmsConstants.EBMS_V3))
                     .to(validateTradingPartner)
                     .to("direct:processPayloads")
+                    .setBody(constant(null))
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(204))
                     .to("direct:removeHeaders")
-                    .setHeader("X-Jentrata-Version",simple("${sys.jentrataVersion}"))
+                    .setHeader("X-Jentrata-Version", simple("${sys.jentrataVersion}"))
                 .otherwise()
                     .throwException(new UnsupportedOperationException("currently only ebMS V3.0 is supported by Jentrata"))
         .routeId("_jentrataEbmsInbound");
 
         from("direct:processPayloads")
             .convertBodyTo(String.class)
-            .inOnly(inboundEbmsQueue)
-            .setBody(constant(null))
-            .split(new SplitAttachmentsToBody(false,false))
-                .inOnly(inboundEbmsPayloadQueue)
+             .choice()
+                .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.SIGNAL_MESSAGE))
+                    .inOnly(inboundEbmsSignalsQueue)
+                .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.SIGNAL_MESSAGE_WITH_USER_MESSAGE))
+                    .inOnly(inboundEbmsSignalsQueue)
+                .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.USER_MESSAGE))
+                    .inOnly(inboundEbmsQueue)
+                    .setBody(constant(null))
+                    .split(new SplitAttachmentsToBody(false, false))
+                        .inOnly(inboundEbmsPayloadQueue)
         .routeId("_jentrataEbmsPayloadProcessing");
 
         from("direct:errorHandler")
@@ -83,7 +92,7 @@ public class EbMS3RouteBuilder extends RouteBuilder {
             .setHeader("CamelException",simple("${exception.message}"))
             .setHeader("CamelExceptionStackTrace",simple("${exception.stacktrace}"))
             .setHeader("X-JentrataVersion",simple("${sys.jentrataVersion}"))
-            .setHeader(FreemarkerConstants.FREEMARKER_RESOURCE_URI,simple("html/${headers.CamelHttpResponseCode}.html"))
+            .setHeader(FreemarkerConstants.FREEMARKER_RESOURCE_URI, simple("html/${headers.CamelHttpResponseCode}.html"))
             .to("freemarker:html/500.html")
         .end()
         .routeId("_jentrataErrorHandler");
@@ -123,6 +132,14 @@ public class EbMS3RouteBuilder extends RouteBuilder {
 
     public void setInboundEbmsPayloadQueue(String inboundEbmsPayloadQueue) {
         this.inboundEbmsPayloadQueue = inboundEbmsPayloadQueue;
+    }
+
+    public String getInboundEbmsSignalsQueue() {
+        return inboundEbmsSignalsQueue;
+    }
+
+    public void setInboundEbmsSignalsQueue(String inboundEbmsSignalsQueue) {
+        this.inboundEbmsSignalsQueue = inboundEbmsSignalsQueue;
     }
 
     public String getMessgeStoreEndpoint() {
