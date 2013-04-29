@@ -65,6 +65,8 @@ public class SplitAttachmentsToBody extends ExpressionAdapter {
             String messageMEP = exchange.getIn().getHeader(EbmsConstants.EBMS_MESSAGE_MEP,String.class);
             String messageVersion = exchange.getIn().getHeader(EbmsConstants.EBMS_VERSION,String.class);
             String messageStatus = exchange.getIn().getHeader(EbmsConstants.MESSAGE_STATUS,String.class);
+            String messageFrom = exchange.getIn().getHeader(EbmsConstants.MESSAGE_FROM,String.class);
+            String messageTo = exchange.getIn().getHeader(EbmsConstants.MESSAGE_TO,String.class);
 
             // get the content and convert it to byte[]
             byte[] data;
@@ -81,7 +83,8 @@ public class SplitAttachmentsToBody extends ExpressionAdapter {
             copy.setHeader(EbmsConstants.MESSAGE_DIRECTION, messageDirection);
             copy.setHeader(EbmsConstants.EBMS_VERSION, messageVersion);
             copy.setHeader(EbmsConstants.MESSAGE_STATUS, messageStatus);
-
+            copy.setHeader(EbmsConstants.MESSAGE_FROM, messageFrom);
+            copy.setHeader(EbmsConstants.MESSAGE_TO, messageTo);
 
             copy.setBody(data);
             if(copyOriginalMessage) {

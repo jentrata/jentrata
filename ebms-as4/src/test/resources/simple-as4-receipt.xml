@@ -12,14 +12,14 @@
             <eb3:SignalMessage>
                 <eb3:MessageInfo>
                     <eb3:Timestamp>2012-02-05T19:43:11.735Z</eb3:Timestamp>
-                    <eb3:MessageId>someuniqueid@receiver.example.com</eb3:MessageId>
-                    <eb3:RefToMessageId>orders123@buyer.example.com</eb3:RefToMessageId>
+                    <eb3:MessageId>someuniqueid@receiver.jentrata.org</eb3:MessageId>
+                    <eb3:RefToMessageId>orders123@buyer.jentrata.org</eb3:RefToMessageId>
                 </eb3:MessageInfo>
                 <eb3:Receipt>
                     <eb3:UserMessage xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
                         <eb3:MessageInfo>
                             <eb3:Timestamp>2009-05-21T10:49:28.886Z</eb3:Timestamp>
-                            <eb3:MessageId>orders123@buyer.example.com</eb3:MessageId>
+                            <eb3:MessageId>orders123@buyer.jentrata.org</eb3:MessageId>
                         </eb3:MessageInfo>
                         <eb3:PartyInfo>
                             <eb3:From>
@@ -40,7 +40,7 @@
                         </eb3:CollaborationInfo>
                         <eb3:PayloadInfo>
                             <eb3:PartInfo
-                                    href="cid:a1d7fdf5-d67e-403a-ad92-3b9deff25d43@buyer.example.com"/>
+                                    href="cid:a1d7fdf5-d67e-403a-ad92-3b9deff25d43@buyer.jentrata.org"/>
                         </eb3:PayloadInfo>
                     </eb3:UserMessage>
                 </eb3:Receipt>

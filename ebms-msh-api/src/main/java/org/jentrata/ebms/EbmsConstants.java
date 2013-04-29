@@ -25,7 +25,11 @@ public class EbmsConstants {
     public static final String CONTENT_LENGTH = Exchange.CONTENT_LENGTH;
 
     public static final String MESSAGE_ID = "JentrataMessageID";
+    public static final String REF_TO_MESSAGE_ID = "JentrataRefMessageID";
+    public static final String MESSAGE_FROM = "JentrataFrom";
+    public static final String MESSAGE_TO = "JentrataTo";
     public static final String MESSAGE_DIRECTION = "JentrataMessageDirection";
     public static final String MESSAGE_DIRECTION_INBOUND = "inbox";
     public static final String MESSAGE_STATUS = "JentrataMessageStatus";
+    public static final String MESSAGE_TYPE = "JentrataMessageType";
 }

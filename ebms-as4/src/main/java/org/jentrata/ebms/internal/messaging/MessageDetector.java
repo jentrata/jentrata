@@ -3,12 +3,15 @@ package org.jentrata.ebms.internal.messaging;
 import org.apache.camel.Body;
 import org.apache.camel.Headers;
 import org.jentrata.ebms.EbmsConstants;
+import org.jentrata.ebms.MessageType;
 
 import javax.xml.soap.SOAPConstants;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Determines ebxml message types and versions and set header attributes accordingly
@@ -16,6 +19,9 @@ import java.util.UUID;
  * @author aaronwalker
  */
 public class MessageDetector {
+
+    private Pattern messageIdRegex = Pattern.compile("<(.*?)MessageId>(.*?)</(.*?)MessageId>", Pattern.DOTALL | Pattern.MULTILINE);
+    private Pattern refToMessageIdRegex = Pattern.compile("<(.*?)RefToMessageId>(.*?)</(.*?)RefToMessageId>", Pattern.DOTALL | Pattern.MULTILINE);
 
     /**
      * Partially reads the input message and determines what type of message this is
@@ -41,11 +47,42 @@ public class MessageDetector {
                 String ebmsVersion = msg.contains(EbmsConstants.EBXML_V3_NAMESPACE) ? EbmsConstants.EBMS_V3 : EbmsConstants.EBMS_V2;
                 headers.put(EbmsConstants.EBMS_VERSION,ebmsVersion);
 
-                //TODO: replace this with something that extracts this from the incoming message
-                headers.put(EbmsConstants.MESSAGE_ID,UUID.randomUUID().toString());
+                headers.put(EbmsConstants.MESSAGE_ID, getMessageId(msg));
+                headers.put(EbmsConstants.REF_TO_MESSAGE_ID, getRefMessageId(msg));
+                headers.put(EbmsConstants.MESSAGE_TYPE, getMessageType(msg));
             }
         } finally {
             input.reset();
         }
+    }
+
+    private String getRefMessageId(String msg) {
+        Matcher matcher = refToMessageIdRegex.matcher(msg);
+        if(matcher.find()) {
+            return matcher.group(2);
+        } else {
+            return null;
+        }
+    }
+
+    private String getMessageId(String msg) {
+        Matcher matcher = messageIdRegex.matcher(msg);
+        if(matcher.find()) {
+            return matcher.group(2);
+        } else {
+            return UUID.randomUUID().toString();
+        }
+    }
+
+    private MessageType getMessageType(String msg) {
+        MessageType msgType = MessageType.UNKNOWN;
+        if(msg.contains("UserMessage") && msg.contains("SignalMessage")) {
+            msgType = MessageType.SIGNAL_MESSAGE_WITH_USER_MESSAGE;
+        } else if(msg.contains("UserMessage")) {
+            msgType = MessageType.USER_MESSAGE;
+        } else if(msg.contains("SignalMessage")) {
+            msgType = MessageType.SIGNAL_MESSAGE;
+        }
+        return msgType;
     }
 }

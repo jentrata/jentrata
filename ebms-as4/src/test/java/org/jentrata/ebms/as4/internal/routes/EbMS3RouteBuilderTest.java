@@ -9,6 +9,7 @@ import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.impl.DefaultExchange;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.jentrata.ebms.EbmsConstants;
+import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.internal.messaging.MessageDetector;
 import org.jentrata.ebms.messaging.MessageStore;
 import org.junit.Test;
@@ -19,7 +20,6 @@ import java.io.FileInputStream;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.notNullValue;
 
 /**
  * Unit tests for org.jentrata.ebms.as4.internal.routes.EbMS3RouteBuilder
@@ -56,6 +56,11 @@ public class EbMS3RouteBuilderTest extends CamelTestSupport {
         assertThat(msg.getBody(),instanceOf(String.class));
         assertThat(msg.getHeader(EbmsConstants.SOAP_VERSION, String.class),equalTo(SOAPConstants.SOAP_1_2_PROTOCOL));
         assertThat(msg.getHeader(EbmsConstants.EBMS_VERSION,String.class),equalTo(EbmsConstants.EBMS_V3));
+        assertThat(msg.getHeader(EbmsConstants.MESSAGE_TYPE,MessageType.class), equalTo(MessageType.USER_MESSAGE));
+        assertThat(msg.getHeader(EbmsConstants.MESSAGE_ID,String.class),equalTo("2011-921@5209999001264.jentrata.org"));
+        assertThat(msg.getHeader(EbmsConstants.REF_TO_MESSAGE_ID,String.class),nullValue());
+        assertThat(msg.getHeader(EbmsConstants.MESSAGE_TO,String.class),equalTo("5209999001295"));
+        assertThat(msg.getHeader(EbmsConstants.MESSAGE_FROM,String.class),equalTo("5209999001264"));
 
         String message = msg.getBody(String.class);
         assertThat(message,notNullValue());
@@ -85,8 +90,13 @@ public class EbMS3RouteBuilderTest extends CamelTestSupport {
         Message msg = mockEbmsInbound.getExchanges().get(0).getIn();
         assertThat(msg.getBody(), notNullValue());
         assertThat(msg.getBody(),instanceOf(String.class));
-        assertThat(msg.getHeader(EbmsConstants.SOAP_VERSION,String.class),equalTo(SOAPConstants.SOAP_1_2_PROTOCOL));
-        assertThat(msg.getHeader(EbmsConstants.EBMS_VERSION,String.class),equalTo(EbmsConstants.EBMS_V3));
+        assertThat(msg.getHeader(EbmsConstants.SOAP_VERSION, String.class),equalTo(SOAPConstants.SOAP_1_2_PROTOCOL));
+        assertThat(msg.getHeader(EbmsConstants.EBMS_VERSION, String.class),equalTo(EbmsConstants.EBMS_V3));
+        assertThat(msg.getHeader(EbmsConstants.MESSAGE_TYPE,MessageType.class),equalTo(MessageType.SIGNAL_MESSAGE_WITH_USER_MESSAGE));
+        assertThat(msg.getHeader(EbmsConstants.MESSAGE_ID,String.class),equalTo("someuniqueid@receiver.jentrata.org"));
+        assertThat(msg.getHeader(EbmsConstants.REF_TO_MESSAGE_ID,String.class),equalTo("orders123@buyer.jentrata.org"));
+        assertThat(msg.getHeader(EbmsConstants.MESSAGE_FROM,String.class),equalTo("123456789"));
+        assertThat(msg.getHeader(EbmsConstants.MESSAGE_TO,String.class),equalTo("192837465"));
         String message = msg.getBody(String.class);
         assertThat(message,notNullValue());
         assertStringContains(message, "<S12:Envelope xmlns:S12=\"http://www.w3.org/2003/05/soap-envelope\"");

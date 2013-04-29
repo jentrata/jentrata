@@ -3,6 +3,7 @@ package org.jentrata.ebms.as4.internal.routes;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.builder.xml.Namespaces;
 import org.apache.camel.component.freemarker.FreemarkerConstants;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.MessageStatusType;
@@ -28,6 +29,9 @@ public class EbMS3RouteBuilder extends RouteBuilder {
     @Override
     public void configure() throws Exception {
 
+        Namespaces ns = new Namespaces("S12", "http://www.w3.org/2003/05/soap-envelope")
+                .add("eb3", "http://docs.oasis-open.org/ebxml-msg/ebms/v3.0/ns/core/200704/");
+
         from(ebmsHttpEndpoint)
             .streamCaching()
             .onException(UnsupportedOperationException.class)
@@ -52,30 +56,33 @@ public class EbMS3RouteBuilder extends RouteBuilder {
             .bean(messageDetector, "parse") //Determine what type of message it is for example SOAP 1.1 or SOAP 1.2 ebms2 or ebms3 etc
             .to(messgeStoreEndpoint) //essentially we claim check the raw incoming message/payload
             .unmarshal(new SoapMessageDataFormat()) //extract the SOAP Envelope as set it has the message body
-            .setHeader(EbmsConstants.MESSAGE_STATUS,constant(MessageStatusType.RECEIVED.name()))
-            .convertBodyTo(String.class)
+            .setHeader(EbmsConstants.MESSAGE_STATUS, constant(MessageStatusType.RECEIVED.name()))
+            .setHeader(EbmsConstants.MESSAGE_TO,ns.xpath("//eb3:To/eb3:PartyId/text()",String.class))
+            .setHeader(EbmsConstants.MESSAGE_FROM, ns.xpath("//eb3:From/eb3:PartyId/text()",String.class))
             .choice()
                 .when(header(EbmsConstants.EBMS_VERSION).isEqualTo(EbmsConstants.EBMS_V3))
                     .to(validateTradingPartner)
                     .to("direct:processPayloads")
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(204))
-
                     .to("direct:removeHeaders")
+                    .setHeader("X-Jentrata-Version",simple("${sys.jentrataVersion}"))
                 .otherwise()
                     .throwException(new UnsupportedOperationException("currently only ebMS V3.0 is supported by Jentrata"))
         .routeId("_jentrataEbmsInbound");
 
         from("direct:processPayloads")
-                .inOnly(inboundEbmsQueue)
-                .setBody(constant(null))
-                .split(new SplitAttachmentsToBody(false,false))
-                    .inOnly(inboundEbmsPayloadQueue)
+            .convertBodyTo(String.class)
+            .inOnly(inboundEbmsQueue)
+            .setBody(constant(null))
+            .split(new SplitAttachmentsToBody(false,false))
+                .inOnly(inboundEbmsPayloadQueue)
         .routeId("_jentrataEbmsPayloadProcessing");
 
         from("direct:errorHandler")
             .to("direct:removeHeaders")
             .setHeader("CamelException",simple("${exception.message}"))
             .setHeader("CamelExceptionStackTrace",simple("${exception.stacktrace}"))
+            .setHeader("X-JentrataVersion",simple("${sys.jentrataVersion}"))
             .setHeader(FreemarkerConstants.FREEMARKER_RESOURCE_URI,simple("html/${headers.CamelHttpResponseCode}.html"))
             .to("freemarker:html/500.html")
         .end()
@@ -87,6 +94,9 @@ public class EbMS3RouteBuilder extends RouteBuilder {
             .removeHeaders("Content*")
             .removeHeader("Host")
             .removeHeader("User-Agent")
+            .removeHeader("Origin")
+            .removeHeader("Cookie")
+            .removeHeader("JSESSIONID")
             .removeHeader("breadcrumbId")
         .routeId("_jentrataRemoveHeaders");
     }
