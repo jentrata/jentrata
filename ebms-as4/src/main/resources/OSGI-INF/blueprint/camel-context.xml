@@ -44,7 +44,7 @@
 
     <bean id="validatePartnerAgreementRouteBuilder" class="org.jentrata.ebms.as4.internal.routes.ValidatePartnerAgreementRouteBuilder"/>
 
-    <bean id="ebms3RouteBuilder" class="org.jentrata.ebms.as4.internal.routes.EbMS3RouteBuilder">
+    <bean id="ebms3RouteBuilder" class="org.jentrata.ebms.as4.internal.routes.EbMS3InboundRouteBuilder">
         <property name="ebmsHttpEndpoint" value="${jentrata.ebms.inbound.endpoint}"/>
         <property name="inboundEbmsQueue" value="${jentrata.ebms.inbound.queue}"/>
         <property name="messageDetector" ref="messageDetector"/>

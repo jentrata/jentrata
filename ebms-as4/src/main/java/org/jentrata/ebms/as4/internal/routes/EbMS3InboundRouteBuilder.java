@@ -18,7 +18,7 @@ import org.jentrata.ebms.soap.SoapMessageDataFormat;
  *
  * @author aaronwalker
  */
-public class EbMS3RouteBuilder extends RouteBuilder {
+public class EbMS3InboundRouteBuilder extends RouteBuilder {
 
     private String ebmsHttpEndpoint = "jetty:http://0.0.0.0:8081/jentrata/ebms/inbound";
     private String inboundEbmsQueue = "activemq:queue:jentrata_internal_ebms_inbound";

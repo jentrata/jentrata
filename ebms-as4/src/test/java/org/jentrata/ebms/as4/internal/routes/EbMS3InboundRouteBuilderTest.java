@@ -22,11 +22,11 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.Matchers.contains;
 
 /**
- * Unit tests for org.jentrata.ebms.as4.internal.routes.EbMS3RouteBuilder
+ * Unit tests for org.jentrata.ebms.as4.internal.routes.EbMS3InboundRouteBuilder
  *
  * @author aaronwalker
  */
-public class EbMS3RouteBuilderTest extends CamelTestSupport {
+public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
 
     @EndpointInject(uri = "mock:mockEbmsInbound")
     protected MockEndpoint mockEbmsInbound;
@@ -122,7 +122,7 @@ public class EbMS3RouteBuilderTest extends CamelTestSupport {
 
     @Override
     protected RouteBuilder[] createRouteBuilders() throws Exception {
-        EbMS3RouteBuilder routeBuilder = new EbMS3RouteBuilder();
+        EbMS3InboundRouteBuilder routeBuilder = new EbMS3InboundRouteBuilder();
         routeBuilder.setEbmsHttpEndpoint("direct:testEbmsInbound");
         routeBuilder.setInboundEbmsQueue(mockEbmsInbound.getEndpointUri());
         routeBuilder.setInboundEbmsPayloadQueue(mockEbmsInboundPayload.getEndpointUri());
