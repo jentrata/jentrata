@@ -30,11 +30,14 @@
             <cm:property name="activemq.broker.password" value="jentrata"/>
             <cm:property name="jentrata.ebms.inbound.endpoint" value="jetty:http://0.0.0.0:8081/jentrata/ebms/inbound"/>
             <cm:property name="jentrata.ebms.inbound.queue" value="activemq:queue:jentrata_internal_ebms_inbound"/>
+            <cm:property name="jentrata.ebms.outbound.queue" value="activemq:queue:jentrata_internal_ebms_outbound"/>
+
             <cm:property name="jentrata.message.store.location" value="./data/jentrata/messageStore"/>
         </cm:default-properties>
     </cm:property-placeholder>
 
     <reference id="messageStore" interface="org.jentrata.ebms.messaging.MessageStore"/>
+    <reference id="cpaRepository" interface="org.jentrata.ebms.cpa.CPARepository"/>
 
     <bean id="messageDetector" class="org.jentrata.ebms.internal.messaging.MessageDetector"/>
 
@@ -53,6 +56,11 @@
     </bean>
 
     <bean id="ebmsSignalMessageRouteBuilder" class="org.jentrata.ebms.as4.internal.routes.EbmsSignalMessageRouteBuilder"/>
+
+    <bean id="ebmsOutboundRouteBuilder" class="org.jentrata.ebms.as4.internal.routes.EbmsOutboundRouteBuilder">
+        <property name="outboundEbmsQueue" value="${jentrata.ebms.outbound.queue}"/>
+        <property name="cpaRepository" ref="cpaRepository"/>
+    </bean>
 
     <bean id="jmsConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
         <property name="brokerURL" value="${activemq.broker.url}" />

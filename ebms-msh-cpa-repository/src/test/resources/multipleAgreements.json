@@ -1,0 +1,12 @@
+[
+    {
+        "cpaId":"testCPAId1",
+        "active":"true",
+        "transportReceiverEndpoint":"http://example.jentrata.org"
+    },
+    {
+        "cpaId":"testCPAId2",
+        "active":"true",
+        "transportReceiverEndpoint":"http://example2.jentrata.org"
+    }
+]

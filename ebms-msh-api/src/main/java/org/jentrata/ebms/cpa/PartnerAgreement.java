@@ -6,14 +6,17 @@ package org.jentrata.ebms.cpa;
  * @author aaronwalker
  */
 public class PartnerAgreement {
+
     private String cpaId;
+    private boolean active = true;
     private String transportReceiverEndpoint;
 
-    public String getCPAId() {
+
+    public String getCpaId() {
         return cpaId;
     }
 
-    public void setCPAId(String cpaId) {
+    public void setCpaId(String cpaId) {
         this.cpaId = cpaId;
     }
 
@@ -23,5 +26,13 @@ public class PartnerAgreement {
 
     public void setTransportReceiverEndpoint(String transportReceiverEndpoint) {
         this.transportReceiverEndpoint = transportReceiverEndpoint;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 }

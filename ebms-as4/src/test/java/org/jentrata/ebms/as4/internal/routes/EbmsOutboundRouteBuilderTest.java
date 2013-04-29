@@ -14,7 +14,6 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -101,10 +100,10 @@ public class EbmsOutboundRouteBuilderTest extends CamelTestSupport {
         @Override
         public List<PartnerAgreement> getActivePartnerAgreements() {
             PartnerAgreement agreement1 = new PartnerAgreement();
-            agreement1.setCPAId("agreement1");
+            agreement1.setCpaId("agreement1");
             agreement1.setTransportReceiverEndpoint("direct:agreement1");
             PartnerAgreement agreement2 = new PartnerAgreement();
-            agreement2.setCPAId("agreement2");
+            agreement2.setCpaId("agreement2");
             agreement2.setTransportReceiverEndpoint("direct:agreement2");
             return Arrays.asList(agreement1,agreement2);
         }

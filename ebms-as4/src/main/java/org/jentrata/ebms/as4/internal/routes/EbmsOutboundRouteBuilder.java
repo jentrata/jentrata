@@ -24,7 +24,7 @@ public class EbmsOutboundRouteBuilder extends RouteBuilder {
         .routeId("_jentrataEbmsOutbound");
 
         for(PartnerAgreement agreement : cpaRepository.getActivePartnerAgreements()) {
-            from("direct:outbox_" + agreement.getCPAId())
+            from("direct:outbox_" + agreement.getCpaId())
                 .setHeader(Exchange.HTTP_METHOD, constant("POST"))
                 .to(configureEndpoint(agreement.getTransportReceiverEndpoint()))
                 .choice()
@@ -34,7 +34,7 @@ public class EbmsOutboundRouteBuilder extends RouteBuilder {
                         .to("direct:processSuccess")
                     .otherwise()
                         .to("direct:processFailure")
-            .routeId("_jentrataEbmsOutbound" + agreement.getCPAId());
+            .routeId("_jentrataEbmsOutbound" + agreement.getCpaId());
         }
 
         from("direct:processSuccess")

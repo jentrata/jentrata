@@ -107,6 +107,7 @@
         <module>ebms-msh-api</module>
         <module>ebms-msh-file-store</module>
         <module>ebms-msh-jdbc-store</module>
+        <module>ebms-msh-cpa-repository</module>
         <module>ebms-as4</module>
         <module>features</module>
         <module>dist</module>
@@ -169,6 +170,11 @@
             <dependency>
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-freemarker</artifactId>
+                <version>${camel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-jackson</artifactId>
                 <version>${camel.version}</version>
             </dependency>
             <dependency>
