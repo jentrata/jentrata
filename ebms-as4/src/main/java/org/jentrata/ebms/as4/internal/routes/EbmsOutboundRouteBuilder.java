@@ -20,6 +20,8 @@ public class EbmsOutboundRouteBuilder extends RouteBuilder {
     public void configure() throws Exception {
         from(outboundEbmsQueue)
             .convertBodyTo(String.class)
+            .removeHeaders("Camel*")
+            .removeHeaders("JMS*")
             .recipientList(simple("direct:outbox_${headers.JentrataCPAId}"))
         .routeId("_jentrataEbmsOutbound");
 
