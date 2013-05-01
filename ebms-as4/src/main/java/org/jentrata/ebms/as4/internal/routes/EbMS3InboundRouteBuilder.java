@@ -2,6 +2,7 @@ package org.jentrata.ebms.as4.internal.routes;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
+import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
 import org.apache.camel.component.freemarker.FreemarkerConstants;
@@ -85,8 +86,9 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
                     .inOnly(inboundEbmsSignalsQueue)
                 .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.USER_MESSAGE))
                     .inOnly(inboundEbmsQueue)
-                    .setBody(constant(null))
-                    .split(new SplitAttachmentsToBody(false, false))
+                    .setBody(xpath("//*[local-name()='Body']/*[1]"))
+                    .convertBodyTo(String.class)
+                    .split(new SplitAttachmentsToBody(false, false, true))
                         .inOnly(inboundEbmsPayloadQueue)
         .routeId("_jentrataEbmsPayloadProcessing");
 

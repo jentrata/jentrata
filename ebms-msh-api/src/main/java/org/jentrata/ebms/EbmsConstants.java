@@ -27,6 +27,7 @@ public class EbmsConstants {
     public static final String CONTENT_TYPE = Exchange.CONTENT_TYPE;
 
     public static final String SOAP_XML_CONTENT_TYPE = "application/soap+xml";
+    public static final String TEXT_XML_CONTENT_TYPE = "text/xml";
 
     public static final String MESSAGE_ID = "JentrataMessageID";
     public static final String REF_TO_MESSAGE_ID = "JentrataRefMessageID";
@@ -43,4 +44,7 @@ public class EbmsConstants {
     public static final String CPA_ID = "JentrataCPAId";
     public static final String PAYLOAD_ID = "JentrataPayloadId";
     public static final String CONTENT_CHAR_SET = "JentrataCharSet";
+
+    public static final String SOAP_BODY_PAYLOAD_ID = "soapbodypart";
+
 }

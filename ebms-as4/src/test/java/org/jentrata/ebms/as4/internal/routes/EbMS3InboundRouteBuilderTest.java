@@ -115,6 +115,25 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
     }
 
     @Test
+    public void testSOAPMessageWithABodyBody() throws Exception{
+        mockEbmsInbound.setExpectedMessageCount(1);
+        mockEbmsInboundPayload.setExpectedMessageCount(1);
+        mockEbmsInboundSignals.setExpectedMessageCount(0);
+
+        Exchange request = new DefaultExchange(context());
+        request.getIn().setHeader(Exchange.CONTENT_TYPE,"application/soap+xml");
+        request.getIn().setHeader(Exchange.HTTP_METHOD,"POST");
+        request.getIn().setBody(new FileInputStream(fileFromClasspath("simple-as4-with-soap-body.xml")));
+        Exchange response = context().createProducerTemplate().send("direct:testEbmsInbound",request);
+
+        assertMockEndpointsSatisfied();
+
+        //assert the response from the route
+        assertThat("should have gotten http 204 response code",response.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE,Integer.class),equalTo(204));
+        assertThat("should have gotten no content in the http response",response.getIn().getBody(),nullValue());
+    }
+
+    @Test
     public void testInvalidHttpMethod() throws Exception {
         Exchange request = new DefaultExchange(context());
         request.getIn().setHeader(Exchange.CONTENT_TYPE,"application/soap+xml");
