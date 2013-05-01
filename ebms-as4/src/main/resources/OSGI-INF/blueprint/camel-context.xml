@@ -32,6 +32,8 @@
             <cm:property name="jentrata.ebms.inbound.queue" value="activemq:queue:jentrata_internal_ebms_inbound"/>
             <cm:property name="jentrata.ebms.outbound.queue" value="activemq:queue:jentrata_internal_ebms_outbound"/>
 
+            <cm:property name="jentrata.ebms.outbound.dir" value="./data/jentrata/outbox"/>
+
             <cm:property name="jentrata.message.store.location" value="./data/jentrata/messageStore"/>
         </cm:default-properties>
     </cm:property-placeholder>
@@ -60,6 +62,17 @@
     <bean id="ebmsOutboundRouteBuilder" class="org.jentrata.ebms.as4.internal.routes.EbmsOutboundRouteBuilder">
         <property name="outboundEbmsQueue" value="${jentrata.ebms.outbound.queue}"/>
         <property name="cpaRepository" ref="cpaRepository"/>
+    </bean>
+
+    <bean id="ebmsOutboundMessageRouteBuilder" class="org.jentrata.ebms.as4.internal.routes.EbmsOutboundMessageRouteBuilder"/>
+
+    <bean id="fileOutboundMessageRouter" class="org.jentrata.ebms.as4.internal.routes.FileOutboundMessageRouter">
+        <property name="fileEndpoint" value="file://${jentrata.ebms.outbound.dir}/?move=.sent&amp;moveFailed=.failed&amp;antInclude=*.xml"/>
+        <property name="cpaId" value="jentrataTestCPA"/>
+        <property name="contentType" value="text/xml"/>
+        <property name="from" value="123456789"/>
+        <property name="to" value="987654321"/>
+        <property name="payloadId" value="payload-id@jentrata.org"/>
     </bean>
 
     <bean id="jmsConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">

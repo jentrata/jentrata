@@ -28,12 +28,13 @@ public class FileMessageStoreTest extends CamelTestSupport {
     public void testFileMessageStore() throws IOException {
         Exchange request = new DefaultExchange(context());
         request.getIn().setHeader(EbmsConstants.EBMS_VERSION,EbmsConstants.EBMS_V3);
+        request.getIn().setHeader(EbmsConstants.MESSAGE_ID,"testMessageID");
         request.getIn().setBody(new ByteArrayInputStream("test".getBytes()));
         Exchange response = context().createProducerTemplate().send(MessageStore.DEFAULT_MESSAGE_STORE_ENDPOINT,request);
 
         String msgId = response.getIn().getHeader(MessageStore.JENTRATA_MESSAGE_ID, String.class);
         Object msgStoreRef = response.getIn().getHeader(MessageStore.MESSAGE_STORE_REF);
-        assertThat(msgId,equalTo(request.getIn().getMessageId()));
+        assertThat(msgId,equalTo("testMessageID"));
         assertThat(IOUtils.toString(messageStore.findByMessageRefId(msgStoreRef)),equalTo("test"));
     }
 

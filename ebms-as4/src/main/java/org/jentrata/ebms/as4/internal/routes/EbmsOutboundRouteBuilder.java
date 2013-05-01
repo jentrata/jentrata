@@ -38,7 +38,7 @@ public class EbmsOutboundRouteBuilder extends RouteBuilder {
         }
 
         from("direct:processSuccess")
-            .log(LoggingLevel.INFO,"Successfully delivered cpaId:${headers.JentrataCPAId} - type:${headers.JentrataMessageType} - msgId:${headers.JentrataMessgeId} - responseCode:${headers.CamelHttpResponseCode}")
+            .log(LoggingLevel.INFO,"Successfully delivered cpaId:${headers.JentrataCPAId} - type:${headers.JentrataMessageType} - msgId:${headers.JentrataMessageId} - responseCode:${headers.CamelHttpResponseCode}")
             .log(LoggingLevel.DEBUG,"responseCode:${headers.CamelHttpResponseCode}\n${body}")
             //TODO: mark the message in the message store as delivered
         .routeId("_jentrataEbmsOutboundSuccess");

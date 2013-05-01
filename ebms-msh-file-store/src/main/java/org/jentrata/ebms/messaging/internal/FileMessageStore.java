@@ -32,7 +32,6 @@ public class FileMessageStore implements MessageStore {
             fos = new FileOutputStream(outputFile);
             IOUtils.copyLarge(input,fos);
             exchange.getIn().setHeader(MessageStore.MESSAGE_STORE_REF,outputFile.getAbsolutePath());
-            exchange.getIn().setHeader(MessageStore.JENTRATA_MESSAGE_ID,exchange.getIn().getMessageId());
         } catch (IOException e) {
             //throw this so it propergates back to the sender because if we can't persist message we shouldn't accept them
             throw new RuntimeException("currently unable to persist messages in message store " + e,e);
