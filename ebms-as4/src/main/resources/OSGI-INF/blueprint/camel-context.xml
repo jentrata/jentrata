@@ -28,7 +28,10 @@
             <cm:property name="activemq.broker.url" value="tcp://localhost:61616"/>
             <cm:property name="activemq.broker.username" value="jentrata"/>
             <cm:property name="activemq.broker.password" value="jentrata"/>
-            <cm:property name="jentrata.ebms.inbound.endpoint" value="jetty:http://0.0.0.0:8081/jentrata/ebms/inbound"/>
+
+            <cm:property name="jentrata.ebms.inbound.httpPort" value="8081"/>
+            <cm:property name="jentrata.ebms.inbound.httpHost" value="0.0.0.0"/>
+            <cm:property name="jentrata.ebms.inbound.endpoint" value="jetty:http://${jentrata.ebms.inbound.httpHost}:${jentrata.ebms.inbound.httpPort}/jentrata/ebms/inbound"/>
             <cm:property name="jentrata.ebms.inbound.queue" value="activemq:queue:jentrata_internal_ebms_inbound"/>
             <cm:property name="jentrata.ebms.outbound.queue" value="activemq:queue:jentrata_internal_ebms_outbound"/>
 
