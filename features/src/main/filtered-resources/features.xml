@@ -5,9 +5,16 @@
         <feature version="${pom.version}">jentrata-ebms3-as4</feature>
     </feature>
 
+    <feature name="jentrata-file-store" version="${pom.version}">
+        <bundle dependency="true">mvn:commons-io/commons-io/${commons-io.version}</bundle>
+        <bundle dependency="true">mvn:org.jentrata/jentrata-ebms3-msh-api/${project.version}</bundle>
+        <bundle>mvn:org.jentrata/jentrata-ebms3-msh-file-store/${project.version}</bundle>
+    </feature>
+
     <feature name="jentrata-postgres-store" version="${pom.version}">
         <bundle dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.commons-dbcp/${commons-dbcp.version}</bundle>
         <bundle dependency="true">wrap:mvn:postgresql/postgresql/${postgres.version}</bundle>
+        <bundle dependency="true">mvn:org.jentrata/jentrata-ebms3-msh-api/${project.version}</bundle>
         <bundle>mvn:org.jentrata/jentrata-ebms3-msh-jdbc-store</bundle>
     </feature>
 
