@@ -15,7 +15,7 @@
         <bundle dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.commons-dbcp/${commons-dbcp.version}</bundle>
         <bundle dependency="true">wrap:mvn:postgresql/postgresql/${postgres.version}</bundle>
         <bundle dependency="true">mvn:org.jentrata/jentrata-ebms3-msh-api/${project.version}</bundle>
-        <bundle>mvn:org.jentrata/jentrata-ebms3-msh-jdbc-store</bundle>
+        <bundle>mvn:org.jentrata/jentrata-ebms3-msh-jdbc-store/${project.version}</bundle>
     </feature>
 
 </features>

@@ -157,7 +157,6 @@
                                 <feature>jentrata-as4-core</feature>
                                 <feature>jentrata-file-store</feature>
                                 <feature>jentrata-postgres-store</feature>
-
                             </features>
                             <includeMvnBasedDescriptors>true</includeMvnBasedDescriptors>
                             <repository>target/features-repo</repository>
