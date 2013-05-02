@@ -15,25 +15,24 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 -->
-<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
-           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.0.0"
-           xmlns:camel="http://camel.apache.org/schema/blueprint"
-           xsi:schemaLocation="
-             http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
-           ">
+    <blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0"
+               xsi:schemaLocation="
+                 http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
+               ">
 
-    <!-- blueprint property placeholders -->
-    <cm:property-placeholder persistent-id="jentrata-ebms-jdbc">
-        <cm:default-properties>
-            <cm:property name="jentrata.messagestore.type" value="postgres"/>
-            <cm:property name="jentrata.messagestore.jdbc.driverClass" value="org.postgresql.Driver"/>
-            <cm:property name="jentrata.messagestore.jdbc.url" value="jdbc:postgresql://localhost/jentrata-message-store"/>
-            <cm:property name="jentrata.messagestore.jdbc.username" value="jentrata"/>
-            <cm:property name="jentrata.messagestore.jdbc.password" value="jentrata"/>
-            <cm:property name="jentrata.messagestore.autoCreateTables" value="true"/>
-        </cm:default-properties>
-    </cm:property-placeholder>
+        <!-- blueprint property placeholders -->
+        <cm:property-placeholder persistent-id="org.jentrata.ebms.jdbc" update-strategy="reload">
+            <cm:default-properties>
+                <cm:property name="jentrata.messagestore.type" value="postgres"/>
+                <cm:property name="jentrata.messagestore.jdbc.driverClass" value="org.postgresql.Driver"/>
+                <cm:property name="jentrata.messagestore.jdbc.url" value="jdbc:postgresql://localhost/jentrata-message-store"/>
+                <cm:property name="jentrata.messagestore.jdbc.username" value="jentrata"/>
+                <cm:property name="jentrata.messagestore.jdbc.password" value="jentrata"/>
+                <cm:property name="jentrata.messagestore.autoCreateTables" value="true"/>
+            </cm:default-properties>
+        </cm:property-placeholder>
 
     <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
         <property name="driverClassName" value="${jentrata.messagestore.jdbc.driverClass}"/>

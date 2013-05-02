@@ -16,6 +16,7 @@
         <bundle dependency="true">wrap:mvn:postgresql/postgresql/${postgres.version}</bundle>
         <bundle dependency="true">mvn:org.jentrata/jentrata-ebms3-msh-api/${project.version}</bundle>
         <bundle>mvn:org.jentrata/jentrata-ebms3-msh-jdbc-store/${project.version}</bundle>
+        <configfile finalname="/etc/org.jentrata.ebms.jdbc.cfg">mvn:org.jentrata/jentrata-ebms3-msh-jdbc-store/${pom.version}/cfg</configfile>
     </feature>
 
 </features>
