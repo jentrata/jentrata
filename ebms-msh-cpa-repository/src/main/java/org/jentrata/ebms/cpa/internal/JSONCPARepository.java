@@ -1,7 +1,10 @@
 package org.jentrata.ebms.cpa.internal;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
+import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.cpa.CPARepository;
 import org.jentrata.ebms.cpa.PartnerAgreement;
 import org.slf4j.Logger;
@@ -11,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * An implementation of CPARepository that loads them from a JSON config file
@@ -34,6 +38,12 @@ public class JSONCPARepository implements CPARepository {
         }
     }
 
+    @Override
+    public List<PartnerAgreement> getPartnerAgreements() {
+        return partnerAgreements;
+    }
+
+    @Override
     public List<PartnerAgreement> getActivePartnerAgreements() {
         List<PartnerAgreement> active = new ArrayList<>();
         for(PartnerAgreement agreement : partnerAgreements) {
@@ -43,6 +53,30 @@ public class JSONCPARepository implements CPARepository {
         }
         return active;
     }
+
+    @Override
+    public PartnerAgreement findByServiceAndAction(final String service, final String action) {
+        Iterable<PartnerAgreement> agreements = Iterables.filter(partnerAgreements,new Predicate<PartnerAgreement>() {
+            @Override
+            public boolean apply(PartnerAgreement partnerAgreement) {
+                return partnerAgreement.isActive() && partnerAgreement.hasService(service,action);
+            }
+        });
+        if(agreements.iterator().hasNext()) {
+            return agreements.iterator().next();
+        } else {
+            return null;
+        }
+    }
+
+    public boolean isValidPartnerAgreement(final Map<String, Object> fields) {
+        String service = (String) fields.get(EbmsConstants.MESSAGE_SERVICE);
+        String action = (String) fields.get(EbmsConstants.MESSAGE_ACTION);
+        PartnerAgreement agreement = findByServiceAndAction(service,action);
+        return  agreement != null;
+    }
+
+
 
     public File getCpaJsonFile() {
         return cpaJsonFile;

@@ -32,7 +32,7 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
     @Override
     public void configure() throws Exception {
 
-        Namespaces ns = new Namespaces("S12", "http://www.w3.org/2003/05/soap-envelope")
+        final Namespaces ns = new Namespaces("S12", "http://www.w3.org/2003/05/soap-envelope")
                 .add("eb3", "http://docs.oasis-open.org/ebxml-msg/ebms/v3.0/ns/core/200704/");
 
         from(ebmsHttpEndpoint)

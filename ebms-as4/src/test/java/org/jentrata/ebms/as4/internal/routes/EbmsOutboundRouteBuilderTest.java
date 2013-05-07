@@ -15,7 +15,9 @@ import org.junit.Test;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Unit tests for org.jentrata.ebms.as4.internal.routes.EbmsOutboundRouteBuilder
@@ -98,6 +100,11 @@ public class EbmsOutboundRouteBuilderTest extends CamelTestSupport {
 
     private class DummyCPARepository implements CPARepository {
         @Override
+        public List<PartnerAgreement> getPartnerAgreements() {
+            return Collections.emptyList();
+        }
+
+        @Override
         public List<PartnerAgreement> getActivePartnerAgreements() {
             PartnerAgreement agreement1 = new PartnerAgreement();
             agreement1.setCpaId("agreement1");
@@ -106,6 +113,16 @@ public class EbmsOutboundRouteBuilderTest extends CamelTestSupport {
             agreement2.setCpaId("agreement2");
             agreement2.setTransportReceiverEndpoint("direct:agreement2");
             return Arrays.asList(agreement1,agreement2);
+        }
+
+        @Override
+        public PartnerAgreement findByServiceAndAction(String service, String action) {
+            return null;
+        }
+
+        @Override
+        public boolean isValidPartnerAgreement(Map<String, Object> fields) {
+            return true;
         }
     }
 }
