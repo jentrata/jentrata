@@ -33,10 +33,14 @@ public class EbmsSignalMessageRouteBuilderTest extends CamelTestSupport {
     @EndpointInject(uri = "mock:mockEbmsOutbound")
     protected MockEndpoint mockEbmsOutbound;
 
+    @EndpointInject(uri = "mock:mockUpdateMessageStore")
+    protected MockEndpoint mockUpdateMessageStore;
+
     @Test
     public void testGenerateValidReceiptSignalMessage() throws Exception{
 
         mockEbmsOutbound.setExpectedMessageCount(1);
+        mockUpdateMessageStore.setExpectedMessageCount(1);
 
         Exchange request = new DefaultExchange(context());
         request.getIn().setHeader(EbmsConstants.MESSAGE_FROM,"123456789");
@@ -59,6 +63,7 @@ public class EbmsSignalMessageRouteBuilderTest extends CamelTestSupport {
         assertThat(receipt.getIn().getHeader(EbmsConstants.MESSAGE_ID,String.class), endsWith("@jentrata.org"));
         assertThat(receipt.getIn().getHeader(EbmsConstants.MESSAGE_DIRECTION, String.class), equalTo(EbmsConstants.MESSAGE_DIRECTION_OUTBOUND));
         assertThat(receipt.getIn().getHeader(EbmsConstants.CONTENT_TYPE, String.class), equalTo(EbmsConstants.SOAP_XML_CONTENT_TYPE));
+        assertThat(receipt.getIn().getHeader(EbmsConstants.REF_TO_MESSAGE_ID, String.class), equalTo("orders123@buyer.jentrata.org"));
     }
 
     @Override
@@ -73,6 +78,7 @@ public class EbmsSignalMessageRouteBuilderTest extends CamelTestSupport {
         EbmsSignalMessageRouteBuilder routeBuilder = new EbmsSignalMessageRouteBuilder();
         routeBuilder.setInboundEbmsQueue("direct:testGenerateReceipt");
         routeBuilder.setOutboundEbmsQueue(mockEbmsOutbound.getEndpointUri());
+        routeBuilder.setMessageInsertEndpoint(mockUpdateMessageStore.getEndpointUri());
         return new RouteBuilder[] {
                 routeBuilder,
                 new RouteBuilder() {

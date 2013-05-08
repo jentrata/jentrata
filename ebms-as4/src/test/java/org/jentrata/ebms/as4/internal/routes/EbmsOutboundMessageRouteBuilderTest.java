@@ -37,11 +37,15 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
     @EndpointInject(uri = "mock:mockMessageStore")
     protected MockEndpoint mockMessageStore;
 
+    @EndpointInject(uri = "mock:mockUpdateMessageStore")
+    protected MockEndpoint mockUpdateMessageStore;
+
     @Test
     public void testWrapPayloadAsMimeMessage() throws Exception {
 
         mockEbmsOutbound.setExpectedMessageCount(1);
         mockMessageStore.setExpectedMessageCount(1);
+        mockUpdateMessageStore.setExpectedMessageCount(1);
 
         Exchange request = new DefaultExchange(context());
         request.getIn().setHeader(EbmsConstants.MESSAGE_FROM,"123456789");
@@ -80,6 +84,7 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
         routeBuilder.setDeliveryQueue("direct:testDeliveryQueue");
         routeBuilder.setOutboundEbmsQueue(mockEbmsOutbound.getEndpointUri());
         routeBuilder.setMessgeStoreEndpoint(mockMessageStore.getEndpointUri());
+        routeBuilder.setMessageInsertEndpoint(mockUpdateMessageStore.getEndpointUri());
         return routeBuilder;
     }
 

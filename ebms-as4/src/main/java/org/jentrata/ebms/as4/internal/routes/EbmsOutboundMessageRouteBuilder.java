@@ -22,6 +22,7 @@ public class EbmsOutboundMessageRouteBuilder extends RouteBuilder {
     private String deliveryQueue = "activemq:queue:jentrata_as4_outbound";
     private String outboundEbmsQueue = "activemq:queue:jentrata_internal_ebms_outbound";
     private String messgeStoreEndpoint = MessageStore.DEFAULT_MESSAGE_STORE_ENDPOINT;
+    private String messageInsertEndpoint = MessageStore.DEFAULT_MESSAGE_INSERT_ENDPOINT;
 
     @Override
     public void configure() throws Exception {
@@ -51,6 +52,7 @@ public class EbmsOutboundMessageRouteBuilder extends RouteBuilder {
             .to("freemarker:templates/mimeMessage.ftl")
             .setHeader(EbmsConstants.CONTENT_TYPE,constant("Multipart/Related; boundary=\"----=_Part_7_10584188.1123489648993\"; type=\"application/soap+xml\"; start=\"<soapPart@jentrata.org>\""))
             .to(messgeStoreEndpoint)
+            .to(messageInsertEndpoint)
             .to(outboundEbmsQueue)
         .routeId("_jentrataEbmsGenerateMessage");
 
@@ -78,5 +80,13 @@ public class EbmsOutboundMessageRouteBuilder extends RouteBuilder {
 
     public void setMessgeStoreEndpoint(String messgeStoreEndpoint) {
         this.messgeStoreEndpoint = messgeStoreEndpoint;
+    }
+
+    public String getMessageInsertEndpoint() {
+        return messageInsertEndpoint;
+    }
+
+    public void setMessageInsertEndpoint(String messageInsertEndpoint) {
+        this.messageInsertEndpoint = messageInsertEndpoint;
     }
 }

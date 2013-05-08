@@ -33,11 +33,15 @@ public class EbmsOutboundRouteBuilderTest extends CamelTestSupport {
     @EndpointInject(uri = "mock:agreement2")
     protected MockEndpoint mockAgreement2;
 
+    @EndpointInject(uri = "mock:mockUpdateMessageStore")
+    protected MockEndpoint mockUpdateMessageStore;
+
     @Test
     public void testSendMessageToPartner() throws Exception {
 
         mockAgreement1.setExpectedMessageCount(1);
         mockAgreement2.setExpectedMessageCount(1);
+        mockUpdateMessageStore.setExpectedMessageCount(4);
 
         sendMessage("agreement1",
                 "simple-as4-user-message.txt",
@@ -72,6 +76,7 @@ public class EbmsOutboundRouteBuilderTest extends CamelTestSupport {
     protected RouteBuilder [] createRouteBuilders() throws Exception {
         EbmsOutboundRouteBuilder routeBuilder = new EbmsOutboundRouteBuilder();
         routeBuilder.setOutboundEbmsQueue("direct:testOutboundEbmsQueue");
+        routeBuilder.setMessageUpdateEndpoint(mockUpdateMessageStore.getEndpointUri());
         routeBuilder.setCpaRepository(new DummyCPARepository());
         return new RouteBuilder[] {
                 routeBuilder,
