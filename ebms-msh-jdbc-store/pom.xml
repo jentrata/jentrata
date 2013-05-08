@@ -78,7 +78,7 @@
                         <configuration>
                             <artifacts>
                                 <artifact>
-                                    <file>${project.build.outputDirectory}/META-INF/org.jentrata.ebms.jdbc.cfg</file>
+                                    <file>${project.build.outputDirectory}/META-INF/org.jentrata.ebms.message.store.jdbc.cfg</file>
                                     <type>cfg</type>
                                 </artifact>
                             </artifacts>

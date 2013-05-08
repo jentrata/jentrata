@@ -2,13 +2,24 @@
     <repository>mvn:org.jentrata/jentrata-ebms3-as4/${project.version}/xml/features</repository>
 
     <feature name="jentrata-as4-core" version="${pom.version}">
+        <feature version="${pom.version}">jentrata-cpa-repository</feature>
         <feature version="${pom.version}">jentrata-ebms3-as4</feature>
+    </feature>
+
+    <feature name="jentrata-cpa-repository" version="${pom.version}">
+        <feature version="${camel.version}">camel-jackson</feature>
+        <bundle dependency="true">mvn:commons-io/commons-io/${commons-io.version}</bundle>
+        <bundle dependency="true">mvn:com.google.guava/guava/${guava.version}</bundle>
+        <bundle dependency="true">mvn:org.jentrata/jentrata-ebms3-msh-api/${project.version}</bundle>
+        <bundle>mvn:org.jentrata/jentrata-ebms3-msh-cpa-repository/${project.version}</bundle>
+        <configfile finalname="/etc/org.jentrata.ebms.cpa.repository.cfg">mvn:org.jentrata/jentrata-ebms3-msh-cpa-repository/${pom.version}/cfg</configfile>
     </feature>
 
     <feature name="jentrata-file-store" version="${pom.version}">
         <bundle dependency="true">mvn:commons-io/commons-io/${commons-io.version}</bundle>
         <bundle dependency="true">mvn:org.jentrata/jentrata-ebms3-msh-api/${project.version}</bundle>
         <bundle>mvn:org.jentrata/jentrata-ebms3-msh-file-store/${project.version}</bundle>
+        <configfile finalname="/etc/org.jentrata.ebms.message.store.file.cfg">mvn:org.jentrata/jentrata-ebms3-msh-file-store/${pom.version}/cfg</configfile>
     </feature>
 
     <feature name="jentrata-postgres-store" version="${pom.version}">
@@ -16,7 +27,7 @@
         <bundle dependency="true">wrap:mvn:postgresql/postgresql/${postgres.version}</bundle>
         <bundle dependency="true">mvn:org.jentrata/jentrata-ebms3-msh-api/${project.version}</bundle>
         <bundle>mvn:org.jentrata/jentrata-ebms3-msh-jdbc-store/${project.version}</bundle>
-        <configfile finalname="/etc/org.jentrata.ebms.jdbc.cfg">mvn:org.jentrata/jentrata-ebms3-msh-jdbc-store/${pom.version}/cfg</configfile>
+        <configfile finalname="/etc/org.jentrata.ebms.message.store.jdbc.cfg">mvn:org.jentrata/jentrata-ebms3-msh-jdbc-store/${pom.version}/cfg</configfile>
     </feature>
 
 </features>

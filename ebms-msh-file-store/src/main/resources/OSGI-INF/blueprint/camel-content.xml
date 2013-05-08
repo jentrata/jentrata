@@ -23,7 +23,7 @@
              http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
            ">
     <!-- blueprint property placeholders -->
-    <cm:property-placeholder persistent-id="jentrata-ebms">
+    <cm:property-placeholder persistent-id="org.jentrata.ebms.message.store.file">
         <cm:default-properties>
             <cm:property name="jentrata.message.store.location" value="./data/jentrata/messageStore"/>
         </cm:default-properties>

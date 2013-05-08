@@ -23,7 +23,7 @@
              http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
            ">
     <!-- blueprint property placeholders -->
-    <cm:property-placeholder persistent-id="jentrata-ebms">
+    <cm:property-placeholder persistent-id="org.jentrata.ebms.cpa.repository">
         <cm:default-properties>
             <cm:property name="jentrata.cpa.repository.file" value="./etc/jentrata-cpa-repository.json"/>
         </cm:default-properties>

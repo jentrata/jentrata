@@ -98,6 +98,10 @@
                                     <type>xml</type>
                                     <classifier>features</classifier>
                                 </artifact>
+                                <artifact>
+                                    <file>${project.build.outputDirectory}/META-INF/org.jentrata.ebms.as4.cfg</file>
+                                    <type>cfg</type>
+                                </artifact>
                             </artifacts>
                         </configuration>
                     </execution>

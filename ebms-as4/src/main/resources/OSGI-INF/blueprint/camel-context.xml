@@ -23,7 +23,7 @@
              http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
            ">
     <!-- blueprint property placeholders -->
-    <cm:property-placeholder persistent-id="jentrata-ebms">
+    <cm:property-placeholder persistent-id="org.jentrata.ebms.as4">
         <cm:default-properties>
             <cm:property name="activemq.broker.url" value="tcp://localhost:61616"/>
             <cm:property name="activemq.broker.username" value="jentrata"/>

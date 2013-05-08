@@ -19,8 +19,8 @@
         <bundle dependency="true">mvn:commons-io/commons-io/${commons-io.version}</bundle>
         <bundle dependency="true">mvn:com.google.guava/guava/${guava.version}</bundle>
         <bundle dependency="true">mvn:org.jentrata/jentrata-ebms3-msh-api/${project.version}</bundle>
-        <bundle dependency="true">mvn:org.jentrata/jentrata-ebms3-msh-cpa-repository/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/${project.artifactId}/${project.version}</bundle>
+        <configfile finalname="/etc/org.jentrata.ebms.as4.cfg">mvn:org.jentrata/jentrata-ebms3-as4/${pom.version}/cfg</configfile>
     </feature>
 
 </features>

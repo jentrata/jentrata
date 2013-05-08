@@ -23,7 +23,7 @@
                ">
 
         <!-- blueprint property placeholders -->
-        <cm:property-placeholder persistent-id="org.jentrata.ebms.jdbc" update-strategy="reload">
+        <cm:property-placeholder persistent-id="org.jentrata.ebms.message.store.jdbc" update-strategy="reload">
             <cm:default-properties>
                 <cm:property name="jentrata.messagestore.type" value="postgres"/>
                 <cm:property name="jentrata.messagestore.jdbc.driverClass" value="org.postgresql.Driver"/>
