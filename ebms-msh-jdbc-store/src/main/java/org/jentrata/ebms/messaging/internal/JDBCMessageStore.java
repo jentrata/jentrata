@@ -62,7 +62,8 @@ public class JDBCMessageStore implements MessageStore {
         String messageDirection = exchange.getIn().getHeader(EbmsConstants.MESSAGE_DIRECTION,String.class);
         String cpaId = exchange.getIn().getHeader(EbmsConstants.CPA_ID,String.class);
         String conversationId = exchange.getIn().getHeader(EbmsConstants.MESSAGE_CONVERSATION_ID,String.class);
-        repositoryManager.insertMessage(messageId,messageDirection,cpaId,conversationId);
+        String refMessageID = exchange.getIn().getHeader(EbmsConstants.REF_TO_MESSAGE_ID,String.class);
+        repositoryManager.insertMessage(messageId,messageDirection,cpaId,conversationId,refMessageID);
     }
 
     @Override

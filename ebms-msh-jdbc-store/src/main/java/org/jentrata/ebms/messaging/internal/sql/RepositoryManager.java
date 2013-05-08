@@ -13,5 +13,5 @@ public interface RepositoryManager {
     void createTablesIfNotExists();
     void insertIntoRepository(String messageId, String contentType, String messageDirection, long contentLength, InputStream content);
     void updateMessage(String messageId, MessageStatusType status, String statusDescription);
-    void insertMessage(String messageId, String messageDirection, String cpaId, String conversationId);
+    void insertMessage(String messageId, String messageDirection, String cpaId, String conversationId, String refMessageID);
 }

@@ -71,7 +71,7 @@ public abstract class AbstractRepositoryManager implements RepositoryManager {
     }
 
     @Override
-    public void insertMessage(String messageId, String messageDirection, String cpaId, String conversationId) {
+    public void insertMessage(String messageId, String messageDirection, String cpaId, String conversationId, String refMessageID) {
         try(Connection connection = dataSource.getConnection()) {
             String sql = getMessageInsertSQL();
             try(PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -79,7 +79,8 @@ public abstract class AbstractRepositoryManager implements RepositoryManager {
                 stmt.setString(2,messageDirection);
                 stmt.setString(3,cpaId);
                 stmt.setString(4,conversationId);
-                stmt.setTimestamp(5, new Timestamp(new Date().getTime()));
+                stmt.setString(5,refMessageID);
+                stmt.setTimestamp(6, new Timestamp(new Date().getTime()));
                 int result = stmt.executeUpdate();
                 if(result != 1) {
                    throw new MessageStoreException("failed to insert message " + messageId);
@@ -111,7 +112,7 @@ public abstract class AbstractRepositoryManager implements RepositoryManager {
     }
 
     protected String getMessageInsertSQL() {
-        return "INSERT INTO MESSAGE (message_id, message_box, cpa_id, conv_id, time_stamp) VALUES (?,?,?,?,?)";
+        return "INSERT INTO MESSAGE (message_id, message_box, cpa_id, conv_id, ref_to_message_id, time_stamp) VALUES (?,?,?,?,?,?)";
     }
 
     protected String getMessageUpdateSQL() {
