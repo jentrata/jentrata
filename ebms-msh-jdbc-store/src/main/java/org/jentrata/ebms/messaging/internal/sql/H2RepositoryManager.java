@@ -1,7 +1,6 @@
 package org.jentrata.ebms.messaging.internal.sql;
 
 import javax.sql.DataSource;
-import java.io.InputStream;
 
 /**
  * A implementation of the RepositoryManager using H2
@@ -22,6 +21,7 @@ public class H2RepositoryManager extends AbstractRepositoryManager implements Re
             "CREATE TABLE IF NOT EXISTS message (\n" +
                     " message_id varchar,\n" +
                     " message_box varchar,\n" +
+                    " message_type varchar,\n" +
                     " cpa_id varchar,\n" +
                     " ref_to_message_id varchar,\n" +
                     " conv_id varchar,\n" +

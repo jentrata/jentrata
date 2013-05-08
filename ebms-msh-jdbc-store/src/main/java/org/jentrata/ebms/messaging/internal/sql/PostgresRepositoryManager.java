@@ -1,17 +1,6 @@
 package org.jentrata.ebms.messaging.internal.sql;
 
-import org.jentrata.ebms.EbmsConstants;
-import org.jentrata.ebms.messaging.MessageStoreException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.sql.DataSource;
-import java.io.InputStream;
-import java.sql.Connection;
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Statement;
 
 /**
  * A implementation of the RepositoryManager using Postgres
@@ -32,6 +21,7 @@ public class PostgresRepositoryManager extends AbstractRepositoryManager impleme
             "CREATE TABLE IF NOT EXISTS message (\n" +
             " message_id varchar,\n" +
             " message_box varchar,\n" +
+            " message_type varchar,\n" +
             " cpa_id varchar,\n" +
             " ref_to_message_id varchar,\n" +
             " conv_id varchar,\n" +

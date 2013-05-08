@@ -8,11 +8,9 @@ import org.apache.commons.io.IOUtils;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.MessageStatusType;
+import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.messaging.MessageStore;
-import org.jentrata.ebms.messaging.internal.sql.RepositoryManager;
 import org.jentrata.ebms.messaging.internal.sql.RepositoryManagerFactory;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
@@ -51,7 +49,7 @@ public class JDBCMessageStoreTest extends CamelTestSupport {
         File body = fileFromClasspath("simple-as4-receipt.xml");
         String contentType = "Multipart/Related; boundary=\"----=_Part_7_10584188.1123489648993\"; type=\"application/soap+xml\"; start=\"<soapPart@jentrata.org>\"";
         String messageId = "testMimeMessage1";
-        assertStoredMessage(messageId, contentType, body);
+        assertStoredMessage(messageId, contentType, body, MessageType.USER_MESSAGE);
     }
 
     @Test
@@ -59,7 +57,7 @@ public class JDBCMessageStoreTest extends CamelTestSupport {
         String contentType = "application/soap+xml";
         File body = fileFromClasspath("simple-as4-receipt.xml");
         String messageId = "testSoapMessage1";
-        assertStoredMessage(messageId, contentType, body);
+        assertStoredMessage(messageId, contentType, body, MessageType.SIGNAL_MESSAGE_WITH_USER_MESSAGE);
     }
 
     @Test
@@ -67,7 +65,7 @@ public class JDBCMessageStoreTest extends CamelTestSupport {
         File body = fileFromClasspath("simple-as4-receipt.xml");
         String contentType = "Multipart/Related; boundary=\"----=_Part_7_10584188.1123489648993\"; type=\"application/soap+xml\"; start=\"<soapPart@jentrata.org>\"";
         String messageId = "testMimeMessage1";
-        assertStoredMessage(messageId, contentType, body);
+        assertStoredMessage(messageId, contentType, body, MessageType.USER_MESSAGE);
         messageStore.updateMessage(messageId, EbmsConstants.MESSAGE_DIRECTION_INBOUND, MessageStatusType.RECEIVED,"Message Received");
         try(Connection conn = dataSource.getConnection()) {
             try (PreparedStatement st = conn.prepareStatement("select * from message where message_id = ?")) {
@@ -80,11 +78,12 @@ public class JDBCMessageStoreTest extends CamelTestSupport {
         }
     }
 
-    private void assertStoredMessage(String messageId, String contentType, File body) throws SQLException, IOException {
+    private void assertStoredMessage(String messageId, String contentType, File body, MessageType messageType) throws SQLException, IOException {
         Exchange request = new DefaultExchange(context());
         request.getIn().setHeader(EbmsConstants.EBMS_VERSION,EbmsConstants.EBMS_V3);
         request.getIn().setHeader(EbmsConstants.MESSAGE_ID,messageId);
         request.getIn().setHeader(EbmsConstants.MESSAGE_DIRECTION,EbmsConstants.MESSAGE_DIRECTION_INBOUND);
+        request.getIn().setHeader(EbmsConstants.MESSAGE_TYPE,messageType);
         request.getIn().setHeader(EbmsConstants.CONTENT_TYPE,contentType);
         request.getIn().setHeader(EbmsConstants.CPA_ID,"testCPAId");
 
@@ -105,6 +104,7 @@ public class JDBCMessageStoreTest extends CamelTestSupport {
                 ResultSet resultSet = st.executeQuery();
                 assertThat(resultSet.next(),is(true));
                 assertThat(resultSet.getString("message_box"),equalTo(EbmsConstants.MESSAGE_DIRECTION_INBOUND));
+                assertThat(resultSet.getString("message_type"),equalTo(messageType.name()));
                 assertThat(resultSet.getString("cpa_id"),equalTo("testCPAId"));
                 assertThat(resultSet.getDate("time_stamp"),notNullValue());
             }

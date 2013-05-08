@@ -2,6 +2,7 @@ package org.jentrata.ebms.messaging.internal.sql;
 
 import org.apache.commons.io.IOUtils;
 import org.jentrata.ebms.MessageStatusType;
+import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.messaging.MessageStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,16 +72,17 @@ public abstract class AbstractRepositoryManager implements RepositoryManager {
     }
 
     @Override
-    public void insertMessage(String messageId, String messageDirection, String cpaId, String conversationId, String refMessageID) {
+    public void insertMessage(String messageId, String messageDirection, MessageType messageType, String cpaId, String conversationId, String refMessageID) {
         try(Connection connection = dataSource.getConnection()) {
             String sql = getMessageInsertSQL();
             try(PreparedStatement stmt = connection.prepareStatement(sql)) {
                 stmt.setString(1,messageId);
                 stmt.setString(2,messageDirection);
-                stmt.setString(3,cpaId);
-                stmt.setString(4,conversationId);
-                stmt.setString(5,refMessageID);
-                stmt.setTimestamp(6, new Timestamp(new Date().getTime()));
+                stmt.setString(3,messageType.name());
+                stmt.setString(4,cpaId);
+                stmt.setString(5,conversationId);
+                stmt.setString(6,refMessageID);
+                stmt.setTimestamp(7, new Timestamp(new Date().getTime()));
                 int result = stmt.executeUpdate();
                 if(result != 1) {
                    throw new MessageStoreException("failed to insert message " + messageId);
@@ -112,7 +114,7 @@ public abstract class AbstractRepositoryManager implements RepositoryManager {
     }
 
     protected String getMessageInsertSQL() {
-        return "INSERT INTO MESSAGE (message_id, message_box, cpa_id, conv_id, ref_to_message_id, time_stamp) VALUES (?,?,?,?,?,?)";
+        return "INSERT INTO MESSAGE (message_id, message_box, message_type, cpa_id, conv_id, ref_to_message_id, time_stamp) VALUES (?,?,?,?,?,?,?)";
     }
 
     protected String getMessageUpdateSQL() {
