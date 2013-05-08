@@ -46,6 +46,7 @@
             <cm:property name="jentrata.ebms.outbound.to" value="987654321"/>
             <cm:property name="jentrata.ebms.outbound.toPartyIdType" value="urn:oasis:names:tc:ebcore:partyid-type:iso6523:0088"/>
             <cm:property name="jentrata.ebms.outbound.agreementRef" value=""/>
+            <cm:property name="jentrata.ebms.outbound.schema" value=""/>
             <cm:property name="jentrata.ebms.outbound.partProperties" value=""/>
 
         </cm:default-properties>
@@ -91,6 +92,7 @@
         <property name="to" value="${jentrata.ebms.outbound.to}"/>
         <property name="toPartyIdType" value="${jentrata.ebms.outbound.toPartyIdType}"/>
         <property name="agreementRef" value="${jentrata.ebms.outbound.agreementRef}"/>
+        <property name="schema" value="${jentrata.ebms.outbound.schema}"/>
         <property name="partProperties" value="${jentrata.ebms.outbound.partProperties}"/>
 
     </bean>

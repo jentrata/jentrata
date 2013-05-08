@@ -21,6 +21,7 @@ public class FileOutboundMessageRouter extends RouteBuilder {
     private String toPartyIdType;
     private String payloadId;
     private String agreementRef;
+    private String schema;
     private String partProperties;
     private String conversationId = "${bean:uuidGenerator.generateId}";
     private String deliveryQueue = "activemq:queue:jentrata_as4_outbound";
@@ -39,6 +40,7 @@ public class FileOutboundMessageRouter extends RouteBuilder {
             .setHeader(EbmsConstants.PAYLOAD_ID, constant(payloadId))
             .setHeader(EbmsConstants.MESSAGE_CONVERSATION_ID, simple(conversationId))
             .setHeader(EbmsConstants.MESSAGE_AGREEMENT_REF,constant(agreementRef))
+            .setHeader(EbmsConstants.MESSAGE_PAYLOAD_SCHEMA,constant(schema))
             .setHeader(EbmsConstants.MESSAGE_PART_PROPERTIES,constant(partProperties))
             .to(deliveryQueue)
         .routeId("_jentrataFileOutbound");
@@ -138,6 +140,14 @@ public class FileOutboundMessageRouter extends RouteBuilder {
 
     public void setAgreementRef(String agreementRef) {
         this.agreementRef = agreementRef;
+    }
+
+    public String getSchema() {
+        return schema;
+    }
+
+    public void setSchema(String schema) {
+        this.schema = schema;
     }
 
     public String getPartProperties() {
