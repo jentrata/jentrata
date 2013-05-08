@@ -162,10 +162,22 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
                             .log(LoggingLevel.INFO, "Storing message no where ${headers}")
                         .routeId("mockStoreMessage");
 
+                        from(MessageStore.DEFAULT_MESSAGE_INSERT_ENDPOINT)
+                            .log(LoggingLevel.INFO, "Inserting message no where ${headers}")
+                        .routeId("mockInsertStoreMessage");
+
+                        from(MessageStore.DEFAULT_MESSAGE_UPDATE_ENDPOINT)
+                            .log(LoggingLevel.INFO, "Updating message no where ${headers}")
+                        .routeId("mockUpdateStoreMessage");
+
                         from("direct:validatePartner")
                             .setHeader("JentrataIsValidTradingPartner", constant(Boolean.TRUE))
                             .setHeader("JentrataMEP", constant("One-Way"))
                         .routeId("mockValidatePartner");
+
+                        from("direct:lookupCpaId")
+                            .setHeader(EbmsConstants.CPA_ID,constant("testCPAId"))
+                        .routeId("mockLookupCpaId");
                     }
                 }
         };

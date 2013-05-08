@@ -6,6 +6,7 @@ import org.apache.camel.util.ObjectHelper;
 import org.apache.camel.util.ResourceHelper;
 import org.apache.commons.io.IOUtils;
 import org.jentrata.ebms.EbmsConstants;
+import org.jentrata.ebms.MessageStatusType;
 import org.jentrata.ebms.messaging.MessageStore;
 import org.jentrata.ebms.messaging.MessageStoreException;
 import org.jentrata.ebms.messaging.internal.sql.RepositoryManager;
@@ -51,7 +52,22 @@ public class JDBCMessageStore implements MessageStore {
         String messageDirection = exchange.getIn().getHeader(EbmsConstants.MESSAGE_DIRECTION,String.class);
         String contentType = exchange.getIn().getHeader(EbmsConstants.CONTENT_TYPE,String.class);
         long contentLength = exchange.getIn().getHeader(EbmsConstants.CONTENT_LENGTH,0L,Long.class);
-        repositoryManager.insertIntoRepository(messageId,contentType,messageDirection,contentLength,message);
+        String cpaId = exchange.getIn().getHeader(EbmsConstants.CPA_ID,String.class);
+        repositoryManager.insertIntoRepository(messageId, contentType, messageDirection, contentLength, message);
+
+    }
+
+    public void storeMessage(Exchange exchange) {
+        String messageId = exchange.getIn().getHeader(EbmsConstants.MESSAGE_ID,String.class);
+        String messageDirection = exchange.getIn().getHeader(EbmsConstants.MESSAGE_DIRECTION,String.class);
+        String cpaId = exchange.getIn().getHeader(EbmsConstants.CPA_ID,String.class);
+        String conversationId = exchange.getIn().getHeader(EbmsConstants.MESSAGE_CONVERSATION_ID,String.class);
+        repositoryManager.insertMessage(messageId,messageDirection,cpaId,conversationId);
+    }
+
+    @Override
+    public void updateMessage(String messageId, MessageStatusType status, String statusDescription) {
+        repositoryManager.updateMessage(messageId,status,statusDescription);
     }
 
     @Override

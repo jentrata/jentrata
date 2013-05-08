@@ -1,24 +1,21 @@
 package org.jentrata.ebms.as4.internal.routes;
 
-import org.apache.camel.Body;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.impl.DefaultExchange;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.apache.commons.io.IOUtils;
-import org.jentrata.ebms.messaging.MessageRef;
+import org.jentrata.ebms.MessageStatusType;
 import org.jentrata.ebms.messaging.MessageStore;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
 
 /**
  * Unit tests for org.jentrata.ebms.as4.internal.routes.MessageStoreRouteBuilder
@@ -54,11 +51,17 @@ public class MessageStoreRouteBuilderTest extends CamelTestSupport {
         private Map<String, InputStream> messageStore = new LinkedHashMap<>();
 
         @Override
-        public void store(@Body InputStream input, Exchange exchange) {
+        public void store(InputStream input, Exchange exchange) {
             messageStore.put(exchange.getIn().getMessageId(),input);
             exchange.getIn().setHeader(MESSAGE_STORE_REF,exchange.getIn().getMessageId());
             exchange.getIn().setHeader(JENTRATA_MESSAGE_ID,exchange.getIn().getMessageId());
         }
+
+        @Override
+        public void storeMessage(Exchange exchange) {}
+
+        @Override
+        public void updateMessage(String messageId, MessageStatusType status, String statusDescription) {}
 
         @Override
         public InputStream findByMessageRefId(Object messageRef) {

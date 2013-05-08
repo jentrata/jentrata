@@ -5,14 +5,20 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.impl.DefaultExchange;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.apache.commons.io.IOUtils;
+import org.hamcrest.Matchers;
 import org.jentrata.ebms.EbmsConstants;
+import org.jentrata.ebms.MessageStatusType;
 import org.jentrata.ebms.messaging.MessageStore;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.is;
 
 /**
  * Unit Test for org.jentrata.ebms.messaging.internal.FileMessageStore
@@ -36,6 +42,14 @@ public class FileMessageStoreTest extends CamelTestSupport {
         Object msgStoreRef = response.getIn().getHeader(MessageStore.MESSAGE_STORE_REF);
         assertThat(msgId,equalTo("testMessageID"));
         assertThat(IOUtils.toString(messageStore.findByMessageRefId(msgStoreRef)),equalTo("test"));
+    }
+
+    @Test
+    public void testUpdateMessageInMessageStore() throws Exception {
+        messageStore.updateMessage("testMessageID", MessageStatusType.RECEIVED,"Received");
+        File expectedFile = new File(baseDir,"testMessageID.RECEIVED");
+        assertThat(expectedFile.exists(),is(true));
+        assertThat("Received", Matchers.equalTo(IOUtils.toString(new FileInputStream(expectedFile))));
     }
 
     @Override

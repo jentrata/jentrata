@@ -26,6 +26,8 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
     private String inboundEbmsPayloadQueue = "activemq:queue:jentrata_internal_ebms_inbound_payload";
     private String inboundEbmsSignalsQueue = "activemq:queue:jentrata_internal_ebms_inbound_signals";
     private String messgeStoreEndpoint = MessageStore.DEFAULT_MESSAGE_STORE_ENDPOINT;
+    private String messageInsertEndpoint = MessageStore.DEFAULT_MESSAGE_INSERT_ENDPOINT;
+    private String messageUpdateEndpoint = MessageStore.DEFAULT_MESSAGE_UPDATE_ENDPOINT;
     private String validateTradingPartner = "direct:validatePartner";
     private MessageDetector messageDetector;
 
@@ -47,6 +49,9 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
                 .handled(true)
                 .log(LoggingLevel.DEBUG, "headers:${headers}\nbody:\n${in.body}")
                 .log(LoggingLevel.ERROR, "${exception.message}\n${exception.stacktrace}")
+                .setHeader(EbmsConstants.MESSAGE_STATUS,constant(MessageStatusType.FAILED))
+                .setHeader(EbmsConstants.MESSAGE_STATUS_DESCRIPTION,simple("${exception.message}"))
+                .to(messageUpdateEndpoint)
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(500))
                 .to("direct:errorHandler")
              .end()
@@ -65,10 +70,13 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
             .setHeader(EbmsConstants.MESSAGE_SERVICE, ns.xpath("//eb3:CollaborationInfo/eb3:Service/text()", String.class))
             .setHeader(EbmsConstants.MESSAGE_ACTION, ns.xpath("//eb3:CollaborationInfo/eb3:Action/text()", String.class))
             .setHeader(EbmsConstants.MESSAGE_CONVERSATION_ID, ns.xpath("//eb3:CollaborationInfo/eb3:ConversationId/text()", String.class))
+            .to("direct:lookupCpaId")
+            .to(messageInsertEndpoint) //create a message entry in the message store to track the state of the message
             .choice()
                 .when(header(EbmsConstants.EBMS_VERSION).isEqualTo(EbmsConstants.EBMS_V3))
                     .to(validateTradingPartner)
                     .to("direct:processPayloads")
+                    .to(messageUpdateEndpoint)
                     .setBody(constant(null))
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(204))
                     .to("direct:removeHeaders")
@@ -153,6 +161,22 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
 
     public void setMessgeStoreEndpoint(String messgeStoreEndpoint) {
         this.messgeStoreEndpoint = messgeStoreEndpoint;
+    }
+
+    public String getMessageInsertEndpoint() {
+        return messageInsertEndpoint;
+    }
+
+    public void setMessageInsertEndpoint(String messageInsertEndpoint) {
+        this.messageInsertEndpoint = messageInsertEndpoint;
+    }
+
+    public String getMessageUpdateEndpoint() {
+        return messageUpdateEndpoint;
+    }
+
+    public void setMessageUpdateEndpoint(String messageUpdateEndpoint) {
+        this.messageUpdateEndpoint = messageUpdateEndpoint;
     }
 
     public String getValidateTradingPartner() {

@@ -4,12 +4,15 @@ import org.apache.camel.Body;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.ExpressionBuilder;
 import org.apache.commons.io.IOUtils;
+import org.jentrata.ebms.EbmsConstants;
+import org.jentrata.ebms.MessageStatusType;
 import org.jentrata.ebms.messaging.MessageStore;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -21,7 +24,7 @@ import java.io.InputStream;
 public class FileMessageStore implements MessageStore {
 
     private String baseDir;
-    private String fileNameExpression = "${date:now:yyyyMMdd-HHmmssSSS}-${headers.JentrataEBMSVersion}.msg";
+    private String fileNameExpression = "${headers.JentrataMessageID}-${headers.JentrataMessageType}.msg";
 
     @Override
     public void store(@Body InputStream input, Exchange exchange) {
@@ -41,11 +44,29 @@ public class FileMessageStore implements MessageStore {
     }
 
     @Override
+    public void storeMessage(Exchange exchange) {
+        String messageId = exchange.getIn().getHeader(EbmsConstants.MESSAGE_ID,String.class);
+        MessageStatusType status = exchange.getIn().getHeader(EbmsConstants.MESSAGE_STATUS,MessageStatusType.class);
+        String statusDesc = exchange.getIn().getHeader(EbmsConstants.MESSAGE_STATUS_DESCRIPTION,String.class);
+        updateMessage(messageId,status,statusDesc);
+    }
+
+    @Override
     public InputStream findByMessageRefId(Object messageRef) {
         try {
             return new FileInputStream(new File((String) messageRef));
         } catch (FileNotFoundException e) {
             return null;
+        }
+    }
+
+    @Override
+    public void updateMessage(final String messageId, MessageStatusType status, String statusDescription) {
+        File update = new File(baseDir,messageId + "." + status);
+        try (FileOutputStream outputStream = new FileOutputStream(update)) {
+            IOUtils.write(statusDescription,outputStream);
+        } catch (IOException e) {
+            throw new RuntimeException("unable to update message " + messageId + " with status " + status,e);
         }
     }
 

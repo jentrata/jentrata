@@ -17,9 +17,7 @@ import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Map;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 
 /**
  * Unit test for org.jentrata.ebms.as4.internal.routes.ValidatePartnerAgreementRouteBuilder
@@ -63,6 +61,31 @@ public class ValidatePartnerAgreementRouteBuilderTest extends CamelTestSupport {
         assertThat(request.isFailed(),equalTo(true));
         assertThat(request.getException(),instanceOf(InvalidPartnerAgreementException.class));
         assertThat(response.getIn().getHeader(EbmsConstants.VALID_PARTNER_AGREEMENT,Boolean.class),is(false));
+    }
+
+    @Test
+    public void testLookupCPAId() {
+        Exchange request = new DefaultExchange(context());
+        request.getIn().setBody(new ByteArrayInputStream("test".getBytes()));
+        request.getIn().setHeader(EbmsConstants.MESSAGE_ID, "testMsgID");
+        request.getIn().setHeader(EbmsConstants.MESSAGE_SERVICE, "testService");
+        request.getIn().setHeader(EbmsConstants.MESSAGE_ACTION,"testAction");
+        Exchange response = context().createProducerTemplate().send("direct:lookupCpaId",request);
+
+        assertThat(response.getIn().getHeader(EbmsConstants.CPA, PartnerAgreement.class),is(notNullValue()));
+        assertThat(response.getIn().getHeader(EbmsConstants.CPA_ID, String.class),equalTo("testCPAId"));
+    }
+
+    @Test
+    public void testInvalidLookupCPAId() {
+        Exchange request = new DefaultExchange(context());
+        request.getIn().setBody(new ByteArrayInputStream("test".getBytes()));
+        request.getIn().setHeader(EbmsConstants.MESSAGE_ID, "testMsgID");
+        request.getIn().setHeader(EbmsConstants.MESSAGE_SERVICE, "testService");
+        request.getIn().setHeader(EbmsConstants.MESSAGE_ACTION,"testAction2");
+        Exchange response = context().createProducerTemplate().send("direct:lookupCpaId",request);
+        assertThat(response.getIn().getHeader(EbmsConstants.CPA, PartnerAgreement.class),is(nullValue()));
+        assertThat(response.getIn().getHeader(EbmsConstants.CPA_ID, String.class),equalTo(EbmsConstants.CPA_ID_UNKNOWN));
     }
 
     @Override

@@ -37,14 +37,15 @@ public class EbmsConstants {
     public static final String MESSAGE_DIRECTION_INBOUND = "inbox";
     public static final String MESSAGE_DIRECTION_OUTBOUND = "outbox";
     public static final String MESSAGE_STATUS = "JentrataMessageStatus";
+    public static final String MESSAGE_STATUS_DESCRIPTION = "JentrataMessageStatusDesc";
     public static final String MESSAGE_TYPE = "JentrataMessageType";
     public static final String MESSAGE_SERVICE = "JentrataService";
     public static final String MESSAGE_ACTION = "JentrataAction";
     public static final String MESSAGE_CONVERSATION_ID = "JentrataConversationId";
+    public static final String CPA = "JentrataCPA";
     public static final String CPA_ID = "JentrataCPAId";
     public static final String PAYLOAD_ID = "JentrataPayloadId";
+    public static final String CPA_ID_UNKNOWN = "UNKNOWN";
     public static final String CONTENT_CHAR_SET = "JentrataCharSet";
-
     public static final String SOAP_BODY_PAYLOAD_ID = "soapbodypart";
-
 }

@@ -1,6 +1,7 @@
 package org.jentrata.ebms.messaging.internal.sql;
 
 import org.apache.commons.io.IOUtils;
+import org.jentrata.ebms.MessageStatusType;
 import org.jentrata.ebms.messaging.MessageStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,9 +36,11 @@ public abstract class AbstractRepositoryManager implements RepositoryManager {
     public void createTablesIfNotExists() {
         try(Connection connection = dataSource.getConnection()) {
             try(Statement stmt = connection.createStatement()) {
-                int result = stmt.executeUpdate(getCreateSQL());
-                if(result > 0) {
-                    LOG.info("Message Store tables successfully created");
+                for(String sql : getCreateSQL()) {
+                    int result = stmt.executeUpdate(sql);
+                    if(result > 0) {
+                        LOG.info("Message Store tables successfully created");
+                    }
                 }
             }
         } catch (Exception e) {
@@ -64,11 +67,60 @@ public abstract class AbstractRepositoryManager implements RepositoryManager {
             }
         } catch (SQLException|IOException e) {
             throw new MessageStoreException("failed to write message to store:" + e,e);
-        }    }
+        }
+    }
+
+    @Override
+    public void insertMessage(String messageId, String messageDirection, String cpaId, String conversationId) {
+        try(Connection connection = dataSource.getConnection()) {
+            String sql = getMessageInsertSQL();
+            try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setString(1,messageId);
+                stmt.setString(2,messageDirection);
+                stmt.setString(3,cpaId);
+                stmt.setString(4,conversationId);
+                stmt.setTimestamp(5, new Timestamp(new Date().getTime()));
+                int result = stmt.executeUpdate();
+                if(result != 1) {
+                   throw new MessageStoreException("failed to insert message " + messageId);
+                }
+            }
+        } catch (SQLException ex) {
+            throw new MessageStoreException("failed to insert message " + messageId);
+        }
+    }
+
+    @Override
+    public void updateMessage(String messageId, MessageStatusType status, String statusDescription) {
+        try(Connection connection = dataSource.getConnection()) {
+            String sql = getMessageUpdateSQL();
+            try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setString(1,messageId);
+                stmt.setString(2,status.name());
+                stmt.setString(3,statusDescription);
+                stmt.setString(4,messageId);
+                int result = stmt.executeUpdate();
+                if(result != 1) {
+                    LOG.warn("failed to update message " + messageId + " to status " + status);
+                }
+            }
+        } catch (SQLException ex) {
+            LOG.warn("failed to update message " + messageId + " to status " + status);
+            LOG.debug("",ex);
+        }
+    }
+
+    protected String getMessageInsertSQL() {
+        return "INSERT INTO MESSAGE (message_id, message_box, cpa_id, conv_id, time_stamp) VALUES (?,?,?,?,?)";
+    }
+
+    protected String getMessageUpdateSQL() {
+        return "UPDATE MESSAGE SET message_id=?, status=?, status_description=? where message_id=?";
+    }
 
     protected String getInsertSQL() {
         return "INSERT INTO repository (message_id,content_type,time_stamp,message_box,content) VALUES(?,?,?,?,?)";
     }
 
-    protected abstract String getCreateSQL();
+    protected abstract String [] getCreateSQL();
 }

@@ -27,5 +27,14 @@ public class ValidatePartnerAgreementRouteBuilder extends RouteBuilder {
                 .otherwise()
                     .log(LoggingLevel.DEBUG,"found matching partner agreement for ${headers.JentrataMessageID} - Service:${headers.JentrataService} - action:${headers.JentrataAction}")
         .routeId("_jentrataValidatePartnerAgreement");
+
+        from("direct:lookupCpaId")
+            .setHeader(EbmsConstants.CPA, simple("bean:cpaRepository?method=findByServiceAndAction"))
+            .choice()
+                .when(header(EbmsConstants.CPA).isNotEqualTo(null))
+                    .setHeader(EbmsConstants.CPA_ID,simple("${headers.JentrataCPA.cpaId}"))
+                .otherwise()
+                .setHeader(EbmsConstants.CPA_ID,constant(EbmsConstants.CPA_ID_UNKNOWN))
+        .routeId("_jentratalookupCpaId");
     }
 }

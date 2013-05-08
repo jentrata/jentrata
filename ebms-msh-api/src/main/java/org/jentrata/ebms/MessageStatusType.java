@@ -7,4 +7,5 @@ package org.jentrata.ebms;
  */
 public enum MessageStatusType {
     RECEIVED,
+    FAILED;
 }
