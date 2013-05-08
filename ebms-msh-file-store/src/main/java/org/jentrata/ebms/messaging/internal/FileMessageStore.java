@@ -46,9 +46,10 @@ public class FileMessageStore implements MessageStore {
     @Override
     public void storeMessage(Exchange exchange) {
         String messageId = exchange.getIn().getHeader(EbmsConstants.MESSAGE_ID,String.class);
+        String messageDirection = exchange.getIn().getHeader(EbmsConstants.MESSAGE_DIRECTION,String.class);
         MessageStatusType status = exchange.getIn().getHeader(EbmsConstants.MESSAGE_STATUS,MessageStatusType.class);
         String statusDesc = exchange.getIn().getHeader(EbmsConstants.MESSAGE_STATUS_DESCRIPTION,String.class);
-        updateMessage(messageId,status,statusDesc);
+        updateMessage(messageId,messageDirection,status,statusDesc);
     }
 
     @Override
@@ -61,7 +62,7 @@ public class FileMessageStore implements MessageStore {
     }
 
     @Override
-    public void updateMessage(final String messageId, MessageStatusType status, String statusDescription) {
+    public void updateMessage(final String messageId, String messageDirection, MessageStatusType status, String statusDescription) {
         File update = new File(baseDir,messageId + "." + status);
         try (FileOutputStream outputStream = new FileOutputStream(update)) {
             IOUtils.write(statusDescription,outputStream);

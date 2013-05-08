@@ -92,14 +92,14 @@ public abstract class AbstractRepositoryManager implements RepositoryManager {
     }
 
     @Override
-    public void updateMessage(String messageId, MessageStatusType status, String statusDescription) {
+    public void updateMessage(String messageId, String messageDirection, MessageStatusType status, String statusDescription) {
         try(Connection connection = dataSource.getConnection()) {
             String sql = getMessageUpdateSQL();
             try(PreparedStatement stmt = connection.prepareStatement(sql)) {
-                stmt.setString(1,messageId);
-                stmt.setString(2,status.name());
-                stmt.setString(3,statusDescription);
-                stmt.setString(4,messageId);
+                stmt.setString(1,status.name());
+                stmt.setString(2,statusDescription);
+                stmt.setString(3,messageId);
+                stmt.setString(4,messageDirection);
                 int result = stmt.executeUpdate();
                 if(result != 1) {
                     LOG.warn("failed to update message " + messageId + " to status " + status);
@@ -116,7 +116,7 @@ public abstract class AbstractRepositoryManager implements RepositoryManager {
     }
 
     protected String getMessageUpdateSQL() {
-        return "UPDATE MESSAGE SET message_id=?, status=?, status_description=? where message_id=?";
+        return "UPDATE MESSAGE SET status=?, status_description=? where message_id=? and message_box=?";
     }
 
     protected String getInsertSQL() {

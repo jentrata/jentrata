@@ -68,7 +68,7 @@ public class JDBCMessageStoreTest extends CamelTestSupport {
         String contentType = "Multipart/Related; boundary=\"----=_Part_7_10584188.1123489648993\"; type=\"application/soap+xml\"; start=\"<soapPart@jentrata.org>\"";
         String messageId = "testMimeMessage1";
         assertStoredMessage(messageId, contentType, body);
-        messageStore.updateMessage(messageId, MessageStatusType.RECEIVED,"Message Received");
+        messageStore.updateMessage(messageId, EbmsConstants.MESSAGE_DIRECTION_INBOUND, MessageStatusType.RECEIVED,"Message Received");
         try(Connection conn = dataSource.getConnection()) {
             try (PreparedStatement st = conn.prepareStatement("select * from message where message_id = ?")) {
                 st.setString(1,messageId);

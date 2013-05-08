@@ -46,7 +46,7 @@ public class FileMessageStoreTest extends CamelTestSupport {
 
     @Test
     public void testUpdateMessageInMessageStore() throws Exception {
-        messageStore.updateMessage("testMessageID", MessageStatusType.RECEIVED,"Received");
+        messageStore.updateMessage("testMessageID",EbmsConstants.MESSAGE_DIRECTION_INBOUND, MessageStatusType.RECEIVED,"Received");
         File expectedFile = new File(baseDir,"testMessageID.RECEIVED");
         assertThat(expectedFile.exists(),is(true));
         assertThat("Received", Matchers.equalTo(IOUtils.toString(new FileInputStream(expectedFile))));

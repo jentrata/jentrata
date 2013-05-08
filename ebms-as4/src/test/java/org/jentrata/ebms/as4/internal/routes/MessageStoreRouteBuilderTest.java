@@ -1,10 +1,12 @@
 package org.jentrata.ebms.as4.internal.routes;
 
 import org.apache.camel.Exchange;
+import org.apache.camel.Header;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.impl.DefaultExchange;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.apache.commons.io.IOUtils;
+import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.MessageStatusType;
 import org.jentrata.ebms.messaging.MessageStore;
 import org.junit.Test;
@@ -61,7 +63,7 @@ public class MessageStoreRouteBuilderTest extends CamelTestSupport {
         public void storeMessage(Exchange exchange) {}
 
         @Override
-        public void updateMessage(String messageId, MessageStatusType status, String statusDescription) {}
+        public void updateMessage(String messageId,String messageDirection,MessageStatusType status,String statusDescription) {}
 
         @Override
         public InputStream findByMessageRefId(Object messageRef) {

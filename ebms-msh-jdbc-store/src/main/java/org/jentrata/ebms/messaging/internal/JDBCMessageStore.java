@@ -67,8 +67,8 @@ public class JDBCMessageStore implements MessageStore {
     }
 
     @Override
-    public void updateMessage(String messageId, MessageStatusType status, String statusDescription) {
-        repositoryManager.updateMessage(messageId,status,statusDescription);
+    public void updateMessage(String messageId, String messageDirection, MessageStatusType status, String statusDescription) {
+        repositoryManager.updateMessage(messageId,messageDirection,status,statusDescription);
     }
 
     @Override

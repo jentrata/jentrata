@@ -27,6 +27,7 @@ public interface MessageStore {
     void storeMessage(Exchange exchange);
 
     void updateMessage(@Header(EbmsConstants.MESSAGE_ID)String messageId,
+                       @Header(EbmsConstants.MESSAGE_DIRECTION)String messageDirection,
                        @Header(EbmsConstants.MESSAGE_STATUS)MessageStatusType status,
                        @Header(EbmsConstants.MESSAGE_STATUS_DESCRIPTION)String statusDescription);
 
