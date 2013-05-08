@@ -36,8 +36,18 @@
             <cm:property name="jentrata.ebms.outbound.queue" value="activemq:queue:jentrata_internal_ebms_outbound"/>
 
             <cm:property name="jentrata.ebms.outbound.dir" value="./data/jentrata/outbox"/>
+            <cm:property name="jentrata.ebms.outbound.cpaId" value="jentrataTestCPA"/>
+            <cm:property name="jentrata.ebms.outbound.service" value="http://docs.oasis-open.org/ebxml-msg/as4/200902/service"/>
+            <cm:property name="jentrata.ebms.outbound.action" value="http://docs.oasis-open.org/ebxml-msg/as4/200902/action"/>
+            <cm:property name="jentrata.ebms.outbound.contentType" value="text/xml"/>
+            <cm:property name="jentrata.ebms.outbound.payloadId" value="payload-id@jentrata.org"/>
+            <cm:property name="jentrata.ebms.outbound.from" value="123456789"/>
+            <cm:property name="jentrata.ebms.outbound.fromPartyIdType" value="urn:oasis:names:tc:ebcore:partyid-type:iso6523:0088"/>
+            <cm:property name="jentrata.ebms.outbound.to" value="987654321"/>
+            <cm:property name="jentrata.ebms.outbound.toPartyIdType" value="urn:oasis:names:tc:ebcore:partyid-type:iso6523:0088"/>
+            <cm:property name="jentrata.ebms.outbound.agreementRef" value=""/>
+            <cm:property name="jentrata.ebms.outbound.partProperties" value=""/>
 
-            <cm:property name="jentrata.message.store.location" value="./data/jentrata/messageStore"/>
         </cm:default-properties>
     </cm:property-placeholder>
 
@@ -71,11 +81,18 @@
 
     <bean id="fileOutboundMessageRouter" class="org.jentrata.ebms.as4.internal.routes.FileOutboundMessageRouter">
         <property name="fileEndpoint" value="file://${jentrata.ebms.outbound.dir}/?move=.sent&amp;moveFailed=.failed&amp;antInclude=*.xml"/>
-        <property name="cpaId" value="jentrataTestCPA"/>
-        <property name="contentType" value="text/xml"/>
-        <property name="from" value="123456789"/>
-        <property name="to" value="987654321"/>
-        <property name="payloadId" value="payload-id@jentrata.org"/>
+        <property name="cpaId" value="${jentrata.ebms.outbound.cpaId}"/>
+        <property name="service" value="${jentrata.ebms.outbound.service}"/>
+        <property name="action" value="${jentrata.ebms.outbound.action}"/>
+        <property name="contentType" value="${jentrata.ebms.outbound.contentType}"/>
+        <property name="payloadId" value="${jentrata.ebms.outbound.payloadId}"/>
+        <property name="from" value="${jentrata.ebms.outbound.from}"/>
+        <property name="fromPartyIdType" value="${jentrata.ebms.outbound.fromPartyIdType}"/>
+        <property name="to" value="${jentrata.ebms.outbound.to}"/>
+        <property name="toPartyIdType" value="${jentrata.ebms.outbound.toPartyIdType}"/>
+        <property name="agreementRef" value="${jentrata.ebms.outbound.agreementRef}"/>
+        <property name="partProperties" value="${jentrata.ebms.outbound.partProperties}"/>
+
     </bean>
 
     <bean id="jmsConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">

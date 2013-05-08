@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.hasXPath;
 
 /**
  * Unit test for EbmsOutboundMessageRouteBuilder
@@ -54,6 +55,10 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
         request.getIn().setHeader(EbmsConstants.CPA_ID,"testCPAId");
         request.getIn().setHeader(EbmsConstants.PAYLOAD_ID,"testpayload@jentrata.org");
         request.getIn().setHeader(EbmsConstants.MESSAGE_CONVERSATION_ID,"MESSAGE_CONVERSATION_ID");
+        request.getIn().setHeader(EbmsConstants.MESSAGE_PAYLOAD_SCHEMA,"http://jentrata.org/schema/example");
+        request.getIn().setHeader(EbmsConstants.MESSAGE_AGREEMENT_REF,"http://jentrata.org/agreement");
+
+        request.getIn().setHeader(EbmsConstants.MESSAGE_PART_PROPERTIES,"PartID=testpayload@jentrata.org;SourceABN=123456789");
 
         request.getIn().setHeader(EbmsConstants.MESSAGE_DIRECTION,EbmsConstants.MESSAGE_DIRECTION_OUTBOUND);
 
@@ -69,6 +74,17 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
         mimeHeaders.addHeader(Exchange.CONTENT_TYPE, msg.getHeader(Exchange.CONTENT_TYPE, String.class));
         SOAPMessage message = messageFactory.createMessage(mimeHeaders, msg.getBody(InputStream.class));
         SOAPHeader soapHeader = message.getSOAPPart().getEnvelope().getHeader();
+
+        assertThat(soapHeader.getOwnerDocument(),hasXPath("//*[local-name()='Timestamp']"));
+        assertThat(soapHeader.getOwnerDocument(),hasXPath("//*[local-name()='MessageId']"));
+        assertThat(soapHeader.getOwnerDocument(),hasXPath("//*[local-name()='PartyId' and text()='123456789']"));
+        assertThat(soapHeader.getOwnerDocument(),hasXPath("//*[local-name()='PartyId' and text()='987654321']"));
+        assertThat(soapHeader.getOwnerDocument(),hasXPath("//*[local-name()='AgreementRef' and text()='http://jentrata.org/agreement']"));
+        assertThat(soapHeader.getOwnerDocument(),hasXPath("//*[local-name()='Schema' and @*[local-name()='location']='http://jentrata.org/schema/example']"));
+        assertThat(soapHeader.getOwnerDocument(),hasXPath("//@name[.='MimeType' and ../text()='text/xml']"));
+        assertThat(soapHeader.getOwnerDocument(),hasXPath("//@name[.='CharacterSet' and ../text()='UTF-8']"));
+        assertThat(soapHeader.getOwnerDocument(),hasXPath("//@name[.='PartID' and ../text()='testpayload@jentrata.org']"));
+        assertThat(soapHeader.getOwnerDocument(),hasXPath("//@name[.='SourceABN' and ../text()='123456789']"));
     }
 
     @Override
