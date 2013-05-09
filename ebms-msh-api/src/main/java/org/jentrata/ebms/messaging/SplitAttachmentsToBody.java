@@ -23,10 +23,26 @@ import java.util.Map;
 public class SplitAttachmentsToBody extends ExpressionAdapter {
 
     public static final String ORIGINAL_MESSAGE_BODY = "CamelOriginalBody";
+    private static final String[] DEFAULT_HEADERS = {
+            EbmsConstants.CONTENT_ID,
+            EbmsConstants.CONTENT_TYPE,
+            EbmsConstants.MESSAGE_ID,
+            EbmsConstants.EBMS_MESSAGE_MEP,
+            EbmsConstants.MESSAGE_DIRECTION,
+            EbmsConstants.EBMS_VERSION,
+            EbmsConstants.MESSAGE_STATUS,
+            EbmsConstants.MESSAGE_FROM,
+            EbmsConstants.MESSAGE_TO,
+            EbmsConstants.MESSAGE_CONVERSATION_ID,
+            EbmsConstants.MESSAGE_SERVICE,
+            EbmsConstants.MESSAGE_ACTION,
+
+    };
 
     private final boolean copyOriginalMessage;
     private final boolean copyHeaders;
     private boolean includeOrignalMessage = false;
+    private String [] headersToCopy;
 
     public SplitAttachmentsToBody(){
         this(true,true,false);
@@ -44,9 +60,15 @@ public class SplitAttachmentsToBody extends ExpressionAdapter {
         this.copyOriginalMessage = copyOriginalMessage;
         this.copyHeaders = copyHeaders;
         this.includeOrignalMessage = includeOrignalMessage;
+        this.headersToCopy = DEFAULT_HEADERS;
     }
 
-
+    public SplitAttachmentsToBody(boolean copyOriginalMessage, boolean includeOrignalMessage, String...headersToCopy) {
+        this.copyOriginalMessage = copyOriginalMessage;
+        this.copyHeaders = false;
+        this.includeOrignalMessage = includeOrignalMessage;
+        this.headersToCopy = headersToCopy;
+    }
 
     @Override
     public Object evaluate(Exchange exchange) {
@@ -59,7 +81,7 @@ public class SplitAttachmentsToBody extends ExpressionAdapter {
         }
 
         // we want to provide a list of messages with 1 attachment per mail
-        List<Message> answer = new ArrayList<Message>();
+        List<Message> answer = new ArrayList<>();
 
         if(includeOrignalMessage && originalBody != null && originalBody.length() > 0) {
 
@@ -93,29 +115,25 @@ public class SplitAttachmentsToBody extends ExpressionAdapter {
         if(!copyHeaders) {
             copy.removeHeaders("*");
         }
-        String originalMessageID = exchange.getIn().getHeader(EbmsConstants.MESSAGE_ID,String.class);
-        String messageDirection = exchange.getIn().getHeader(EbmsConstants.MESSAGE_DIRECTION,String.class);
-        String messageMEP = exchange.getIn().getHeader(EbmsConstants.EBMS_MESSAGE_MEP,String.class);
-        String messageVersion = exchange.getIn().getHeader(EbmsConstants.EBMS_VERSION,String.class);
-        String messageStatus = exchange.getIn().getHeader(EbmsConstants.MESSAGE_STATUS,String.class);
-        String messageFrom = exchange.getIn().getHeader(EbmsConstants.MESSAGE_FROM,String.class);
-        String messageTo = exchange.getIn().getHeader(EbmsConstants.MESSAGE_TO,String.class);
+
+        if(!copyHeaders && headersToCopy != null && headersToCopy.length > 0) {
+            extractHeaders(copy,exchange.getIn().getHeaders(), headersToCopy);
+        }
 
         // get the content and convert it to byte[]
         byte[] data = exchange.getContext().getTypeConverter().convertTo(byte[].class, stream);
-
         copy.setBody(data);
 
-        copy.setHeader(EbmsConstants.CONTENT_ID, contentId);
-        copy.setHeader(EbmsConstants.CONTENT_TYPE, contentType);
-        copy.setHeader(EbmsConstants.MESSAGE_ID, originalMessageID);
-        copy.setHeader(EbmsConstants.EBMS_MESSAGE_MEP, messageMEP);
-        copy.setHeader(EbmsConstants.MESSAGE_DIRECTION, messageDirection);
-        copy.setHeader(EbmsConstants.EBMS_VERSION, messageVersion);
-        copy.setHeader(EbmsConstants.MESSAGE_STATUS, messageStatus);
-        copy.setHeader(EbmsConstants.MESSAGE_FROM, messageFrom);
-        copy.setHeader(EbmsConstants.MESSAGE_TO, messageTo);
+        copy.setHeader(EbmsConstants.CONTENT_ID,contentId);
+        copy.setHeader(EbmsConstants.CONTENT_TYPE,contentType);
+
 
         return copy;
+    }
+
+    private void extractHeaders(Message copy, Map<String, Object> headers, String[] headersToCopy) {
+        for(String header : headersToCopy) {
+            copy.setHeader(header,headers.get(header));
+        }
     }
 }
