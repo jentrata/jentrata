@@ -41,8 +41,8 @@ public class SplitAttachmentsToBody extends ExpressionAdapter {
 
     private final boolean copyOriginalMessage;
     private final boolean copyHeaders;
-    private boolean includeOrignalMessage = false;
-    private String [] headersToCopy;
+    private boolean includeOriginalMessage = false;
+    private final String [] headersToCopy;
 
     public SplitAttachmentsToBody(){
         this(true,true,false);
@@ -53,20 +53,20 @@ public class SplitAttachmentsToBody extends ExpressionAdapter {
     }
 
     public SplitAttachmentsToBody(boolean copyOriginalMessage, boolean copyHeaders) {
-        this(copyOriginalMessage,copyOriginalMessage,false);
+        this(copyOriginalMessage,copyHeaders,false);
     }
 
-    public SplitAttachmentsToBody(boolean copyOriginalMessage, boolean copyHeaders, boolean includeOrignalMessage) {
+    public SplitAttachmentsToBody(boolean copyOriginalMessage, boolean copyHeaders, boolean includeOriginalMessage) {
         this.copyOriginalMessage = copyOriginalMessage;
         this.copyHeaders = copyHeaders;
-        this.includeOrignalMessage = includeOrignalMessage;
+        this.includeOriginalMessage = includeOriginalMessage;
         this.headersToCopy = DEFAULT_HEADERS;
     }
 
-    public SplitAttachmentsToBody(boolean copyOriginalMessage, boolean includeOrignalMessage, String...headersToCopy) {
+    public SplitAttachmentsToBody(boolean copyOriginalMessage, boolean includeOriginalMessage, String...headersToCopy) {
         this.copyOriginalMessage = copyOriginalMessage;
         this.copyHeaders = false;
-        this.includeOrignalMessage = includeOrignalMessage;
+        this.includeOriginalMessage = includeOriginalMessage;
         this.headersToCopy = headersToCopy;
     }
 
@@ -76,17 +76,20 @@ public class SplitAttachmentsToBody extends ExpressionAdapter {
         String originalBody = exchange.getIn().getBody(String.class);
 
         // must use getAttachments to ensure attachments is initial populated
-        if (!includeOrignalMessage && exchange.getIn().getAttachments().isEmpty()) {
+        if (!includeOriginalMessage && exchange.getIn().getAttachments().isEmpty()) {
             return null;
         }
 
         // we want to provide a list of messages with 1 attachment per mail
         List<Message> answer = new ArrayList<>();
 
-        if(includeOrignalMessage && originalBody != null && originalBody.length() > 0) {
+        if(includeOriginalMessage && originalBody != null && originalBody.length() > 0) {
 
-            answer.add(createNewMessage(EbmsConstants.SOAP_BODY_PAYLOAD_ID,
-                    EbmsConstants.TEXT_XML_CONTENT_TYPE,
+            String contentId = exchange.getIn().getHeader(EbmsConstants.CONTENT_ID,EbmsConstants.SOAP_BODY_PAYLOAD_ID,String.class);
+            String contentType = exchange.getIn().getHeader(EbmsConstants.CONTENT_ID,EbmsConstants.TEXT_XML_CONTENT_TYPE,String.class);
+
+            answer.add(createNewMessage(contentId,
+                    contentType,
                     exchange.getIn().getBody(InputStream.class),
                     exchange));
         }
