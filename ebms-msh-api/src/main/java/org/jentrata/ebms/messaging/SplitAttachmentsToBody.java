@@ -101,7 +101,12 @@ public class SplitAttachmentsToBody extends ExpressionAdapter {
                         entry.getValue().getInputStream(),
                         exchange);
                 if(copyOriginalMessage) {
-                    copy.setHeader(ORIGINAL_MESSAGE_BODY,originalBody);
+                    Object body = exchange.getIn().getHeader(ORIGINAL_MESSAGE_BODY);
+                    if(body != null) {
+                        copy.setHeader(ORIGINAL_MESSAGE_BODY,body);
+                    } else {
+                        copy.setHeader(ORIGINAL_MESSAGE_BODY,originalBody);
+                    }
                 }
                 answer.add(copy);
             } catch (IOException e) {

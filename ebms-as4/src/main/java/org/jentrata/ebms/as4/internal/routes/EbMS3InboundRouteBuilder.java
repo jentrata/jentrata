@@ -5,6 +5,7 @@ import org.apache.camel.LoggingLevel;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
+import org.apache.camel.builder.xml.XPathBuilder;
 import org.apache.camel.component.freemarker.FreemarkerConstants;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.MessageStatusType;
@@ -13,6 +14,10 @@ import org.jentrata.ebms.messaging.SplitAttachmentsToBody;
 import org.jentrata.ebms.internal.messaging.MessageDetector;
 import org.jentrata.ebms.messaging.MessageStore;
 import org.jentrata.ebms.soap.SoapMessageDataFormat;
+import org.jentrata.ebms.soap.SoapPayloadProcessor;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * Exposes an HTTP endpoint that consumes AS4 Messages
@@ -30,6 +35,7 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
     private String messageUpdateEndpoint = MessageStore.DEFAULT_MESSAGE_UPDATE_ENDPOINT;
     private String validateTradingPartner = "direct:validatePartner";
     private MessageDetector messageDetector;
+    private SoapPayloadProcessor payloadProcessor;
 
     @Override
     public void configure() throws Exception {
@@ -94,9 +100,12 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
                     .inOnly(inboundEbmsSignalsQueue)
                 .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.USER_MESSAGE))
                     .inOnly(inboundEbmsQueue)
+                    .setHeader(SplitAttachmentsToBody.ORIGINAL_MESSAGE_BODY,body())
                     .setBody(xpath("//*[local-name()='Body']/*[1]"))
                     .convertBodyTo(String.class)
-                    .split(new SplitAttachmentsToBody(false, false, true))
+                    .split(new SplitAttachmentsToBody(true, false, true))
+                        .bean(payloadProcessor)
+                        .removeHeader(SplitAttachmentsToBody.ORIGINAL_MESSAGE_BODY)
                         .inOnly(inboundEbmsPayloadQueue)
         .routeId("_jentrataEbmsPayloadProcessing");
 
@@ -193,5 +202,13 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
 
     public void setMessageDetector(MessageDetector messageDetector) {
         this.messageDetector = messageDetector;
+    }
+
+    public SoapPayloadProcessor getPayloadProcessor() {
+        return payloadProcessor;
+    }
+
+    public void setPayloadProcessor(SoapPayloadProcessor payloadProcessor) {
+        this.payloadProcessor = payloadProcessor;
     }
 }

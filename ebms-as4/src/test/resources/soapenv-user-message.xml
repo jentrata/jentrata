@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<S12:Envelope
+        xmlns:S12="http://www.w3.org/2003/05/soap-envelope"
+        xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
+        xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
+        xmlns:eb="http://docs.oasis-open.org/ebxml-msg/ebms/v3.0/ns/core/200704/">
+    <S12:Header>
+        <eb:Messaging S12:mustUnderstand="true" id="_9ecb9d3c-cef8-4006-ac18-f425c5c7ae3d">
+            <eb:UserMessage>
+                <eb:MessageInfo>
+                    <eb:Timestamp>2013-05-10T08:58:58Z</eb:Timestamp>
+                    <eb:MessageId>7f2e597a-5cc0-4622-b129-f4b152637e2a@jentrata.org</eb:MessageId>
+                </eb:MessageInfo>
+                <eb:PartyInfo>
+                    <eb:From>
+                        <eb:PartyId type="urn:oasis:tc:ebcore:partyid-type:ABN:0151">123456789</eb:PartyId>
+                        <eb:Role>http://docs.oasis-open.org/ebxml-msg/ebms/v3.0/ns/core/200704/initiator</eb:Role>
+                    </eb:From>
+                    <eb:To>
+                        <eb:PartyId type="urn:oasis:tc:ebcore:partyid-type:ABN:0151">987654321</eb:PartyId>
+                        <eb:Role>http://docs.oasis-open.org/ebxml-msg/ebms/v3.0/ns/core/200704/responder</eb:Role>
+                    </eb:To>
+                </eb:PartyInfo>
+                <eb:CollaborationInfo>
+                    <eb:AgreementRef>http://sbr.gov.au/</eb:AgreementRef>
+                    <eb:Service>http://sbr.gov.au/service/Rollover/1.0</eb:Service>
+                    <eb:Action>InitiateRolloverRequest</eb:Action>
+                    <eb:ConversationId>bddba32a-1fc6-464f-8fad-5924e554551f@jentrata.org</eb:ConversationId>
+                </eb:CollaborationInfo>
+                <eb:PayloadInfo>
+                    <eb:PartInfo href="cid:payload-id@jentrata.org">
+
+                        <eb:PartProperties>
+                            <eb:Property name="MimeType">text/xml</eb:Property>
+                            <eb:Property name="CharacterSet">UTF-8</eb:Property>
+                            <eb:Property name="PartID">payload-id@jentrata.org</eb:Property>
+                            <eb:Property name="SourceABN">123456789</eb:Property>
+                            <eb:Property name="TargetABN">987654321</eb:Property>
+                        </eb:PartProperties>
+                    </eb:PartInfo>
+                </eb:PayloadInfo>
+            </eb:UserMessage>
+        </eb:Messaging>
+    </S12:Header>
+    <S12:Body wsu:Id="_f8aa8b55-b31c-4364-94d0-3615ca65aa40" />
+</S12:Envelope>

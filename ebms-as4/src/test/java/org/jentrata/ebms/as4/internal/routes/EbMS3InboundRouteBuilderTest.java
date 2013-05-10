@@ -8,10 +8,13 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.impl.DefaultExchange;
 import org.apache.camel.test.junit4.CamelTestSupport;
+import org.apache.commons.io.IOUtils;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.internal.messaging.MessageDetector;
+import org.jentrata.ebms.internal.messaging.PartPropertiesPayloadProcessor;
 import org.jentrata.ebms.messaging.MessageStore;
+import org.jentrata.ebms.messaging.SplitAttachmentsToBody;
 import org.junit.Test;
 
 import javax.xml.soap.SOAPConstants;
@@ -20,6 +23,7 @@ import java.io.FileInputStream;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.equalTo;
 
 /**
  * Unit tests for org.jentrata.ebms.as4.internal.routes.EbMS3InboundRouteBuilder
@@ -153,6 +157,7 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
         routeBuilder.setInboundEbmsPayloadQueue(mockEbmsInboundPayload.getEndpointUri());
         routeBuilder.setInboundEbmsSignalsQueue(mockEbmsInboundSignals.getEndpointUri());
         routeBuilder.setMessageDetector(new MessageDetector());
+        routeBuilder.setPayloadProcessor(new PartPropertiesPayloadProcessor());
         return new RouteBuilder[] {
                 routeBuilder,
                 new RouteBuilder() {
