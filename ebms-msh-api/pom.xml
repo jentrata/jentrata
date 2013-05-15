@@ -34,6 +34,7 @@
         <osgi.export>
             org.jentrata.ebms;version=${project.version},
             org.jentrata.ebms.messaging;version=${project.version},
+            org.jentrata.ebms.security;version=${project.version},
             org.jentrata.ebms.cpa;version=${project.version}
         </osgi.export>
     </properties>
@@ -46,6 +47,10 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.ws.security</groupId>
+            <artifactId>wss4j</artifactId>
         </dependency>
     </dependencies>
 </project>

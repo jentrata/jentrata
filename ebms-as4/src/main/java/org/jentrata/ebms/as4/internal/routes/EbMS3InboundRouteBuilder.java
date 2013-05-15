@@ -33,6 +33,7 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
     private String messgeStoreEndpoint = MessageStore.DEFAULT_MESSAGE_STORE_ENDPOINT;
     private String messageInsertEndpoint = MessageStore.DEFAULT_MESSAGE_INSERT_ENDPOINT;
     private String messageUpdateEndpoint = MessageStore.DEFAULT_MESSAGE_UPDATE_ENDPOINT;
+    private String wsseSecurityCheck = "direct:wsseSecurityCheck";
     private String validateTradingPartner = "direct:validatePartner";
     private MessageDetector messageDetector;
     private SoapPayloadProcessor payloadProcessor;
@@ -81,6 +82,7 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
             .choice()
                 .when(header(EbmsConstants.EBMS_VERSION).isEqualTo(EbmsConstants.EBMS_V3))
                     .to(validateTradingPartner)
+                    .to(wsseSecurityCheck)
                     .to("direct:processPayloads")
                     .to(messageUpdateEndpoint)
                     .setBody(constant(null))
@@ -194,6 +196,14 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
 
     public void setValidateTradingPartner(String validateTradingPartner) {
         this.validateTradingPartner = validateTradingPartner;
+    }
+
+    public String getWsseSecurityCheck() {
+        return wsseSecurityCheck;
+    }
+
+    public void setWsseSecurityCheck(String wsseSecurityCheck) {
+        this.wsseSecurityCheck = wsseSecurityCheck;
     }
 
     public MessageDetector getMessageDetector() {

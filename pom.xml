@@ -93,6 +93,7 @@
         <postgres.version>9.1-901.jdbc4</postgres.version>
         <h2.version>1.3.168</h2.version>
         <guava.version>14.0.1</guava.version>
+        <wss4j.version>1.6.10</wss4j.version>
         <!-- General Settings -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- Default OSGI settings -->
@@ -192,6 +193,12 @@
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
+            </dependency>
+            <!-- WSSE Support -->
+            <dependency>
+                <groupId>org.apache.ws.security</groupId>
+                <artifactId>wss4j</artifactId>
+                <version>${wss4j.version}</version>
             </dependency>
             <!-- Test Dependencies -->
             <dependency>

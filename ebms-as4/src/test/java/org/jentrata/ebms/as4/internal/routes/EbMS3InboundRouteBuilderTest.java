@@ -180,6 +180,11 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
                             .setHeader("JentrataMEP", constant("One-Way"))
                         .routeId("mockValidatePartner");
 
+                        from("direct:wsseSecurityCheck")
+                            .log(LoggingLevel.INFO, "Mock WSSE Security Check")
+                            .setHeader(EbmsConstants.SECURITY_CHECK,constant(Boolean.TRUE))
+                        .routeId("mockWsseSecurityCheck");
+
                         from("direct:lookupCpaId")
                             .setHeader(EbmsConstants.CPA_ID,constant("testCPAId"))
                         .routeId("mockLookupCpaId");

@@ -67,6 +67,18 @@
 
     <bean id="validatePartnerAgreementRouteBuilder" class="org.jentrata.ebms.as4.internal.routes.ValidatePartnerAgreementRouteBuilder"/>
 
+    <bean id="wsseRouteBuilder" class="org.jentrata.ebms.as4.internal.routes.WSSERouteBuilder">
+        <property name="callbackHandler">
+            <bean class="org.jentrata.ebms.security.UsernamePasswordCallbackHandler">
+                <property name="users">
+                    <map key-type="java.lang.String" value-type="java.lang.String">
+                        <entry key="jentrata" value="gocDv4SEXRDxNjucDDfo7I7ACTc="/>
+                    </map>
+                </property>
+            </bean>
+        </property>
+    </bean>
+
     <bean id="ebmsInboundRouteBuilder" class="org.jentrata.ebms.as4.internal.routes.EbMS3InboundRouteBuilder">
         <property name="ebmsHttpEndpoint" value="${jentrata.ebms.inbound.endpoint}"/>
         <property name="inboundEbmsQueue" value="${jentrata.ebms.inbound.queue}"/>
