@@ -1,0 +1,30 @@
+[
+    {
+        "cpaId":"testCPAId1",
+        "active":"true",
+        "transportReceiverEndpoint":"http://example.jentrata.org",
+        "services" : [
+            {
+                "service":"service1",
+                "action":"action1"
+            },
+            {
+                "service":"service2",
+                "action":"action2"
+            }
+        ],
+        "security": {
+            "sendReceipt":false,
+            "sendReceiptReplyPattern":"Response",
+            "sendReceiptNonRepudiation":true,
+            "securityToken": {
+                "tokenType":"UsernameToken",
+                "username":"jentrata",
+                "password":"verySecret",
+                "digest":false,
+                "nonce":false,
+                "created":false
+            }
+        }
+    }
+]

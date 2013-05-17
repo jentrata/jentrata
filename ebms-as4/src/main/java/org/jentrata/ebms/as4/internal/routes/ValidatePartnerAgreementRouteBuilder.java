@@ -29,12 +29,16 @@ public class ValidatePartnerAgreementRouteBuilder extends RouteBuilder {
         .routeId("_jentrataValidatePartnerAgreement");
 
         from("direct:lookupCpaId")
-            .setHeader(EbmsConstants.CPA, simple("bean:cpaRepository?method=findByServiceAndAction"))
             .choice()
-                .when(header(EbmsConstants.CPA).isNotEqualTo(null))
-                    .setHeader(EbmsConstants.CPA_ID,simple("${headers.JentrataCPA.cpaId}"))
+                .when(header(EbmsConstants.CPA_ID).isNotEqualTo(null))
+                    .setHeader(EbmsConstants.CPA, simple("bean:cpaRepository?method=findByCPAId"))
                 .otherwise()
-                .setHeader(EbmsConstants.CPA_ID,constant(EbmsConstants.CPA_ID_UNKNOWN))
+                    .setHeader(EbmsConstants.CPA, simple("bean:cpaRepository?method=findByServiceAndAction"))
+                    .choice()
+                        .when(header(EbmsConstants.CPA).isNotEqualTo(null))
+                            .setHeader(EbmsConstants.CPA_ID,simple("${headers.JentrataCPA.cpaId}"))
+                        .otherwise()
+                            .setHeader(EbmsConstants.CPA_ID,constant(EbmsConstants.CPA_ID_UNKNOWN))
         .routeId("_jentratalookupCpaId");
     }
 }

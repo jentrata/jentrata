@@ -2,6 +2,7 @@ package org.jentrata.ebms.cpa.internal;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+import org.apache.camel.Header;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.jentrata.ebms.EbmsConstants;
@@ -52,6 +53,16 @@ public class JSONCPARepository implements CPARepository {
             }
         }
         return active;
+    }
+
+    @Override
+    public PartnerAgreement findByCPAId(@Header(EbmsConstants.CPA_ID) String cpaId) {
+        for(PartnerAgreement partnerAgreement : getActivePartnerAgreements()) {
+            if(partnerAgreement.getCpaId().equals(cpaId)) {
+                return partnerAgreement;
+            }
+        }
+        return null;
     }
 
     @Override

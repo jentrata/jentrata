@@ -2,6 +2,7 @@ package org.jentrata.ebms.as4.internal.routes;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.camel.Exchange;
+import org.apache.camel.Header;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.impl.DefaultExchange;
 import org.apache.camel.impl.JndiRegistry;
@@ -110,6 +111,11 @@ public class ValidatePartnerAgreementRouteBuilderTest extends CamelTestSupport {
 
         @Override
         public List<PartnerAgreement> getActivePartnerAgreements() {
+            return null;
+        }
+
+        @Override
+        public PartnerAgreement findByCPAId(@Header(EbmsConstants.CPA_ID) String cpaId) {
             return null;
         }
 

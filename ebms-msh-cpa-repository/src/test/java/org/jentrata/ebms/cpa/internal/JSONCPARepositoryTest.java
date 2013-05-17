@@ -3,6 +3,8 @@ package org.jentrata.ebms.cpa.internal;
 import com.google.common.collect.ImmutableMap;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.cpa.PartnerAgreement;
+import org.jentrata.ebms.cpa.pmode.Security;
+import org.jentrata.ebms.cpa.pmode.UsernameToken;
 import org.junit.Test;
 
 import java.io.File;
@@ -10,8 +12,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;
 
@@ -125,6 +126,58 @@ public class JSONCPARepositoryTest {
         assertThat(agreement2,notNullValue());
         assertThat(agreement2.getCpaId(),equalTo("testCPAId1"));
 
+    }
+
+    @Test
+    public void testAgreementWithSecurity() throws IOException {
+        JSONCPARepository repository = new JSONCPARepository();
+        repository.setCpaJsonFile(fileFromClasspath("agreementWithSecurity.json"));
+        repository.init();
+
+        assertThat(repository.getActivePartnerAgreements(),hasSize(1));
+        assertThat(repository.getActivePartnerAgreements().get(0).hasSecurityToken(),is(true));
+        assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().getSendReceiptReplyPattern(),is(Security.ReplyPatternType.Response));
+        assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().isSendReceipt(),is(false));
+        assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().isSendReceiptNonRepudiation(),is(true));
+
+        assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().getSecurityToken(), instanceOf(UsernameToken.class));
+        assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().getSecurityToken().getTokenType(),equalTo(UsernameToken.class.getName()));
+        UsernameToken usernameToken = (UsernameToken) repository.getActivePartnerAgreements().get(0).getSecurity().getSecurityToken();
+        assertThat(usernameToken.getUsername(),equalTo("jentrata"));
+        assertThat(usernameToken.getPassword(),equalTo("verySecret"));
+        assertThat(usernameToken.isDigest(),is(false));
+        assertThat(usernameToken.isNonce(),is(false));
+        assertThat(usernameToken.isCreated(),is(false));
+    }
+
+    @Test
+    public void testAgreementWithMinimalSecurity() throws IOException {
+        JSONCPARepository repository = new JSONCPARepository();
+        repository.setCpaJsonFile(fileFromClasspath("agreementWithMinimalSecurity.json"));
+        repository.init();
+
+        assertThat(repository.getActivePartnerAgreements(),hasSize(1));
+        assertThat(repository.getActivePartnerAgreements().get(0).hasSecurityToken(),is(true));
+        assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().getSendReceiptReplyPattern(),is(Security.ReplyPatternType.Callback));
+        assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().isSendReceipt(),is(true));
+        assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().isSendReceiptNonRepudiation(),is(false));
+
+        UsernameToken usernameToken = (UsernameToken) repository.getActivePartnerAgreements().get(0).getSecurity().getSecurityToken();
+        assertThat(usernameToken.getUsername(),nullValue());
+        assertThat(usernameToken.getPassword(),nullValue());
+        assertThat(usernameToken.isDigest(),is(true));
+        assertThat(usernameToken.isNonce(),is(true));
+        assertThat(usernameToken.isCreated(),is(true));
+    }
+
+    @Test
+    public void testAgreementWithNoSecurity() throws IOException {
+        JSONCPARepository repository = new JSONCPARepository();
+        repository.setCpaJsonFile(fileFromClasspath("singleAgreement.json"));
+        repository.init();
+
+        assertThat(repository.getActivePartnerAgreements(),hasSize(1));
+        assertThat(repository.getActivePartnerAgreements().get(0).hasSecurityToken(),is(false));
     }
 
     @Test

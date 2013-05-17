@@ -2,6 +2,7 @@ package org.jentrata.ebms.cpa;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+import org.jentrata.ebms.cpa.pmode.Security;
 
 import java.util.List;
 
@@ -16,6 +17,7 @@ public class PartnerAgreement {
     private boolean active = true;
     private String transportReceiverEndpoint;
     private List<Service> services;
+    private Security security;
 
 
     public String getCpaId() {
@@ -58,5 +60,17 @@ public class PartnerAgreement {
             }
         });
         return s.iterator().hasNext();
+    }
+
+    public Security getSecurity() {
+        return security;
+    }
+
+    public void setSecurity(Security security) {
+        this.security = security;
+    }
+
+    public boolean hasSecurityToken() {
+        return security != null && security.getSecurityToken() != null;
     }
 }

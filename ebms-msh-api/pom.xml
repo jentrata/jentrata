@@ -35,7 +35,8 @@
             org.jentrata.ebms;version=${project.version},
             org.jentrata.ebms.messaging;version=${project.version},
             org.jentrata.ebms.security;version=${project.version},
-            org.jentrata.ebms.cpa;version=${project.version}
+            org.jentrata.ebms.cpa;version=${project.version},
+            org.jentrata.ebms.cpa.pmode;version=${project.version}
         </osgi.export>
     </properties>
 
@@ -43,6 +44,10 @@
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-jackson</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>

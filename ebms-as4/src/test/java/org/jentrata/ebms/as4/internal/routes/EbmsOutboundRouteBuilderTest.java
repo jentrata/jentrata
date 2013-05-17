@@ -2,6 +2,7 @@ package org.jentrata.ebms.as4.internal.routes;
 
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Exchange;
+import org.apache.camel.Header;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.impl.DefaultExchange;
@@ -118,6 +119,11 @@ public class EbmsOutboundRouteBuilderTest extends CamelTestSupport {
             agreement2.setCpaId("agreement2");
             agreement2.setTransportReceiverEndpoint("direct:agreement2");
             return Arrays.asList(agreement1,agreement2);
+        }
+
+        @Override
+        public PartnerAgreement findByCPAId(@Header(EbmsConstants.CPA_ID) String cpaId) {
+            return null;
         }
 
         @Override

@@ -36,6 +36,7 @@
             org.jentrata.ebms;version=${project.version},
             org.jentrata.ebms.messaging;version=${project.version},
             org.jentrata.ebms.cpa;version=${project.version},
+            org.jentrata.ebms.cpa.pmode;version=${project.version},
             *
         </osgi.import>
     </properties>

@@ -9,7 +9,11 @@ import org.apache.ws.security.WSSecurityException;
 import org.apache.ws.security.message.WSSecHeader;
 import org.apache.ws.security.message.WSSecUsernameToken;
 import org.apache.ws.security.util.Base64;
+import org.apache.ws.security.util.XMLUtils;
 import org.jentrata.ebms.EbmsConstants;
+import org.jentrata.ebms.cpa.PartnerAgreement;
+import org.jentrata.ebms.cpa.pmode.Security;
+import org.jentrata.ebms.cpa.pmode.UsernameToken;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +29,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 
 /**
  * Unit test for org.jentrata.ebms.as4.internal.routes.WSSERouteBuilder
@@ -44,6 +46,7 @@ public class WSSERouteBuilderTest extends CamelTestSupport {
         request.getIn().setBody(generateSoapMessage("jentrata"));
         request.getIn().setHeader(EbmsConstants.MESSAGE_ID, "testMSG-0001");
         request.getIn().setHeader(EbmsConstants.CPA_ID,"JentrataTestCPA");
+        request.getIn().setHeader(EbmsConstants.CPA,generateAgreement());
         Exchange response = context().createProducerTemplate().send("direct:wsseSecurityCheck",request);
         assertThat(response.getIn().getHeader(EbmsConstants.SECURITY_CHECK,Boolean.class),is(true));
     }
@@ -54,6 +57,7 @@ public class WSSERouteBuilderTest extends CamelTestSupport {
         request.getIn().setBody(generateSoapMessage("unknown"));
         request.getIn().setHeader(EbmsConstants.MESSAGE_ID, "testMSG-0001");
         request.getIn().setHeader(EbmsConstants.CPA_ID,"JentrataTestCPA");
+        request.getIn().setHeader(EbmsConstants.CPA,generateAgreement());
         Exchange response = context().createProducerTemplate().send("direct:wsseSecurityCheck",request);
         assertThat(request.isFailed(),is(true));
         assertThat(request.getException(),instanceOf(WSSecurityException.class));
@@ -66,10 +70,42 @@ public class WSSERouteBuilderTest extends CamelTestSupport {
         request.getIn().setBody(loadSoapMessage());
         request.getIn().setHeader(EbmsConstants.MESSAGE_ID, "testMSG-0001");
         request.getIn().setHeader(EbmsConstants.CPA_ID,"JentrataTestCPA");
+        request.getIn().setHeader(EbmsConstants.CPA,generateAgreement());
         Exchange response = context().createProducerTemplate().send("direct:wsseSecurityCheck",request);
         assertThat(request.isFailed(),is(false));
         assertThat(response.getIn().getHeader(EbmsConstants.SECURITY_CHECK,Boolean.class),is(false));
 
+    }
+
+    @Test
+    public void testAddSecurityToHeader() throws Exception {
+        Exchange request = new DefaultExchange(context);
+        request.getIn().setBody(loadSoapMessage());
+        request.getIn().setHeader(EbmsConstants.MESSAGE_ID, "testMSG-0001");
+        request.getIn().setHeader(EbmsConstants.CPA_ID,"JentrataTestCPA");
+        request.getIn().setHeader(EbmsConstants.CPA,generateAgreement());
+        Exchange response = context().createProducerTemplate().send("direct:wsseAddSecurityToHeader",request);
+
+        Document body = response.getIn().getBody(Document.class);
+        System.out.println(XMLUtils.PrettyDocumentToString(body));
+
+        assertThat(body, hasXPath("//*[local-name()='UsernameToken']"));
+        assertThat(body, hasXPath("//*[local-name()='Username' and text()='jentrata']"));
+        assertThat(body,hasXPath("//*[local-name()='Password']"));
+        assertThat(body,hasXPath("//*[local-name()='Created']"));
+
+    }
+
+    private PartnerAgreement generateAgreement() {
+        PartnerAgreement agreement = new PartnerAgreement();
+        agreement.setCpaId("JentrataTestCPA");
+        Security security = new Security();
+        UsernameToken token = new UsernameToken();
+        token.setUsername("jentrata");
+        token.setPassword(getEncodedPassword());
+        security.setSecurityToken(token);
+        agreement.setSecurity(security);
+        return agreement;
     }
 
     @Override

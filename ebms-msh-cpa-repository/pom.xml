@@ -34,6 +34,7 @@
         <osgi.import>
             org.jentrata.ebms;provide:=true,
             org.jentrata.ebms.cpa;provide:=true,
+            org.jentrata.ebms.cpa.pmode;provide:=true,
             *
         </osgi.import>
         <osgi.private>org.jentrata.ebms.cpa.internal</osgi.private>

@@ -29,6 +29,14 @@ public interface CPARepository {
     List<PartnerAgreement> getActivePartnerAgreements();
 
     /**
+     * Finds a active partner agreement by CPAId
+     *
+     * @param cpaId the service name
+     * @return the partner agreement that has the matching CPAId
+     */
+    PartnerAgreement findByCPAId(@Header(EbmsConstants.CPA_ID) final String cpaId);
+
+    /**
      * Finds a active partner agreement that has the service/action defined
      *
      * @param service the service name

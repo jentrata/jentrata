@@ -9,6 +9,8 @@ import org.apache.camel.impl.DefaultExchange;
 import org.apache.camel.impl.JndiRegistry;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.jentrata.ebms.EbmsConstants;
+import org.jentrata.ebms.cpa.InvalidPartnerAgreementException;
+import org.jentrata.ebms.cpa.PartnerAgreement;
 import org.jentrata.ebms.messaging.UUIDGenerator;
 import org.jentrata.ebms.soap.SoapMessageDataFormat;
 import org.junit.Test;
@@ -22,8 +24,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.hasXPath;
+import static org.hamcrest.Matchers.is;
 
 /**
  * Unit test for EbmsOutboundMessageRouteBuilder
@@ -41,12 +45,16 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
     @EndpointInject(uri = "mock:mockUpdateMessageStore")
     protected MockEndpoint mockUpdateMessageStore;
 
+    @EndpointInject(uri = "mock:mockWSSEAddSecurityToHeader")
+    protected MockEndpoint mockWSSEAddSecurityToHeader;
+
     @Test
     public void testWrapPayloadAsMimeMessage() throws Exception {
 
         mockEbmsOutbound.setExpectedMessageCount(1);
         mockMessageStore.setExpectedMessageCount(1);
         mockUpdateMessageStore.setExpectedMessageCount(1);
+        mockWSSEAddSecurityToHeader.setExpectedMessageCount(1);
 
         Exchange request = new DefaultExchange(context());
         request.getIn().setHeader(EbmsConstants.MESSAGE_FROM,"123456789");
@@ -87,6 +95,35 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
         assertThat(soapHeader.getOwnerDocument(),hasXPath("//@name[.='SourceABN' and ../text()='123456789']"));
     }
 
+    @Test
+    public void testUnknownCPA() throws Exception {
+        mockEbmsOutbound.setExpectedMessageCount(0);
+        mockMessageStore.setExpectedMessageCount(0);
+        mockUpdateMessageStore.setExpectedMessageCount(0);
+        mockWSSEAddSecurityToHeader.setExpectedMessageCount(0);
+
+        Exchange request = new DefaultExchange(context());
+        request.getIn().setHeader(EbmsConstants.MESSAGE_FROM,"123456789");
+        request.getIn().setHeader(EbmsConstants.MESSAGE_TO,"987654321");
+        request.getIn().setHeader(EbmsConstants.CONTENT_TYPE,"text/xml");
+        request.getIn().setHeader(EbmsConstants.CPA_ID,"crappyCPAID");
+        request.getIn().setHeader(EbmsConstants.PAYLOAD_ID,"testpayload@jentrata.org");
+        request.getIn().setHeader(EbmsConstants.MESSAGE_CONVERSATION_ID,"MESSAGE_CONVERSATION_ID");
+        request.getIn().setHeader(EbmsConstants.MESSAGE_PAYLOAD_SCHEMA,"http://jentrata.org/schema/example");
+        request.getIn().setHeader(EbmsConstants.MESSAGE_AGREEMENT_REF,"http://jentrata.org/agreement");
+
+        request.getIn().setHeader(EbmsConstants.MESSAGE_PART_PROPERTIES,"PartID=testpayload@jentrata.org;SourceABN=123456789");
+
+        request.getIn().setHeader(EbmsConstants.MESSAGE_DIRECTION,EbmsConstants.MESSAGE_DIRECTION_OUTBOUND);
+
+        request.getIn().setHeader("test","unknownCPA");
+
+        request.getIn().setBody(new FileInputStream(fileFromClasspath("sample-payload.xml")));
+        Exchange response = context().createProducerTemplate().send("direct:testDeliveryQueue",request);
+
+        assertMockEndpointsSatisfied();
+    }
+
     @Override
     protected JndiRegistry createRegistry() throws Exception {
         JndiRegistry registry = super.createRegistry();
@@ -95,13 +132,35 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
     }
 
     @Override
-    protected RouteBuilder createRouteBuilder() throws Exception {
+    protected RouteBuilder [] createRouteBuilders() throws Exception {
         EbmsOutboundMessageRouteBuilder routeBuilder = new EbmsOutboundMessageRouteBuilder();
         routeBuilder.setDeliveryQueue("direct:testDeliveryQueue");
         routeBuilder.setOutboundEbmsQueue(mockEbmsOutbound.getEndpointUri());
         routeBuilder.setMessgeStoreEndpoint(mockMessageStore.getEndpointUri());
         routeBuilder.setMessageInsertEndpoint(mockUpdateMessageStore.getEndpointUri());
-        return routeBuilder;
+        routeBuilder.setWsseSecurityAddEndpoint(mockWSSEAddSecurityToHeader.getEndpointUri());
+        return new RouteBuilder [] {
+                routeBuilder,
+                new RouteBuilder() {
+                    @Override
+                    public void configure() throws Exception {
+                        from("direct:lookupCpaId")
+                        .choice()
+                            .when(header("test").isEqualTo("unknownCPA"))
+                                .setHeader(EbmsConstants.CPA, constant(null))
+                                .setHeader(EbmsConstants.CPA_ID, constant(EbmsConstants.CPA_ID_UNKNOWN))
+                            .otherwise()
+                                .setHeader(EbmsConstants.CPA,constant(getAgreement()))
+                        .routeId("mockLookupCpaId");
+                    }
+                }
+        };
+    }
+
+    private PartnerAgreement getAgreement() {
+        PartnerAgreement partnerAgreement = new PartnerAgreement();
+        partnerAgreement.setCpaId("testCPAId");
+        return partnerAgreement;
     }
 
     protected static File fileFromClasspath(String filename) {
