@@ -39,9 +39,8 @@ public class FileMessageStoreTest extends CamelTestSupport {
         Exchange response = context().createProducerTemplate().send(MessageStore.DEFAULT_MESSAGE_STORE_ENDPOINT,request);
 
         String msgId = response.getIn().getHeader(MessageStore.JENTRATA_MESSAGE_ID, String.class);
-        Object msgStoreRef = response.getIn().getHeader(MessageStore.MESSAGE_STORE_REF);
         assertThat(msgId,equalTo("testMessageID"));
-        assertThat(IOUtils.toString(messageStore.findByMessageRefId(msgStoreRef)),equalTo("test"));
+        assertThat(messageStore.findByMessageId(msgId).getMessageId(),equalTo(msgId));
     }
 
     @Test

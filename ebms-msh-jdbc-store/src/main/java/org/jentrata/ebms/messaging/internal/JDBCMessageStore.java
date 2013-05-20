@@ -8,6 +8,7 @@ import org.apache.commons.io.IOUtils;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.MessageStatusType;
 import org.jentrata.ebms.MessageType;
+import org.jentrata.ebms.messaging.Message;
 import org.jentrata.ebms.messaging.MessageStore;
 import org.jentrata.ebms.messaging.MessageStoreException;
 import org.jentrata.ebms.messaging.internal.sql.RepositoryManager;
@@ -74,8 +75,8 @@ public class JDBCMessageStore implements MessageStore {
     }
 
     @Override
-    public InputStream findByMessageRefId(Object messageRefId) {
-        return new ByteArrayInputStream("".getBytes());
+    public Message findByMessageId(String messageId) {
+        return null;
     }
 
     public RepositoryManager getRepositoryManager() {

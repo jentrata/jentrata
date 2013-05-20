@@ -110,6 +110,7 @@
         <module>ebms-msh-file-store</module>
         <module>ebms-msh-jdbc-store</module>
         <module>ebms-msh-cpa-repository</module>
+        <module>ebms-msh-rest</module>
         <module>ebms-as4</module>
         <module>features</module>
         <module>dist</module>
@@ -167,6 +168,11 @@
             <dependency>
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-blueprint</artifactId>
+                <version>${camel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-cxf</artifactId>
                 <version>${camel.version}</version>
             </dependency>
             <dependency>

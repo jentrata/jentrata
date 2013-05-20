@@ -31,5 +31,5 @@ public interface MessageStore {
                        @Header(EbmsConstants.MESSAGE_STATUS)MessageStatusType status,
                        @Header(EbmsConstants.MESSAGE_STATUS_DESCRIPTION)String statusDescription);
 
-    InputStream findByMessageRefId(Object messageRefId);
+    Message findByMessageId(@Header(EbmsConstants.MESSAGE_ID)String messageId);
 }

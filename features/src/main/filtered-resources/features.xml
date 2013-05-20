@@ -3,6 +3,7 @@
 
     <feature name="jentrata-as4-core" version="${pom.version}">
         <feature version="${pom.version}">jentrata-cpa-repository</feature>
+        <feature version="${pom.version}">jentrata-rest-services</feature>
         <feature version="${pom.version}">jentrata-ebms3-as4</feature>
     </feature>
 
@@ -28,6 +29,13 @@
         <bundle dependency="true">mvn:org.jentrata/jentrata-ebms3-msh-api/${project.version}</bundle>
         <bundle>mvn:org.jentrata/jentrata-ebms3-msh-jdbc-store/${project.version}</bundle>
         <configfile finalname="/etc/org.jentrata.ebms.message.store.jdbc.cfg">mvn:org.jentrata/jentrata-ebms3-msh-jdbc-store/${pom.version}/cfg</configfile>
+    </feature>
+
+    <feature name="jentrata-rest-services" version="${pom.version}">
+        <feature version="${camel.version}">camel-cxf</feature>
+        <bundle dependency="true">mvn:org.jentrata/jentrata-ebms3-msh-api/${project.version}</bundle>
+        <bundle>mvn:org.jentrata/jentrata-ebms3-msh-rest/${project.version}</bundle>
+        <configfile finalname="/etc/org.jentrata.ebms.rest.cfg">mvn:org.jentrata/jentrata-ebms3-msh-rest/${pom.version}/cfg</configfile>
     </feature>
 
 </features>
