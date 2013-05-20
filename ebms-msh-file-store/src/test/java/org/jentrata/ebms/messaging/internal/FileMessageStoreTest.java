@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -48,7 +49,14 @@ public class FileMessageStoreTest extends CamelTestSupport {
         messageStore.updateMessage("testMessageID",EbmsConstants.MESSAGE_DIRECTION_INBOUND, MessageStatusType.RECEIVED,"Received");
         File expectedFile = new File(baseDir,"testMessageID.RECEIVED");
         assertThat(expectedFile.exists(),is(true));
-        assertThat("Received", Matchers.equalTo(IOUtils.toString(new FileInputStream(expectedFile))));
+        assertThat("Received", equalTo(IOUtils.toString(new FileInputStream(expectedFile))));
+    }
+
+    @Test
+    public void testFindPayloadById() throws Exception {
+        testFileMessageStore();
+        InputStream stream = messageStore.findPayloadById("testMessageID");
+        assertThat(IOUtils.toString(stream),equalTo("test"));
     }
 
     @Override

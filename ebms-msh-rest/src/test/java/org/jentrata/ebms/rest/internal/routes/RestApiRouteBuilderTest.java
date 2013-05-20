@@ -3,13 +3,16 @@ package org.jentrata.ebms.rest.internal.routes;
 import com.google.common.collect.ImmutableMap;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.impl.DefaultExchange;
 import org.apache.camel.language.constant.ConstantLanguage;
 import org.apache.camel.test.junit4.CamelTestSupport;
+import org.jentrata.ebms.EbmsConstants;
 import org.junit.Test;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import static org.hamcrest.Matchers.*;
@@ -46,8 +49,8 @@ public class RestApiRouteBuilderTest extends CamelTestSupport {
         assertThat(response.getOut().getBody(),instanceOf(Response.class));
         Response r = response.getOut().getBody(Response.class);
         assertThat(r.getStatus(),equalTo(200));
-        assertThat((String) r.getEntity(),containsString("\"key1\":\"value1\""));
-        assertThat((String) r.getEntity(),containsString("\"key2\":\"value2\""));
+        assertThat(new String((byte[])r.getEntity()),containsString("\"key1\":\"value1\""));
+        assertThat(new String((byte[])r.getEntity()),containsString("\"key2\":\"value2\""));
     }
 
     @Test
@@ -55,7 +58,12 @@ public class RestApiRouteBuilderTest extends CamelTestSupport {
         mockServiceImpl.setExpectedMessageCount(1);
         mockServiceImpl.expectedHeaderReceived("serviceName", "testService");
         mockServiceImpl.expectedHeaderReceived("operationName", "testMethod");
-        mockServiceImpl.returnReplyBody(ConstantLanguage.constant(null));
+        mockServiceImpl.whenAnyExchangeReceived(new Processor() {
+            @Override
+            public void process(Exchange exchange) throws Exception {
+                exchange.getIn().setBody(null);
+            }
+        });
 
         Exchange request = new DefaultExchange(context);
         request.getIn().setBody("test");
@@ -68,7 +76,7 @@ public class RestApiRouteBuilderTest extends CamelTestSupport {
         assertThat(response.getOut().getBody(),instanceOf(Response.class));
         Response r = response.getOut().getBody(Response.class);
         assertThat(r.getStatus(),equalTo(404));
-        assertThat((String) r.getEntity(),equalTo("{}"));
+        assertThat(r.getEntity(),nullValue());
     }
 
     @Override
@@ -81,6 +89,7 @@ public class RestApiRouteBuilderTest extends CamelTestSupport {
                 @Override
                 public void configure() throws Exception {
                     from("direct:testService-testMethod")
+                        .setHeader(EbmsConstants.CONTENT_TYPE, constant(MediaType.APPLICATION_JSON))
                         .to(mockServiceImpl)
                     .routeId("mockTestServiceImpl");
                 }

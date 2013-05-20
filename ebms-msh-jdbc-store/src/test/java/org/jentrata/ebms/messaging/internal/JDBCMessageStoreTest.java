@@ -17,6 +17,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -92,7 +93,14 @@ public class JDBCMessageStoreTest extends CamelTestSupport {
         assertThat(message.getMessageId(),equalTo("testSoapMessage1"));
         assertThat(message.getStatus(),equalTo(MessageStatusType.RECEIVED));
         assertThat(message.getStatusDescription(),equalTo("Message Received"));
+    }
 
+    @Test
+    public void testFindPayloadById() throws Exception {
+        testFindByMessageId();
+        InputStream stream = messageStore.findPayloadById("testSoapMessage1");
+        assertThat(stream,notNullValue());
+        assertThat(IOUtils.toString(stream),equalTo(IOUtils.toString(new FileInputStream(fileFromClasspath("simple-as4-receipt.xml")))));
     }
 
     private void assertStoredMessage(String messageId, String contentType, File body, MessageType messageType) throws SQLException, IOException {

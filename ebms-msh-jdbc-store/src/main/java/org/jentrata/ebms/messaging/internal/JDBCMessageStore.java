@@ -1,6 +1,7 @@
 package org.jentrata.ebms.messaging.internal;
 
 import org.apache.camel.Exchange;
+import org.apache.camel.Header;
 import org.apache.camel.component.ResourceEndpoint;
 import org.apache.camel.util.ObjectHelper;
 import org.apache.camel.util.ResourceHelper;
@@ -85,7 +86,11 @@ public class JDBCMessageStore implements MessageStore {
         return null;
     }
 
-
+    @Override
+    public InputStream findPayloadById(String messageId) {
+        InputStream payload = repositoryManager.selectRepositoryBy("message_id",messageId);
+        return payload;
+    }
 
     public RepositoryManager getRepositoryManager() {
         return repositoryManager;

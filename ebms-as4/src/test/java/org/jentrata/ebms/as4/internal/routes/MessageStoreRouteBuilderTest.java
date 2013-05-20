@@ -71,5 +71,10 @@ public class MessageStoreRouteBuilderTest extends CamelTestSupport {
         public Message findByMessageId(final String messageId) {
             return new DefaultMessage(messageId);
         }
+
+        @Override
+        public InputStream findPayloadById(String messageId) {
+            return messageStore.get(messageId);
+        }
     }
 }

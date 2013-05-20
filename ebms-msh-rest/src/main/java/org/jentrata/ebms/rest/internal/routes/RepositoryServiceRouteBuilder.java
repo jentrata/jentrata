@@ -4,6 +4,8 @@ import org.apache.camel.builder.RouteBuilder;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.messaging.MessageStore;
 
+import javax.ws.rs.core.MediaType;
+
 /**
  * Provides the implementation of the RepositoryService
  *
@@ -16,9 +18,16 @@ public class RepositoryServiceRouteBuilder extends RouteBuilder {
     @Override
     public void configure() throws Exception {
         from("direct:repository-findMessageById")
-            .setHeader(EbmsConstants.MESSAGE_ID,body())
+            .setHeader(EbmsConstants.MESSAGE_ID, body())
             .bean(messageStore, "findByMessageId")
+            .setHeader(EbmsConstants.CONTENT_TYPE,constant(MediaType.APPLICATION_JSON))
         .routeId("_jentrataRestRepositoryService-findMessageById");
+
+        from("direct:repository-findPayloadById")
+            .setHeader(EbmsConstants.MESSAGE_ID,body())
+            .bean(messageStore, "findPayloadById")
+            .setHeader(EbmsConstants.CONTENT_TYPE,constant(MediaType.APPLICATION_OCTET_STREAM))
+        .routeId("_jentrataRestRepositoryService-findPayloadById");
     }
 
     public MessageStore getMessageStore() {

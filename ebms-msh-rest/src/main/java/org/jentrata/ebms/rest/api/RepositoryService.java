@@ -17,4 +17,10 @@ public class RepositoryService {
     public Response findMessageById(@PathParam("id") String messageId) {
         return null;
     }
+
+    @GET
+    @Path("/payload/{id}/")
+    public Response findPayloadById(@PathParam("id") String messageId) {
+        return null;
+    }
 }

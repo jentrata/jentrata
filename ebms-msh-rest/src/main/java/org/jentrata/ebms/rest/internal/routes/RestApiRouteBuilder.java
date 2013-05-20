@@ -5,11 +5,10 @@ import org.apache.camel.ExchangePattern;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
+import org.jentrata.ebms.EbmsConstants;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Provides implementations of REST APIs exposed by Jentrata
@@ -30,7 +29,7 @@ public class RestApiRouteBuilder extends RouteBuilder {
             .process(new HttpPathProcessor())
             .recipientList(simple("direct:${header.serviceName}-${header.operationName}"))
             .choice()
-                .when(body().isNotEqualTo(null))
+                .when(header(EbmsConstants.CONTENT_TYPE).isEqualTo("application/json"))
                     .marshal().json(JsonLibrary.Jackson)
              .end()
             .process(new HttpResponseProcessor())
@@ -47,7 +46,6 @@ public class RestApiRouteBuilder extends RouteBuilder {
     }
 
     private class HttpPathProcessor implements Processor {
-
         @Override
         public void process(Exchange exchange) throws Exception {
             String httpPath = exchange.getIn().getHeader("CamelHttpPath",String.class);
@@ -59,47 +57,29 @@ public class RestApiRouteBuilder extends RouteBuilder {
     }
 
     private class HttpResponseProcessor implements Processor {
-
         @Override
         public void process(Exchange exchange) throws Exception {
-            String body = exchange.getIn().getBody(String.class);
-            Map<String,String> params = parseQueryString(exchange);
-            String callback = params.get("callback");
-            if (body != null && body.length() > 0) {
+            Object body = exchange.getIn().getBody();
+            String contentType = exchange.getIn().getHeader(EbmsConstants.CONTENT_TYPE, MediaType.APPLICATION_JSON, String.class);
+            if(contentType.equals(MediaType.APPLICATION_JSON)) {
+                String json = exchange.getIn().getBody(String.class);
+                if(json.equals("null")) {
+                    body = null;
+                }
+            }
+            if (body != null) {
                 Response r = Response.status(200)
-                        .type(MediaType.APPLICATION_JSON_TYPE)
-                        .entity(wrapJSONP(body, callback))
+                        .type(contentType)
+                        .entity(body)
                         .build();
                 exchange.getOut().setBody(r);
             } else {
                 Response r = Response.status(404)
-                        .type(MediaType.APPLICATION_JSON_TYPE)
-                        .entity(wrapJSONP("{}", callback))
+                        .type(contentType)
+                        .entity(null)
                         .build();
                 exchange.getOut().setBody(r);
             }
-        }
-
-        private String wrapJSONP(String body, String callback) {
-            if(callback == null) {
-                return body;
-            }
-            return callback + "(" + body + ")";
-        }
-
-        private Map<String,String> parseQueryString(Exchange exchange) {
-            Map<String,String> params  = new HashMap<String,String>();
-            String queryString = exchange.getIn().getHeader("CamelHttpQuery",String.class);
-            if(queryString != null) {
-                String [] fields = queryString.split("&");
-                for(String field : fields) {
-                    String [] f = field.split("=");
-                    if(f.length == 2) {
-                        params.put(f[0],f[1]);
-                    }
-                }
-            }
-            return params;
         }
     }
 }

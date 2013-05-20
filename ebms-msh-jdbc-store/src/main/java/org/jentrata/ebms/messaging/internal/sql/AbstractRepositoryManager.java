@@ -134,6 +134,28 @@ public abstract class AbstractRepositoryManager implements RepositoryManager {
         return Collections.emptyList();
     }
 
+    @Override
+    public InputStream selectRepositoryBy(String columnName, String value) {
+        try(Connection connection = dataSource.getConnection()) {
+            String sql = getRepositorySelectSQL(columnName);
+            try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setString(1,value);
+                ResultSet result = stmt.executeQuery();
+                if(result.next()) {
+                    return result.getBinaryStream("content");
+                }
+            }
+        } catch (SQLException ex) {
+            LOG.warn("failed to get payload from repository:" + ex);
+            LOG.debug("",ex);
+        }
+        return null;
+    }
+
+    private String getRepositorySelectSQL(String columnName) {
+        return "SELECT * from REPOSITORY WHERE " + columnName + "=?";
+    }
+
     protected String getMessageSelectSQL(String columnName) {
         return "SELECT * FROM MESSAGE WHERE " + columnName + "=?";
     }

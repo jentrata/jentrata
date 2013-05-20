@@ -61,6 +61,30 @@ public class FileMessageStore implements MessageStore {
     }
 
     @Override
+    public InputStream findPayloadById(String messageId) {
+        try {
+            return new FileInputStream(getFilename(messageId));
+        } catch (FileNotFoundException e) {
+            return null;
+        }
+    }
+
+    private String getFilename(final String messageId) {
+        File repo = new File(baseDir);
+        File [] files = repo.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.contains(messageId) && name.endsWith(".msg");
+            }
+        });
+        if(files != null && files.length > 0) {
+            return files[0].getAbsolutePath();
+        } else {
+            return null;
+        }
+    }
+
+    @Override
     public void updateMessage(final String messageId, String messageDirection, MessageStatusType status, String statusDescription) {
         File update = new File(baseDir,messageId + "." + status);
         try (FileOutputStream outputStream = new FileOutputStream(update)) {
