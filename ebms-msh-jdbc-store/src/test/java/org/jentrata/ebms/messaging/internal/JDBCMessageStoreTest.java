@@ -9,6 +9,7 @@ import org.h2.jdbcx.JdbcConnectionPool;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.MessageStatusType;
 import org.jentrata.ebms.MessageType;
+import org.jentrata.ebms.messaging.Message;
 import org.jentrata.ebms.messaging.MessageStore;
 import org.jentrata.ebms.messaging.internal.sql.RepositoryManagerFactory;
 import org.junit.Test;
@@ -21,6 +22,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.*;
 
@@ -76,6 +78,21 @@ public class JDBCMessageStoreTest extends CamelTestSupport {
                 assertThat(resultSet.getString("status_description"),equalTo("Message Received"));
             }
         }
+    }
+
+    @Test
+    public void testFindByMessageId() throws Exception {
+        String contentType = "application/soap+xml";
+        File body = fileFromClasspath("simple-as4-receipt.xml");
+        String messageId = "testSoapMessage1";
+        assertStoredMessage(messageId, contentType, body, MessageType.SIGNAL_MESSAGE_WITH_USER_MESSAGE);
+        messageStore.updateMessage(messageId, EbmsConstants.MESSAGE_DIRECTION_INBOUND, MessageStatusType.RECEIVED,"Message Received");
+        Message message = messageStore.findByMessageId("testSoapMessage1");
+        assertThat(message,notNullValue());
+        assertThat(message.getMessageId(),equalTo("testSoapMessage1"));
+        assertThat(message.getStatus(),equalTo(MessageStatusType.RECEIVED));
+        assertThat(message.getStatusDescription(),equalTo("Message Received"));
+
     }
 
     private void assertStoredMessage(String messageId, String contentType, File body, MessageType messageType) throws SQLException, IOException {

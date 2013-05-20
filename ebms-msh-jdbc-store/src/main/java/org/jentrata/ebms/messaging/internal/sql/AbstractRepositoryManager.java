@@ -3,6 +3,7 @@ package org.jentrata.ebms.messaging.internal.sql;
 import org.apache.commons.io.IOUtils;
 import org.jentrata.ebms.MessageStatusType;
 import org.jentrata.ebms.MessageType;
+import org.jentrata.ebms.messaging.Message;
 import org.jentrata.ebms.messaging.MessageStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,10 +14,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * TODO: add description
@@ -111,6 +116,26 @@ public abstract class AbstractRepositoryManager implements RepositoryManager {
             LOG.warn("failed to update message " + messageId + " to status " + status);
             LOG.debug("",ex);
         }
+    }
+
+    @Override
+    public List<Message> selectMessageBy(String columnName, String value) {
+        try(Connection connection = dataSource.getConnection()) {
+            String sql = getMessageSelectSQL(columnName);
+            try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setString(1,value);
+                ResultSet result = stmt.executeQuery();
+                return JDBCMessageMapper.getMessage(result);
+            }
+        } catch (SQLException ex) {
+            LOG.warn("failed to get message from repository:" + ex);
+            LOG.debug("",ex);
+        }
+        return Collections.emptyList();
+    }
+
+    protected String getMessageSelectSQL(String columnName) {
+        return "SELECT * FROM MESSAGE WHERE " + columnName + "=?";
     }
 
     protected String getMessageInsertSQL() {

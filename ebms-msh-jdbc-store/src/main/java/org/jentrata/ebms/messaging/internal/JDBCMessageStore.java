@@ -26,6 +26,8 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Store the raw message in Postgres
@@ -76,8 +78,14 @@ public class JDBCMessageStore implements MessageStore {
 
     @Override
     public Message findByMessageId(String messageId) {
+        List<Message> messages = repositoryManager.selectMessageBy("message_id", messageId);
+        if(messages.size() > 0) {
+            return messages.get(0);
+        }
         return null;
     }
+
+
 
     public RepositoryManager getRepositoryManager() {
         return repositoryManager;
