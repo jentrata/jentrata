@@ -98,7 +98,7 @@
             <fileMode>0755</fileMode>
         </fileSet>
 
-        <!-- Add medimail features to system repository -->
+        <!-- Add Jentrata features to system repository -->
         <fileSet>
             <outputDirectory>system</outputDirectory>
             <directory>target/features-repo</directory>
