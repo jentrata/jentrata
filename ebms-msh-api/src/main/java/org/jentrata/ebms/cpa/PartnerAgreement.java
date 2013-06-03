@@ -73,4 +73,8 @@ public class PartnerAgreement {
     public boolean hasSecurityToken() {
         return security != null && security.getSecurityToken() != null;
     }
+
+    public boolean requiresSignature() {
+        return security != null && security.getSignature() != null;
+    }
 }

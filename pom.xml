@@ -86,6 +86,7 @@
         <log4j.version>1.2.17</log4j.version>
         <karaf.version>2.3.1</karaf.version>
         <camel.version>2.10.4</camel.version>
+        <cxf.version>2.6.6</cxf.version>
         <activemq.version>5.8.0</activemq.version>
         <bcprov-jdk16.version>1.46</bcprov-jdk16.version>
         <commons-io.version>1.4</commons-io.version>
@@ -93,7 +94,8 @@
         <postgres.version>9.1-901.jdbc4</postgres.version>
         <h2.version>1.3.168</h2.version>
         <guava.version>14.0.1</guava.version>
-        <wss4j.version>1.6.10</wss4j.version>
+        <xmlsec.version>2.0.0-jentrata-SNAPSHOT</xmlsec.version>
+        <wss4j.version>2.0-jentrata-SNAPSHOT</wss4j.version>
         <!-- General Settings -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- Default OSGI settings -->
@@ -202,8 +204,13 @@
             </dependency>
             <!-- WSSE Support -->
             <dependency>
-                <groupId>org.apache.ws.security</groupId>
-                <artifactId>wss4j</artifactId>
+                <groupId>org.apache.wss4j</groupId>
+                <artifactId>wss4j-ws-security-common</artifactId>
+                <version>${wss4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.wss4j</groupId>
+                <artifactId>wss4j-ws-security-dom</artifactId>
                 <version>${wss4j.version}</version>
             </dependency>
             <!-- Test Dependencies -->
@@ -395,5 +402,36 @@
         </plugins>
 
     </build>
+
+    <profiles>
+        <profile>
+            <id>jentrata-wss4j</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <repositories>
+                <repository>
+                    <id>jentrata</id>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <url>http://repository-jentrata.forge.cloudbees.com/release/</url>
+                </repository>
+                <repository>
+                    <id>jentrata-snapshots</id>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                    <releases>
+                        <enabled>false</enabled>
+                    </releases>
+                    <url>http://repository-jentrata.forge.cloudbees.com/snapshot/</url>
+                </repository>
+            </repositories>
+        </profile>
+    </profiles>
 
 </project>

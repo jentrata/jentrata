@@ -36,7 +36,7 @@
             <cm:property name="jentrata.ebms.outbound.queue" value="activemq:queue:jentrata_internal_ebms_outbound"/>
 
             <cm:property name="jentrata.ebms.outbound.dir" value="./data/jentrata/outbox"/>
-            <cm:property name="jentrata.ebms.outbound.cpaId" value="jentrataTestCPA"/>
+            <cm:property name="jentrata.ebms.outbound.cpaId" value="jentrataLoopback"/>
             <cm:property name="jentrata.ebms.outbound.service" value="http://docs.oasis-open.org/ebxml-msg/as4/200902/service"/>
             <cm:property name="jentrata.ebms.outbound.action" value="http://docs.oasis-open.org/ebxml-msg/as4/200902/action"/>
             <cm:property name="jentrata.ebms.outbound.contentType" value="text/xml"/>
@@ -67,9 +67,22 @@
 
     <bean id="validatePartnerAgreementRouteBuilder" class="org.jentrata.ebms.as4.internal.routes.ValidatePartnerAgreementRouteBuilder"/>
 
+    <bean id="crypto" class="org.apache.wss4j.common.crypto.Merlin">
+        <argument>
+            <props>
+                <prop key="org.apache.ws.security.crypto.provider" value="org.apache.ws.security.components.crypto.Merlin"/>
+                <prop key="org.apache.ws.security.crypto.merlin.keystore.type" value="jks"/>
+                <prop key="org.apache.ws.security.crypto.merlin.keystore.password" value="security"/>
+                <prop key="org.apache.ws.security.crypto.merlin.keystore.alias" value="jentrata"/>
+                <prop key="org.apache.ws.security.crypto.merlin.keystore.file" value="etc/keys/jentrata.jks"/>
+            </props>
+        </argument>
+    </bean>
+
     <bean id="wsseRouteBuilder" class="org.jentrata.ebms.as4.internal.routes.WSSERouteBuilder">
-        <property name="callbackHandler">
-            <bean class="org.jentrata.ebms.security.UsernamePasswordCallbackHandler">
+        <property name="crypto" ref="crypto"/>
+        <property name="userTokenCallbackHandler">
+            <bean class="org.jentrata.ebms.internal.security.UsernamePasswordCallbackHandler">
                 <property name="users">
                     <map key-type="java.lang.String" value-type="java.lang.String">
                         <entry key="jentrata" value="gocDv4SEXRDxNjucDDfo7I7ACTc="/>

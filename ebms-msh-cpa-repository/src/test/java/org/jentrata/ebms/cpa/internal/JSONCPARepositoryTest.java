@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.cpa.PartnerAgreement;
 import org.jentrata.ebms.cpa.pmode.Security;
+import org.jentrata.ebms.cpa.pmode.Signature;
 import org.jentrata.ebms.cpa.pmode.UsernameToken;
 import org.junit.Test;
 
@@ -168,6 +169,30 @@ public class JSONCPARepositoryTest {
         assertThat(usernameToken.isDigest(),is(true));
         assertThat(usernameToken.isNonce(),is(true));
         assertThat(usernameToken.isCreated(),is(true));
+    }
+
+    @Test
+    public void testAgreementWithSignatureSecurity() throws IOException {
+        JSONCPARepository repository = new JSONCPARepository();
+        repository.setCpaJsonFile(fileFromClasspath("agreementWithSignatureSecurity.json"));
+        repository.init();
+
+        assertThat(repository.getActivePartnerAgreements(),hasSize(1));
+        assertThat(repository.getActivePartnerAgreements().get(0).hasSecurityToken(),is(true));
+        assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().getSendReceiptReplyPattern(),is(Security.ReplyPatternType.Response));
+        assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().isSendReceipt(),is(false));
+        assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().isSendReceiptNonRepudiation(),is(true));
+
+        UsernameToken usernameToken = (UsernameToken) repository.getActivePartnerAgreements().get(0).getSecurity().getSecurityToken();
+        assertThat(usernameToken.getUsername(),equalTo("jentrata"));
+        assertThat(usernameToken.getPassword(),equalTo("verySecret"));
+        assertThat(usernameToken.isDigest(),is(false));
+        assertThat(usernameToken.isNonce(),is(false));
+        assertThat(usernameToken.isCreated(),is(false));
+
+        Signature signature = repository.getActivePartnerAgreements().get(0).getSecurity().getSignature();
+        assertThat(signature,notNullValue());
+        assertThat(signature.isEncrypt(),is(true));
     }
 
     @Test

@@ -10,6 +10,5 @@ Content-Type: ${payload.contentType}; charset=${payload.charset}
 Content-Id: ${payload.payloadId}
 
 ${payload.content}
-
 </#list>
 ------=_Jentrata_Mime_Message_--

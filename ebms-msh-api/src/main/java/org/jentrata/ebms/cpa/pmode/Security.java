@@ -16,6 +16,8 @@ public class Security {
     private boolean sendReceipt = true;
     private ReplyPatternType sendReceiptReplyPattern = ReplyPatternType.Callback;
     private boolean sendReceiptNonRepudiation = false;
+    private Signature signature = null;
+
 
     public SecurityToken getSecurityToken() {
         return securityToken;
@@ -47,5 +49,13 @@ public class Security {
 
     public void setSendReceiptNonRepudiation(boolean sendReceiptNonRepudiation) {
         this.sendReceiptNonRepudiation = sendReceiptNonRepudiation;
+    }
+
+    public Signature getSignature() {
+        return signature;
+    }
+
+    public void setSignature(Signature signature) {
+        this.signature = signature;
     }
 }

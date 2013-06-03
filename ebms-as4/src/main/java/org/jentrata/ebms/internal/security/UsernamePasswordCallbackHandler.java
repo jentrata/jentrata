@@ -1,6 +1,7 @@
-package org.jentrata.ebms.security;
+package org.jentrata.ebms.internal.security;
 
-import org.apache.ws.security.WSPasswordCallback;
+
+import org.apache.wss4j.common.ext.WSPasswordCallback;
 
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
@@ -23,7 +24,7 @@ public class UsernamePasswordCallbackHandler implements CallbackHandler {
         for(Callback callback : callbacks) {
             if (callback instanceof WSPasswordCallback) {
                 WSPasswordCallback pc = (WSPasswordCallback) callback;
-                if(pc.getUsage() == WSPasswordCallback.USERNAME_TOKEN) {
+                if(pc.getUsage() == WSPasswordCallback.Usage.USERNAME_TOKEN) {
                     if(users.containsKey(pc.getIdentifier())) {
                         pc.setPassword(users.get(pc.getIdentifier()));
                     } else {
