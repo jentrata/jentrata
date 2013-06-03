@@ -36,7 +36,7 @@
             <cm:property name="jentrata.ebms.outbound.queue" value="activemq:queue:jentrata_internal_ebms_outbound"/>
 
             <cm:property name="jentrata.ebms.outbound.dir" value="./data/jentrata/outbox"/>
-            <cm:property name="jentrata.ebms.outbound.cpaId" value="jentrataTestCPA"/>
+            <cm:property name="jentrata.ebms.outbound.cpaId" value="jentrataLoopback"/>
             <cm:property name="jentrata.ebms.outbound.service" value="http://docs.oasis-open.org/ebxml-msg/as4/200902/service"/>
             <cm:property name="jentrata.ebms.outbound.action" value="http://docs.oasis-open.org/ebxml-msg/as4/200902/action"/>
             <cm:property name="jentrata.ebms.outbound.contentType" value="text/xml"/>
