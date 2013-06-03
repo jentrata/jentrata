@@ -48,5 +48,5 @@
             </eb:UserMessage>
         </eb:Messaging>
      </S12:Header>
-    <S12:Body wsu:Id="_f8aa8b55-b31c-4364-94d0-3615ca65aa40"/>
+    <S12:Body />
 </S12:Envelope>

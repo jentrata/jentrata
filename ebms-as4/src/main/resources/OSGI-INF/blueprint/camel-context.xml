@@ -67,9 +67,22 @@
 
     <bean id="validatePartnerAgreementRouteBuilder" class="org.jentrata.ebms.as4.internal.routes.ValidatePartnerAgreementRouteBuilder"/>
 
+    <bean id="crypto" class="org.apache.wss4j.common.crypto.Merlin">
+        <argument>
+            <props>
+                <prop key="org.apache.ws.security.crypto.provider" value="org.apache.ws.security.components.crypto.Merlin"/>
+                <prop key="org.apache.ws.security.crypto.merlin.keystore.type" value="jks"/>
+                <prop key="org.apache.ws.security.crypto.merlin.keystore.password" value="security"/>
+                <prop key="org.apache.ws.security.crypto.merlin.keystore.alias" value="jentrata"/>
+                <prop key="org.apache.ws.security.crypto.merlin.keystore.file" value="etc/keys/jentrata.jks"/>
+            </props>
+        </argument>
+    </bean>
+
     <bean id="wsseRouteBuilder" class="org.jentrata.ebms.as4.internal.routes.WSSERouteBuilder">
-        <property name="callbackHandler">
-            <bean class="org.jentrata.ebms.security.UsernamePasswordCallbackHandler">
+        <property name="crypto" ref="crypto"/>
+        <property name="userTokenCallbackHandler">
+            <bean class="org.jentrata.ebms.internal.security.UsernamePasswordCallbackHandler">
                 <property name="users">
                     <map key-type="java.lang.String" value-type="java.lang.String">
                         <entry key="jentrata" value="gocDv4SEXRDxNjucDDfo7I7ACTc="/>

@@ -66,7 +66,7 @@ public class EbmsOutboundMessageRouteBuilder extends RouteBuilder {
                     .setHeader(EbmsConstants.MESSAGE_ID, simple("${bean:uuidGenerator.generateId}"))
                     .setHeader(EbmsConstants.MESSAGE_TYPE, constant(MessageType.USER_MESSAGE))
                     .setHeader(EbmsConstants.MESSAGE_DIRECTION, constant(EbmsConstants.MESSAGE_DIRECTION_OUTBOUND))
-                    .setHeader("JentrataPayloads",body())
+                    .setHeader(EbmsConstants.MESSAGE_PAYLOADS,body())
                     .to("freemarker:templates/soap-envelope.ftl")
                     .to(wsseSecurityAddEndpoint)
                     .convertBodyTo(String.class)

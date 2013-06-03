@@ -54,4 +54,5 @@ public class EbmsConstants {
     public static final String CONTENT_CHAR_SET = "JentrataCharSet";
     public static final String SOAP_BODY_PAYLOAD_ID = "soapbodypart";
     public static final String SECURITY_CHECK = "JentrataSecurityCheck";
+    public static final String MESSAGE_PAYLOADS = "JentrataPayloads";
 }

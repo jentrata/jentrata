@@ -33,12 +33,18 @@
     <properties>
         <osgi.private>org.jentrata.ebms.*</osgi.private>
         <osgi.import>
+            org.apache.xml.security.*;version="${xmlsec.version}",
+            org.apache.xml.security.utils;version="${xmlsec.version}",
+            org.apache.xml.security.resource;version="${xmlsec.version}",
+            org.apache.wss4j.common.*;version="${wss4j.version}",
+            org.apache.wss4j.dom.*;version="${wss4j.version}",
             org.jentrata.ebms;version=${project.version},
             org.jentrata.ebms.messaging;version=${project.version},
             org.jentrata.ebms.cpa;version=${project.version},
             org.jentrata.ebms.cpa.pmode;version=${project.version},
             *
         </osgi.import>
+        <osgi.dynamic.import>*</osgi.dynamic.import>
     </properties>
 
     <dependencies>
@@ -63,8 +69,16 @@
             <artifactId>commons-io</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.ws.security</groupId>
-            <artifactId>wss4j</artifactId>
+            <groupId>org.apache.wss4j</groupId>
+            <artifactId>wss4j-ws-security-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.wss4j</groupId>
+            <artifactId>wss4j-ws-security-dom</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
         </dependency>
     </dependencies>
 

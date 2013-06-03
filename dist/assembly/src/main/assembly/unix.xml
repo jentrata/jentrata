@@ -87,6 +87,16 @@
             <fileMode>0644</fileMode>
         </fileSet>
 
+        <!-- Copy over binary resources -->
+        <fileSet>
+            <directory>target/classes/etc</directory>
+            <outputDirectory>/etc/</outputDirectory>
+            <includes>
+                <include>keys/*.*</include>
+            </includes>
+            <fileMode>0644</fileMode>
+        </fileSet>
+
         <!-- Copy over resources -->
         <fileSet>
             <directory>target/classes/unix/bin</directory>

@@ -1,7 +1,29 @@
 <features name="jentrata-features-${pom.version}" xmlns="http://karaf.apache.org/xmlns/features/v1.0.0">
     <repository>mvn:org.jentrata/jentrata-ebms3-as4/${project.version}/xml/features</repository>
 
+    <feature name="jentrata-cxf" version="${pom.version}">
+        <feature version="${camel.version}">camel-spring</feature>
+        <feature>jetty</feature>
+        <feature version="${cxf.version}">cxf-jaxws</feature>
+        <feature version="${cxf.version}">cxf-jaxrs</feature>
+        <feature version="${cxf.version}">cxf-http-jetty</feature>
+        <bundle start-level='25' dependency="true">mvn:joda-time/joda-time/1.6.2</bundle>
+        <bundle start-level='25' dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.opensaml/2.5.1_2</bundle>
+        <bundle start-level='25'>mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.saaj-impl/1.3.19_1</bundle>
+        <bundle start-level='25'>mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.xmlresolver/1.2_5</bundle>
+        <bundle start-level='30' dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.xerces/2.9.1_5</bundle>
+        <bundle start-level='30' dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.bcel/5.2_4</bundle>
+        <bundle start-level='30' dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.xalan/2.7.1_5</bundle>
+        <bundle start-level='30' dependency="true">mvn:commons-codec/commons-codec/1.7</bundle>
+        <bundle start-level='30' dependency="true">mvn:org.apache.santuario/xmlsec/${xmlsec.version}</bundle>
+        <bundle start-level='30'>mvn:org.apache.wss4j/wss4j-ws-security-common/${wss4j.version}</bundle>
+        <bundle start-level='30'>mvn:org.apache.wss4j/wss4j-ws-security-dom/${wss4j.version}</bundle>
+        <bundle>mvn:org.apache.camel/camel-cxf-transport/${camel.version}</bundle>
+        <bundle>mvn:org.apache.camel/camel-cxf/${camel.version}</bundle>
+    </feature>
+
     <feature name="jentrata-as4-core" version="${pom.version}">
+        <feature version="${pom.version}">jentrata-cxf</feature>
         <feature version="${pom.version}">jentrata-cpa-repository</feature>
         <feature version="${pom.version}">jentrata-rest-services</feature>
         <feature version="${pom.version}">jentrata-ebms3-as4</feature>
@@ -24,15 +46,18 @@
     </feature>
 
     <feature name="jentrata-postgres-store" version="${pom.version}">
+        <feature version="${camel.version}">camel-jackson</feature>
+        <bundle dependency="true">mvn:commons-io/commons-io/${commons-io.version}</bundle>
         <bundle dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.commons-dbcp/${commons-dbcp.version}</bundle>
         <bundle dependency="true">wrap:mvn:postgresql/postgresql/${postgres.version}</bundle>
+        <bundle dependency="true">mvn:com.google.guava/guava/${guava.version}</bundle>
         <bundle dependency="true">mvn:org.jentrata/jentrata-ebms3-msh-api/${project.version}</bundle>
         <bundle>mvn:org.jentrata/jentrata-ebms3-msh-jdbc-store/${project.version}</bundle>
         <configfile finalname="/etc/org.jentrata.ebms.message.store.jdbc.cfg">mvn:org.jentrata/jentrata-ebms3-msh-jdbc-store/${pom.version}/cfg</configfile>
     </feature>
 
     <feature name="jentrata-rest-services" version="${pom.version}">
-        <feature version="${camel.version}">camel-cxf</feature>
+        <feature version="${pom.version}">jentrata-cxf</feature>
         <bundle dependency="true">mvn:org.jentrata/jentrata-ebms3-msh-api/${project.version}</bundle>
         <bundle>mvn:org.jentrata/jentrata-ebms3-msh-rest/${project.version}</bundle>
         <configfile finalname="/etc/org.jentrata.ebms.rest.cfg">mvn:org.jentrata/jentrata-ebms3-msh-rest/${pom.version}/cfg</configfile>
