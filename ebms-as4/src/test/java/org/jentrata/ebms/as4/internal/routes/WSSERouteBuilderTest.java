@@ -68,9 +68,8 @@ public class WSSERouteBuilderTest extends CamelTestSupport {
         request.getIn().setHeader(EbmsConstants.CPA_ID,"JentrataTestCPA");
         request.getIn().setHeader(EbmsConstants.CPA,generateAgreement());
         Exchange response = context().createProducerTemplate().send("direct:wsseSecurityCheck",request);
-        assertThat(request.isFailed(),is(true));
-        assertThat(request.getException(),instanceOf(WSSecurityException.class));
-        assertThat(request.getException().getMessage(),containsString("The security token could not be authenticated or authorized"));
+        assertThat(request.getIn().getHeader(EbmsConstants.SECURITY_RESULTS,Exception.class),instanceOf(WSSecurityException.class));
+        assertThat(response.getIn().getHeader(EbmsConstants.SECURITY_CHECK,Boolean.class),is(false));
     }
 
     @Test
@@ -154,8 +153,7 @@ public class WSSERouteBuilderTest extends CamelTestSupport {
 
         //perform the signing verification and security check
         Exchange response = context().createProducerTemplate().send("direct:wsseSecurityCheck",request);
-        assertThat(request.isFailed(),is(true));
-        assertThat(request.getException(),instanceOf(WSSecurityException.class));
+        assertThat(request.getIn().getHeader(EbmsConstants.SECURITY_RESULTS,Exception.class),instanceOf(WSSecurityException.class));
         assertThat(response.getIn().getHeader(EbmsConstants.SECURITY_CHECK,Boolean.class),is(false));
     }
 

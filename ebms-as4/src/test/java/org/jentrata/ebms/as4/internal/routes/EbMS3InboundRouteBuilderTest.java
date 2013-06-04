@@ -4,17 +4,24 @@ import org.apache.camel.EndpointInject;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.Message;
+import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.impl.DefaultExchange;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.apache.commons.io.IOUtils;
+import org.apache.wss4j.common.ext.WSSecurityException;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.MessageType;
+import org.jentrata.ebms.cpa.PartnerAgreement;
+import org.jentrata.ebms.cpa.pmode.Security;
+import org.jentrata.ebms.cpa.pmode.Signature;
+import org.jentrata.ebms.cpa.pmode.UsernameToken;
 import org.jentrata.ebms.internal.messaging.MessageDetector;
 import org.jentrata.ebms.internal.messaging.PartPropertiesPayloadProcessor;
 import org.jentrata.ebms.messaging.MessageStore;
 import org.jentrata.ebms.messaging.SplitAttachmentsToBody;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.xml.soap.SOAPConstants;
@@ -41,11 +48,15 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
     @EndpointInject(uri = "mock:mockEbmsInboundSignals")
     protected MockEndpoint mockEbmsInboundSignals;
 
+    @EndpointInject(uri = "mock:mockEbmsErrors")
+    protected MockEndpoint mockEbmsErrors;
+
     @Test
     public void testValidMultipartEBM3UserMessage() throws Exception {
         mockEbmsInbound.setExpectedMessageCount(1);
         mockEbmsInboundPayload.setExpectedMessageCount(1);
         mockEbmsInboundSignals.setExpectedMessageCount(0);
+        mockEbmsErrors.setExpectedMessageCount(0);
 
 
         Exchange request = new DefaultExchange(context());
@@ -87,6 +98,7 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
         mockEbmsInbound.setExpectedMessageCount(0);
         mockEbmsInboundPayload.setExpectedMessageCount(0);
         mockEbmsInboundSignals.setExpectedMessageCount(1);
+        mockEbmsErrors.setExpectedMessageCount(0);
 
         Exchange request = new DefaultExchange(context());
         request.getIn().setHeader(Exchange.CONTENT_TYPE,"application/soap+xml");
@@ -123,6 +135,7 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
         mockEbmsInbound.setExpectedMessageCount(1);
         mockEbmsInboundPayload.setExpectedMessageCount(1);
         mockEbmsInboundSignals.setExpectedMessageCount(0);
+        mockEbmsErrors.setExpectedMessageCount(0);
 
         Exchange request = new DefaultExchange(context());
         request.getIn().setHeader(Exchange.CONTENT_TYPE,"application/soap+xml");
@@ -149,13 +162,56 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
         assertThat("should have gotten no content in the http response",response.getIn().getBody(String.class),notNullValue());
     }
 
+    @Test
+    public void testWSSecurityErrorWithCallbackMEP() throws Exception {
+        mockEbmsInbound.setExpectedMessageCount(0);
+        mockEbmsInboundPayload.setExpectedMessageCount(0);
+        mockEbmsInboundSignals.setExpectedMessageCount(0);
+        mockEbmsErrors.setExpectedMessageCount(1);
+
+        Exchange request = new DefaultExchange(context());
+        request.getIn().setHeader(Exchange.CONTENT_TYPE,"Multipart/Related; boundary=\"----=_Part_7_10584188.1123489648993\"; type=\"application/soap+xml\"; start=\"<soapPart@jentrata.org>\"");
+        request.getIn().setHeader(Exchange.HTTP_METHOD,"POST");
+        request.getIn().setHeader("testSecurity","fail");
+        request.getIn().setHeader("cpaMEP","callback");
+        request.getIn().setBody(new FileInputStream(fileFromClasspath("simple-as4-user-message.txt")));
+        Exchange response = context().createProducerTemplate().send("direct:testEbmsInbound",request);
+
+        assertMockEndpointsSatisfied();
+
+        assertThat("should have gotten http 204 response code",response.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE,Integer.class),equalTo(204));
+        assertThat("should have gotten no content in the http response",response.getIn().getBody(),nullValue());
+    }
+
+    @Test
+    public void testWSSecurityErrorWithResponseMEP() throws Exception {
+        mockEbmsInbound.setExpectedMessageCount(0);
+        mockEbmsInboundPayload.setExpectedMessageCount(0);
+        mockEbmsInboundSignals.setExpectedMessageCount(0);
+        mockEbmsErrors.setExpectedMessageCount(1);
+
+        Exchange request = new DefaultExchange(context());
+        request.getIn().setHeader(Exchange.CONTENT_TYPE,"Multipart/Related; boundary=\"----=_Part_7_10584188.1123489648993\"; type=\"application/soap+xml\"; start=\"<soapPart@jentrata.org>\"");
+        request.getIn().setHeader(Exchange.HTTP_METHOD,"POST");
+        request.getIn().setHeader("testSecurity","fail");
+        request.getIn().setBody(new FileInputStream(fileFromClasspath("simple-as4-user-message.txt")));
+        Exchange response = context().createProducerTemplate().send("direct:testEbmsInbound",request);
+
+        assertMockEndpointsSatisfied();
+
+        assertThat("should have gotten http 500 response code",response.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE,Integer.class),equalTo(500));
+        assertThat("should have gotten error http response",response.getIn().getBody(),notNullValue());
+    }
+
     @Override
     protected RouteBuilder[] createRouteBuilders() throws Exception {
+        org.apache.xml.security.Init.init();
         EbMS3InboundRouteBuilder routeBuilder = new EbMS3InboundRouteBuilder();
         routeBuilder.setEbmsHttpEndpoint("direct:testEbmsInbound");
         routeBuilder.setInboundEbmsQueue(mockEbmsInbound.getEndpointUri());
         routeBuilder.setInboundEbmsPayloadQueue(mockEbmsInboundPayload.getEndpointUri());
         routeBuilder.setInboundEbmsSignalsQueue(mockEbmsInboundSignals.getEndpointUri());
+        routeBuilder.setSecurityErrorQueue(mockEbmsErrors.getEndpointUri());
         routeBuilder.setMessageDetector(new MessageDetector());
         routeBuilder.setPayloadProcessor(new PartPropertiesPayloadProcessor());
         return new RouteBuilder[] {
@@ -182,15 +238,51 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
 
                         from("direct:wsseSecurityCheck")
                             .log(LoggingLevel.INFO, "Mock WSSE Security Check")
-                            .setHeader(EbmsConstants.SECURITY_CHECK,constant(Boolean.TRUE))
+                             .choice()
+                                .when(header("testSecurity").isEqualTo("fail"))
+                                    .log(LoggingLevel.INFO, "testing WSSecurityException handling")
+                                    .setHeader(EbmsConstants.SECURITY_CHECK, constant(Boolean.FALSE))
+                                .otherwise()
+                                    .setHeader(EbmsConstants.SECURITY_CHECK, constant(Boolean.TRUE))
                         .routeId("mockWsseSecurityCheck");
 
+                        PartnerAgreement partnerAgreement = generateAgreement("jentrata",true);
                         from("direct:lookupCpaId")
-                            .setHeader(EbmsConstants.CPA_ID,constant("testCPAId"))
+                            .setHeader(EbmsConstants.CPA_ID, constant(partnerAgreement.getCpaId()))
+                            .setHeader(EbmsConstants.CPA,constant(partnerAgreement))
+                            .choice()
+                                .when(header("cpaMEP").isEqualTo("callback"))
+                                    .process(new Processor() {
+                                        @Override
+                                        public void process(Exchange exchange) throws Exception {
+                                            PartnerAgreement agreement = exchange.getIn().getHeader(EbmsConstants.CPA,PartnerAgreement.class);
+                                            agreement.getSecurity().setSendReceiptReplyPattern(Security.ReplyPatternType.Callback);
+                                        }
+                                    })
+                            .end()
                         .routeId("mockLookupCpaId");
                     }
                 }
         };
+    }
+
+    private PartnerAgreement generateAgreement(String username, boolean signatureEnabled) {
+        PartnerAgreement agreement = new PartnerAgreement();
+        agreement.setCpaId("testCPAId");
+        Security security = new Security();
+        UsernameToken token = new UsernameToken();
+        token.setUsername(username);
+        token.setPassword("gocDv4SEXRDxNjucDDfo7I7ACTc=");
+        security.setSecurityToken(token);
+        security.setSendReceiptReplyPattern(Security.ReplyPatternType.Response);
+        agreement.setSecurity(security);
+        if(signatureEnabled) {
+            Signature signature = new Signature();
+            signature.setKeyStoreAlias(username);
+            signature.setKeyStorePass("security");
+            security.setSignature(signature);
+        }
+        return agreement;
     }
 
     protected static File fileFromClasspath(String filename) {

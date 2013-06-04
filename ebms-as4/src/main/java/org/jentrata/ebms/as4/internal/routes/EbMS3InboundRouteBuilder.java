@@ -2,22 +2,17 @@ package org.jentrata.ebms.as4.internal.routes;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
-import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
-import org.apache.camel.builder.xml.XPathBuilder;
 import org.apache.camel.component.freemarker.FreemarkerConstants;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.MessageStatusType;
 import org.jentrata.ebms.MessageType;
-import org.jentrata.ebms.messaging.SplitAttachmentsToBody;
 import org.jentrata.ebms.internal.messaging.MessageDetector;
 import org.jentrata.ebms.messaging.MessageStore;
+import org.jentrata.ebms.messaging.SplitAttachmentsToBody;
 import org.jentrata.ebms.soap.SoapMessageDataFormat;
 import org.jentrata.ebms.soap.SoapPayloadProcessor;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  * Exposes an HTTP endpoint that consumes AS4 Messages
@@ -30,6 +25,7 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
     private String inboundEbmsQueue = "activemq:queue:jentrata_internal_ebms_inbound";
     private String inboundEbmsPayloadQueue = "activemq:queue:jentrata_internal_ebms_inbound_payload";
     private String inboundEbmsSignalsQueue = "activemq:queue:jentrata_internal_ebms_inbound_signals";
+    private String securityErrorQueue = "activemq:queue:jentrata_internal_ebms_error";
     private String messgeStoreEndpoint = MessageStore.DEFAULT_MESSAGE_STORE_ENDPOINT;
     private String messageInsertEndpoint = MessageStore.DEFAULT_MESSAGE_INSERT_ENDPOINT;
     private String messageUpdateEndpoint = MessageStore.DEFAULT_MESSAGE_UPDATE_ENDPOINT;
@@ -48,6 +44,7 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
             .streamCaching()
             .onException(UnsupportedOperationException.class)
                 .handled(true)
+                .setHeader("X-Jentrata-Version", simple("${sys.jentrataVersion}"))
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(405))
                 .setHeader("Allow", constant("POST"))
                 .to("direct:errorHandler")
@@ -79,18 +76,19 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
             .setHeader(EbmsConstants.MESSAGE_CONVERSATION_ID, ns.xpath("//eb3:CollaborationInfo/eb3:ConversationId/text()", String.class))
             .to("direct:lookupCpaId")
             .to(messageInsertEndpoint) //create a message entry in the message store to track the state of the message
+            .to(validateTradingPartner)
+            .to(wsseSecurityCheck)
             .choice()
-                .when(header(EbmsConstants.EBMS_VERSION).isEqualTo(EbmsConstants.EBMS_V3))
-                    .to(validateTradingPartner)
-                    .to(wsseSecurityCheck)
+                .when(header(EbmsConstants.SECURITY_CHECK).isEqualTo(Boolean.FALSE))
+                    .to("direct:handleSecurityException")
+                .otherwise()
                     .to("direct:processPayloads")
                     .to(messageUpdateEndpoint)
                     .setBody(constant(null))
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(204))
                     .to("direct:removeHeaders")
                     .setHeader("X-Jentrata-Version", simple("${sys.jentrataVersion}"))
-                .otherwise()
-                    .throwException(new UnsupportedOperationException("currently only ebMS V3.0 is supported by Jentrata"))
+            .end()
         .routeId("_jentrataEbmsInbound");
 
         from("direct:processPayloads")
@@ -110,6 +108,24 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
                         .removeHeader(SplitAttachmentsToBody.ORIGINAL_MESSAGE_BODY)
                         .inOnly(inboundEbmsPayloadQueue)
         .routeId("_jentrataEbmsPayloadProcessing");
+
+        from("direct:handleSecurityException")
+            .setHeader(EbmsConstants.SECURITY_ERROR_CODE, simple("${headers.JentrataSecurityResults?.errorCode}"))
+            .setHeader(EbmsConstants.SECURITY_ERROR_MESSAGE,simple("${headers.JentrataSecurityResults?.message}"))
+            .log(LoggingLevel.INFO, "Security Exception for msgId:${headers.JentrataMessageID} - errorCode:${headers.JentrataSecurityErrorCode} - ${headers.JentrataSecurityErrorMessage}")
+            .convertBodyTo(String.class)
+            .choice()
+                .when(simple("${headers?.JentrataCPA?.security?.sendReceiptReplyPattern.name()} == 'Callback'"))
+                    .inOnly(securityErrorQueue)
+                    .setBody(constant(null))
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(204))
+                .otherwise()
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(500))
+                    .to(securityErrorQueue)
+            .end()
+            .to("direct:removeHeaders")
+            .setHeader("X-Jentrata-Version", simple("${sys.jentrataVersion}"))
+        .routeId("_jentrataHandleSecurityException");
 
         from("direct:errorHandler")
             .to("direct:removeHeaders")
@@ -164,6 +180,14 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
 
     public void setInboundEbmsSignalsQueue(String inboundEbmsSignalsQueue) {
         this.inboundEbmsSignalsQueue = inboundEbmsSignalsQueue;
+    }
+
+    public String getSecurityErrorQueue() {
+        return securityErrorQueue;
+    }
+
+    public void setSecurityErrorQueue(String securityErrorQueue) {
+        this.securityErrorQueue = securityErrorQueue;
     }
 
     public String getMessgeStoreEndpoint() {

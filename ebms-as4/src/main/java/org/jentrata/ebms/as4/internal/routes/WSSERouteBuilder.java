@@ -72,15 +72,21 @@ public class WSSERouteBuilder extends RouteBuilder {
                         requestData.setAddUsernameTokenNonce(token.isNonce());
                         requestData.setCallbackHandler(userTokenCallbackHandler);
                         requestData.setUsername(token.getUsername());
-                        List<WSSecurityEngineResult> results = securityEngine.processSecurityHeader(signedDoc, null, requestData);
 
-                        if(results != null && results.size() > 0) {
-                            exchange.getIn().setHeader(EbmsConstants.SECURITY_CHECK,results.get(0).get(WSSecurityEngineResult.TAG_VALIDATED_TOKEN));
-                            if(exchange.getIn().hasAttachments() && attachmentCallback != null) {
-                                exchange.getIn().setAttachments(attachmentCallback.getVerifiedAttachments());
+                        List<WSSecurityEngineResult> results;
+                        try {
+                            results = securityEngine.processSecurityHeader(signedDoc, null, requestData);
+                            if(results != null && results.size() > 0) {
+                                exchange.getIn().setHeader(EbmsConstants.SECURITY_CHECK,results.get(0).get(WSSecurityEngineResult.TAG_VALIDATED_TOKEN));
+                                if(exchange.getIn().hasAttachments() && attachmentCallback != null) {
+                                    exchange.getIn().setAttachments(attachmentCallback.getVerifiedAttachments());
+                                }
+                            } else {
+                                exchange.getIn().setHeader(EbmsConstants.SECURITY_CHECK,Boolean.FALSE);
                             }
-                        } else {
+                        } catch (WSSecurityException ex) {
                             exchange.getIn().setHeader(EbmsConstants.SECURITY_CHECK,Boolean.FALSE);
+                            exchange.getIn().setHeader(EbmsConstants.SECURITY_RESULTS,ex);
                         }
                     } else {
                         exchange.getIn().setHeader(EbmsConstants.SECURITY_CHECK,Boolean.TRUE);
