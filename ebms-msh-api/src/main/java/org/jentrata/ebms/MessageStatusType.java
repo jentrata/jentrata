@@ -9,5 +9,7 @@ public enum MessageStatusType {
     RECEIVED,
     DELIVER,
     DELIVERED,
-    FAILED;
+    FAILED,
+    DONE,
+    ERROR;
 }

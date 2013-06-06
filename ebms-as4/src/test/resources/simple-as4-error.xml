@@ -18,7 +18,7 @@
                           severity="failure"
                           shortDescription="FailedAuthentication"
                           refToMessageInError="f2f60e33-f0e7-469b-8c2b-79b615fd6b21@jentrata.org">
-
+                    <eb:Description lang="en">failed authentication</eb:Description>
                 </eb:Error>
             </eb:SignalMessage>
         </eb:Messaging>

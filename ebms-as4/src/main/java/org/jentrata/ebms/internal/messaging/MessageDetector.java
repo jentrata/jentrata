@@ -49,7 +49,7 @@ public class MessageDetector {
 
                 headers.put(EbmsConstants.MESSAGE_ID, getMessageId(msg));
                 headers.put(EbmsConstants.REF_TO_MESSAGE_ID, getRefMessageId(msg));
-                headers.put(EbmsConstants.MESSAGE_TYPE, getMessageType(msg));
+                headers.put(EbmsConstants.MESSAGE_TYPE, getMessageType(msg).name());
             }
         } finally {
             input.reset();

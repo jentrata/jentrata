@@ -208,6 +208,9 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
         mockEbmsInbound.setExpectedMessageCount(0);
         mockEbmsInboundPayload.setExpectedMessageCount(0);
         mockEbmsInboundSignals.setExpectedMessageCount(1);
+        mockEbmsInboundSignals.expectedHeaderReceived(EbmsConstants.MESSAGE_TYPE,MessageType.SIGNAL_MESSAGE_ERROR);
+        mockEbmsInboundSignals.expectedHeaderReceived(EbmsConstants.MESSAGE_ID,"9e81f6b8-c02c-4d43-91cf-d160983fa957@jentrata.org");
+        mockEbmsInboundSignals.expectedHeaderReceived(EbmsConstants.CPA_ID,"testCPAId");
         mockEbmsErrors.setExpectedMessageCount(0);
 
         Exchange request = new DefaultExchange(context());
