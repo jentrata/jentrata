@@ -88,7 +88,7 @@ public class JDBCMessageStoreTest extends CamelTestSupport {
         String messageId = "testSoapMessage1";
         assertStoredMessage(messageId, contentType, body, MessageType.SIGNAL_MESSAGE_WITH_USER_MESSAGE);
         messageStore.updateMessage(messageId, EbmsConstants.MESSAGE_DIRECTION_INBOUND, MessageStatusType.RECEIVED,"Message Received");
-        Message message = messageStore.findByMessageId("testSoapMessage1");
+        Message message = messageStore.findByMessageId("testSoapMessage1",EbmsConstants.MESSAGE_DIRECTION_INBOUND);
         assertThat(message,notNullValue());
         assertThat(message.getMessageId(),equalTo("testSoapMessage1"));
         assertThat(message.getStatus(),equalTo(MessageStatusType.RECEIVED));

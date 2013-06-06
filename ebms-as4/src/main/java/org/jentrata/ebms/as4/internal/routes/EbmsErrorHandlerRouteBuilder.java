@@ -28,7 +28,7 @@ public class EbmsErrorHandlerRouteBuilder extends RouteBuilder {
             .setHeader(EbmsConstants.REF_TO_MESSAGE_ID,header(EbmsConstants.MESSAGE_ID))
             .setHeader(EbmsConstants.MESSAGE_ID, simple("${bean:uuidGenerator.generateId}"))
             .setHeader(EbmsConstants.MESSAGE_DIRECTION,constant(EbmsConstants.MESSAGE_DIRECTION_OUTBOUND))
-            .setHeader(EbmsConstants.MESSAGE_TYPE,constant(MessageType.SIGNAL_MESSAGE))
+            .setHeader(EbmsConstants.MESSAGE_TYPE,constant(MessageType.SIGNAL_MESSAGE_ERROR.name()))
             .setHeader(EbmsConstants.CONTENT_TYPE,constant(EbmsConstants.SOAP_XML_CONTENT_TYPE))
             .setHeader(EbmsConstants.MESSAGE_STATUS,constant(MessageStatusType.DELIVER))
             .process(new Processor() {

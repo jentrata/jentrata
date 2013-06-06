@@ -31,6 +31,6 @@ public interface MessageStore {
                        @Header(EbmsConstants.MESSAGE_STATUS)MessageStatusType status,
                        @Header(EbmsConstants.MESSAGE_STATUS_DESCRIPTION)String statusDescription);
 
-    Message findByMessageId(@Header(EbmsConstants.MESSAGE_ID)String messageId);
+    Message findByMessageId(@Header(EbmsConstants.MESSAGE_ID)String messageId, @Header(EbmsConstants.MESSAGE_DIRECTION) String messageDirection);
     InputStream findPayloadById(@Header(EbmsConstants.MESSAGE_ID)String messageId);
 }

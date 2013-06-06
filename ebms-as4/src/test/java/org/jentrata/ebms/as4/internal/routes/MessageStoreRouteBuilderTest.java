@@ -39,7 +39,7 @@ public class MessageStoreRouteBuilderTest extends CamelTestSupport {
 
         String msgId = response.getIn().getHeader(MessageStore.JENTRATA_MESSAGE_ID, String.class);
         assertThat(msgId,equalTo(request.getIn().getMessageId()));
-        assertThat(messageStore.findByMessageId(msgId).getMessageId(),equalTo(msgId));
+        assertThat(messageStore.findByMessageId(msgId,EbmsConstants.MESSAGE_DIRECTION_INBOUND).getMessageId(),equalTo(msgId));
     }
 
     @Override
@@ -68,7 +68,7 @@ public class MessageStoreRouteBuilderTest extends CamelTestSupport {
         public void updateMessage(String messageId,String messageDirection,MessageStatusType status,String statusDescription) {}
 
         @Override
-        public Message findByMessageId(final String messageId) {
+        public Message findByMessageId(final String messageId, String messageDirection) {
             return new DefaultMessage(messageId);
         }
 

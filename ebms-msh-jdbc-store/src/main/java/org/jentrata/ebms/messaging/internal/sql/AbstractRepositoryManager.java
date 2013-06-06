@@ -135,6 +135,26 @@ public abstract class AbstractRepositoryManager implements RepositoryManager {
     }
 
     @Override
+    public List<Message> selectMessageBy(Map<String, Object> fields) {
+        try(Connection connection = dataSource.getConnection()) {
+            String sql = getMessageSelectSQL(fields.keySet().toArray(new String[fields.size()]));
+            try(PreparedStatement stmt = connection.prepareStatement(sql)) {
+                int i = 1;
+                for(Map.Entry entry : fields.entrySet()) {
+                    stmt.setObject(i++,entry.getValue());
+                }
+//                stmt.setString(1,value);
+                ResultSet result = stmt.executeQuery();
+                return JDBCMessageMapper.getMessage(result);
+            }
+        } catch (SQLException ex) {
+            LOG.warn("failed to get message from repository:" + ex);
+            LOG.debug("",ex);
+        }
+        return Collections.emptyList();
+    }
+
+    @Override
     public InputStream selectRepositoryBy(String columnName, String value) {
         try(Connection connection = dataSource.getConnection()) {
             String sql = getRepositorySelectSQL(columnName);
@@ -156,8 +176,18 @@ public abstract class AbstractRepositoryManager implements RepositoryManager {
         return "SELECT * from REPOSITORY WHERE " + columnName + "=?";
     }
 
-    protected String getMessageSelectSQL(String columnName) {
-        return "SELECT * FROM MESSAGE WHERE " + columnName + "=?";
+    protected String getMessageSelectSQL(String...columnName) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM MESSAGE WHERE ");
+        boolean first = true;
+        for(String column : columnName) {
+            if(!first) {
+                sql.append(" AND ");
+            }
+            sql.append(column);
+            sql.append("=?");
+            first = false;
+        }
+        return sql.toString();
     }
 
     protected String getMessageInsertSQL() {

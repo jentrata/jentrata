@@ -27,6 +27,7 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -78,8 +79,11 @@ public class JDBCMessageStore implements MessageStore {
     }
 
     @Override
-    public Message findByMessageId(String messageId) {
-        List<Message> messages = repositoryManager.selectMessageBy("message_id", messageId);
+    public Message findByMessageId(String messageId, String messageDirection) {
+        Map<String,Object> fields = new HashMap<>();
+        fields.put("message_id",messageId);
+        fields.put("message_box",messageDirection);
+        List<Message> messages = repositoryManager.selectMessageBy(fields);
         if(messages.size() > 0) {
             return messages.get(0);
         }

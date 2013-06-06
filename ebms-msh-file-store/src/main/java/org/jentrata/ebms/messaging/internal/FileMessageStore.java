@@ -56,7 +56,7 @@ public class FileMessageStore implements MessageStore {
     }
 
     @Override
-    public Message findByMessageId(final String messageId) {
+    public Message findByMessageId(final String messageId, String messageDirection) {
         return new DefaultMessage(messageId);
     }
 

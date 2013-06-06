@@ -175,7 +175,7 @@ public class ValidatePartnerAgreementRouteBuilderTest extends CamelTestSupport {
         MessageStore mock = mock(MessageStore.class);
         Message message = mock(Message.class);
         doReturn("testCPAId").when(message).getCpaId();
-        doReturn(message).when(mock).findByMessageId(anyString());
+        doReturn(message).when(mock).findByMessageId(anyString(),anyString());
         return mock;
     }
 }

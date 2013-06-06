@@ -19,5 +19,6 @@ public interface RepositoryManager {
     void updateMessage(String messageId, String messageDirection, MessageStatusType status, String statusDescription);
     void insertMessage(String messageId, String messageDirection, MessageType messageType, String cpaId, String conversationId, String refMessageID);
     List<Message> selectMessageBy(String columnName, String value);
+    List<Message> selectMessageBy(Map<String,Object> fields);
     InputStream selectRepositoryBy(String columnName, String value);
 }

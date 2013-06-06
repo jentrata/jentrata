@@ -56,7 +56,7 @@ public class RepositoryServiceRouteBuilderTest extends CamelTestSupport {
         public void updateMessage(String messageId,String messageDirection,MessageStatusType status,String statusDescription) {}
 
         @Override
-        public Message findByMessageId(final String messageId) {
+        public Message findByMessageId(final String messageId, String messageDirection) {
             return new DefaultMessage(messageId);
         }
 

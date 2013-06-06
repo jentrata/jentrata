@@ -41,7 +41,7 @@ public class FileMessageStoreTest extends CamelTestSupport {
 
         String msgId = response.getIn().getHeader(MessageStore.JENTRATA_MESSAGE_ID, String.class);
         assertThat(msgId,equalTo("testMessageID"));
-        assertThat(messageStore.findByMessageId(msgId).getMessageId(),equalTo(msgId));
+        assertThat(messageStore.findByMessageId(msgId,EbmsConstants.MESSAGE_DIRECTION_INBOUND).getMessageId(),equalTo(msgId));
     }
 
     @Test
