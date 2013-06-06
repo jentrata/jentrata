@@ -108,6 +108,8 @@
 
     <bean id="ebmsOutboundMessageRouteBuilder" class="org.jentrata.ebms.as4.internal.routes.EbmsOutboundMessageRouteBuilder"/>
 
+    <bean id="ebmsErrorHandlerRouteBuilder"  class="org.jentrata.ebms.as4.internal.routes.EbmsErrorHandlerRouteBuilder"/>
+
     <bean id="fileOutboundMessageRouter" class="org.jentrata.ebms.as4.internal.routes.FileOutboundMessageRouter">
         <property name="fileEndpoint" value="file://${jentrata.ebms.outbound.dir}/?move=.sent&amp;moveFailed=.failed&amp;antInclude=*.xml"/>
         <property name="cpaId" value="${jentrata.ebms.outbound.cpaId}"/>

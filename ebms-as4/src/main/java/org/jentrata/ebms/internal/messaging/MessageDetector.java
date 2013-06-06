@@ -81,7 +81,11 @@ public class MessageDetector {
         } else if(msg.contains("UserMessage")) {
             msgType = MessageType.USER_MESSAGE;
         } else if(msg.contains("SignalMessage")) {
-            msgType = MessageType.SIGNAL_MESSAGE;
+            if(msg.contains("Error")) {
+                msgType = MessageType.SIGNAL_MESSAGE_ERROR;
+            } else {
+                msgType = MessageType.SIGNAL_MESSAGE;
+            }
         }
         return msgType;
     }

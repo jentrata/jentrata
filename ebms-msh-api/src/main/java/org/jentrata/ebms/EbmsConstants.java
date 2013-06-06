@@ -56,6 +56,11 @@ public class EbmsConstants {
     public static final String SECURITY_CHECK = "JentrataSecurityCheck";
     public static final String SECURITY_RESULTS = "JentrataSecurityResults";
     public static final String SECURITY_ERROR_CODE = "JentrataSecurityErrorCode";
-    public static final String SECURITY_ERROR_MESSAGE = "JentrataSecurityErrorMessage";
+    public static final String EBMS_ERROR = "JentrataEbmsError";
+    public static final String EBMS_ERROR_CODE = "JentrataEbmsErrorCode";
+    public static final String EBMS_ERROR_DESCRIPTION = "JentrataEbmsErrorDesc";
+
+
+
     public static final String MESSAGE_PAYLOADS = "JentrataPayloads";
 }

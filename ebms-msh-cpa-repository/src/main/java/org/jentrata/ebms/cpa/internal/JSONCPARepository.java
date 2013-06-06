@@ -6,6 +6,7 @@ import org.apache.camel.Header;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.jentrata.ebms.EbmsConstants;
+import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.cpa.CPARepository;
 import org.jentrata.ebms.cpa.PartnerAgreement;
 import org.slf4j.Logger;
@@ -22,7 +23,7 @@ import java.util.Map;
  *
  * @author aaronwalker
  */
-public class JSONCPARepository implements CPARepository {
+public class    JSONCPARepository implements CPARepository {
 
     private static final Logger LOG = LoggerFactory.getLogger(JSONCPARepository.class);
 
@@ -83,7 +84,10 @@ public class JSONCPARepository implements CPARepository {
     public boolean isValidPartnerAgreement(final Map<String, Object> fields) {
         String service = (String) fields.get(EbmsConstants.MESSAGE_SERVICE);
         String action = (String) fields.get(EbmsConstants.MESSAGE_ACTION);
-        PartnerAgreement agreement = findByServiceAndAction(service,action);
+        PartnerAgreement agreement = (PartnerAgreement) fields.get(EbmsConstants.CPA);
+        if(agreement == null) {
+            agreement = findByServiceAndAction(service,action);
+        }
         return  agreement != null;
     }
 

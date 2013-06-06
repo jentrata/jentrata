@@ -203,6 +203,26 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
         assertThat("should have gotten error http response",response.getIn().getBody(),notNullValue());
     }
 
+    @Test
+    public void testInboundErrorMessage() throws Exception {
+        mockEbmsInbound.setExpectedMessageCount(0);
+        mockEbmsInboundPayload.setExpectedMessageCount(0);
+        mockEbmsInboundSignals.setExpectedMessageCount(1);
+        mockEbmsErrors.setExpectedMessageCount(0);
+
+        Exchange request = new DefaultExchange(context());
+        request.getIn().setHeader(Exchange.CONTENT_TYPE,"application/soap+xml");
+        request.getIn().setHeader(Exchange.HTTP_METHOD,"POST");
+        request.getIn().setBody(new FileInputStream(fileFromClasspath("simple-as4-error.xml")));
+        Exchange response = context().createProducerTemplate().send("direct:testEbmsInbound",request);
+
+        assertMockEndpointsSatisfied();
+
+        //assert the response from the route
+        assertThat("should have gotten http 204 response code",response.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE,Integer.class),equalTo(204));
+        assertThat("should have gotten no content in the http response",response.getIn().getBody(),nullValue());
+    }
+
     @Override
     protected RouteBuilder[] createRouteBuilders() throws Exception {
         org.apache.xml.security.Init.init();

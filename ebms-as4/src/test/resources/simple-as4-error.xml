@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<S12:Envelope
+        xmlns:S12="http://www.w3.org/2003/05/soap-envelope"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:eb="http://docs.oasis-open.org/ebxml-msg/ebms/v3.0/ns/core/200704/"
+        xsi:schemaLocation="http://docs.oasis-open.org/ebxml-msg/ebms/v3.0/ns/core/200704/
+          http://docs.oasis-open.org/ebxml-msg/ebms/v3.0/core/ebms-header-3_0-200704.xsd">
+    <S12:Header>
+        <eb:Messaging S12:mustUnderstand="1">
+            <eb:SignalMessage>
+                <eb:MessageInfo>
+                    <eb:Timestamp>2013-06-06T00:13:00Z</eb:Timestamp>
+                    <eb:MessageId>9e81f6b8-c02c-4d43-91cf-d160983fa957@jentrata.org</eb:MessageId>
+                </eb:MessageInfo>
+                <eb:Error origin="security"
+                          category="Processing"
+                          errorCode="EBMS:0101"
+                          severity="failure"
+                          shortDescription="FailedAuthentication"
+                          refToMessageInError="f2f60e33-f0e7-469b-8c2b-79b615fd6b21@jentrata.org">
+
+                </eb:Error>
+            </eb:SignalMessage>
+        </eb:Messaging>
+    </S12:Header>
+    <S12:Body/>
+</S12:Envelope>
