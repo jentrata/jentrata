@@ -49,6 +49,11 @@
             <cm:property name="jentrata.ebms.outbound.schema" value=""/>
             <cm:property name="jentrata.ebms.outbound.partProperties" value=""/>
 
+            <cm:property name="jentrata.ebms.security.keystore.file" value="etc/keys/jentrata.jks"/>
+            <cm:property name="jentrata.ebms.security.keystore.type" value="jks"/>
+            <cm:property name="jentrata.ebms.security.keystore.alias" value="jentrata"/>
+            <cm:property name="jentrata.ebms.security.keystore.password" value="security"/>
+
         </cm:default-properties>
     </cm:property-placeholder>
 
@@ -71,10 +76,10 @@
         <argument>
             <props>
                 <prop key="org.apache.ws.security.crypto.provider" value="org.apache.ws.security.components.crypto.Merlin"/>
-                <prop key="org.apache.ws.security.crypto.merlin.keystore.type" value="jks"/>
-                <prop key="org.apache.ws.security.crypto.merlin.keystore.password" value="security"/>
-                <prop key="org.apache.ws.security.crypto.merlin.keystore.alias" value="jentrata"/>
-                <prop key="org.apache.ws.security.crypto.merlin.keystore.file" value="etc/keys/jentrata.jks"/>
+                <prop key="org.apache.ws.security.crypto.merlin.keystore.type" value="${jentrata.ebms.security.keystore.type}"/>
+                <prop key="org.apache.ws.security.crypto.merlin.keystore.password" value="${jentrata.ebms.security.keystore.password}"/>
+                <prop key="org.apache.ws.security.crypto.merlin.keystore.alias" value="${jentrata.ebms.security.keystore.alias}"/>
+                <prop key="org.apache.ws.security.crypto.merlin.keystore.file" value="${jentrata.ebms.security.keystore.file}"/>
             </props>
         </argument>
     </bean>
