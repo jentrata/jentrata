@@ -50,6 +50,8 @@ public class EbmsError {
     public static final EbmsError EBMS_0201 = new EbmsError("EBMS:0201","DysfunctionalReliability",ErrorCategory.Processing,ErrorSeverity.failure,ErrorOrigin.reliability);
     public static final EbmsError EBMS_0202 = new EbmsError("EBMS:0202","DeliveryFailure",ErrorCategory.Communication,ErrorSeverity.failure,ErrorOrigin.reliability);
 
+    public static final EbmsError EBMS_0303 = new EbmsError("EBMS:0303","DecompressionFailure,",ErrorCategory.Communication,ErrorSeverity.failure,ErrorOrigin.reliability);
+
     private static final Map<String,EbmsError> ERROR_CODE_MAP = new HashMap<>();
 
     static {
@@ -71,6 +73,8 @@ public class EbmsError {
 
         ERROR_CODE_MAP.put(EBMS_0201.getErrorCode(),EBMS_0201);
         ERROR_CODE_MAP.put(EBMS_0202.getErrorCode(),EBMS_0202);
+
+        ERROR_CODE_MAP.put(EBMS_0303.getErrorCode(),EBMS_0303);
     }
 
     public static EbmsError getEbmsError(String errorCode) {

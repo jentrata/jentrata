@@ -10,7 +10,6 @@ import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.impl.DefaultExchange;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.apache.commons.io.IOUtils;
-import org.apache.wss4j.common.ext.WSSecurityException;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.cpa.PartnerAgreement;
@@ -20,13 +19,19 @@ import org.jentrata.ebms.cpa.pmode.UsernameToken;
 import org.jentrata.ebms.internal.messaging.MessageDetector;
 import org.jentrata.ebms.internal.messaging.PartPropertiesPayloadProcessor;
 import org.jentrata.ebms.messaging.MessageStore;
-import org.jentrata.ebms.messaging.SplitAttachmentsToBody;
-import org.junit.Ignore;
+import org.jentrata.ebms.test.EbmsUtils;
 import org.junit.Test;
 
 import javax.xml.soap.SOAPConstants;
+import javax.xml.soap.SOAPMessage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.zip.GZIPOutputStream;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.Matchers.contains;
@@ -224,6 +229,43 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
         //assert the response from the route
         assertThat("should have gotten http 204 response code",response.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE,Integer.class),equalTo(204));
         assertThat("should have gotten no content in the http response",response.getIn().getBody(),nullValue());
+    }
+
+    @Test
+    public void testInboundCompressedPayload()throws Exception {
+        SOAPMessage soapMessage = EbmsUtils.createSOAP12MessageFromClasspath("sample-user-message.xml");
+        Map<String,String> headers = new HashMap<>();
+        headers.put(EbmsConstants.CONTENT_TRANSFER_ENCODING,"binary");
+        EbmsUtils.addAttachment(soapMessage,"attachment1234@jentrata.org","application/gzip",getCompressedPayload("sample-payload.xml"),headers);
+
+        mockEbmsInbound.setExpectedMessageCount(1);
+        mockEbmsInboundPayload.setExpectedMessageCount(1);
+        mockEbmsInboundPayload.expectedBodiesReceived(IOUtils.toByteArray((new FileInputStream(fileFromClasspath("sample-payload.xml")))));
+        mockEbmsInboundPayload.expectedHeaderReceived(EbmsConstants.COMPRESSION_TYPE, "application/gzip");
+        mockEbmsInboundPayload.expectedHeaderReceived(EbmsConstants.CONTENT_TYPE, "application/xml");
+        mockEbmsInboundPayload.expectedHeaderReceived(EbmsConstants.CONTENT_ID, "attachment1234@jentrata.org");
+        mockEbmsInboundPayload.expectedHeaderReceived("PartID","attachment1234@jentrata.org");
+
+        mockEbmsInboundSignals.setExpectedMessageCount(0);
+        mockEbmsErrors.setExpectedMessageCount(0);
+
+        Exchange request = new DefaultExchange(context());
+        request.getIn().setHeader(Exchange.CONTENT_TYPE, soapMessage.getMimeHeaders().getHeader(EbmsConstants.CONTENT_TYPE)[0]);
+        request.getIn().setHeader(Exchange.HTTP_METHOD, "POST");
+        request.getIn().setBody(new ByteArrayInputStream(EbmsUtils.toByteArray(soapMessage)));
+        Exchange response = context().createProducerTemplate().send("direct:testEbmsInbound",request);
+
+        assertMockEndpointsSatisfied();
+
+    }
+
+    private InputStream getCompressedPayload(String filename) throws Exception {
+        byte [] payload = IOUtils.toByteArray(new FileInputStream(fileFromClasspath(filename)));
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        GZIPOutputStream gzip = new GZIPOutputStream(bos);
+        gzip.write(payload);
+        gzip.close();
+        return new ByteArrayInputStream(bos.toByteArray());
     }
 
     @Override

@@ -2,9 +2,11 @@ package org.jentrata.ebms.as4.internal.routes;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
+import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
 import org.apache.camel.component.freemarker.FreemarkerConstants;
+import org.apache.commons.io.IOUtils;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.EbmsError;
 import org.jentrata.ebms.MessageStatusType;
@@ -14,6 +16,9 @@ import org.jentrata.ebms.messaging.MessageStore;
 import org.jentrata.ebms.messaging.SplitAttachmentsToBody;
 import org.jentrata.ebms.soap.SoapMessageDataFormat;
 import org.jentrata.ebms.soap.SoapPayloadProcessor;
+
+import java.io.InputStream;
+import java.util.zip.GZIPInputStream;
 
 /**
  * Exposes an HTTP endpoint that consumes AS4 Messages
@@ -108,11 +113,16 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
                     .inOnly(inboundEbmsSignalsQueue)
                 .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.USER_MESSAGE))
                     .inOnly(inboundEbmsQueue)
-                    .setHeader(SplitAttachmentsToBody.ORIGINAL_MESSAGE_BODY,body())
+                    .setHeader(SplitAttachmentsToBody.ORIGINAL_MESSAGE_BODY, body())
                     .setBody(xpath("//*[local-name()='Body']/*[1]"))
                     .convertBodyTo(String.class)
                     .split(new SplitAttachmentsToBody(true, false, true))
                         .bean(payloadProcessor)
+                        .choice()
+                            .when(header(EbmsConstants.COMPRESSION_TYPE).isEqualTo(EbmsConstants.GZIP))
+                                  .unmarshal().gzip()
+                                  .setHeader(EbmsConstants.CONTENT_TYPE,header("MimeType"))
+                        .end()
                         .removeHeader(SplitAttachmentsToBody.ORIGINAL_MESSAGE_BODY)
                         .inOnly(inboundEbmsPayloadQueue)
         .routeId("_jentrataEbmsPayloadProcessing");

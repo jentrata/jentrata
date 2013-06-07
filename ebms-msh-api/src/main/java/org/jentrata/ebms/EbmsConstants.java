@@ -24,11 +24,12 @@ public class EbmsConstants {
 
     public static final String CONTENT_ID = "Content-ID";
     public static final String CONTENT_LENGTH = Exchange.CONTENT_LENGTH;
+    public static final String CONTENT_TRANSFER_ENCODING = "Content-Transfer-Encoding";
+
     public static final String CONTENT_TYPE = Exchange.CONTENT_TYPE;
-
     public static final String SOAP_XML_CONTENT_TYPE = "application/soap+xml";
-    public static final String TEXT_XML_CONTENT_TYPE = "text/xml";
 
+    public static final String TEXT_XML_CONTENT_TYPE = "text/xml";
     public static final String MESSAGE_ID = "JentrataMessageID";
     public static final String REF_TO_MESSAGE_ID = "JentrataRefMessageID";
     public static final String MESSAGE_FROM = "JentrataFrom";
@@ -58,9 +59,11 @@ public class EbmsConstants {
     public static final String SECURITY_ERROR_CODE = "JentrataSecurityErrorCode";
     public static final String EBMS_ERROR = "JentrataEbmsError";
     public static final String EBMS_ERROR_CODE = "JentrataEbmsErrorCode";
+
+
+
     public static final String EBMS_ERROR_DESCRIPTION = "JentrataEbmsErrorDesc";
-
-
-
     public static final String MESSAGE_PAYLOADS = "JentrataPayloads";
+    public static final String COMPRESSION_TYPE = "CompressionType";
+    public static final String GZIP = "application/gzip";
 }
