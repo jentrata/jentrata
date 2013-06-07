@@ -16,6 +16,7 @@ public class EbmsSignalMessageRouteBuilder extends RouteBuilder {
 
     private String inboundEbmsQueue = "activemq:queue:jentrata_internal_ebms_inbound";
     private String outboundEbmsQueue = "activemq:queue:jentrata_internal_ebms_outbound";
+    private String wsseAddSecurityToHeader = "direct:wsseAddSecurityToHeader";
     private String messgeStoreEndpoint = MessageStore.DEFAULT_MESSAGE_STORE_ENDPOINT;
     private String messageInsertEndpoint = MessageStore.DEFAULT_MESSAGE_INSERT_ENDPOINT;
 
@@ -31,6 +32,7 @@ public class EbmsSignalMessageRouteBuilder extends RouteBuilder {
             .choice()
                 .when(header(EbmsConstants.EBMS_RECEIPT_REQUIRED).isEqualTo(true))
                     .log(LoggingLevel.INFO, "Generating receipt message for from:${headers.jentrataFrom} - to:${headers.jentrataTo} - ${headers.jentrataMessageId}")
+                    .to("direct:lookupCpaId")
                     .setHeader("messageid", simple("${bean:uuidGenerator.generateId}"))
                     .setHeader("timestamp",simple("${date:now:yyyy-MM-dd'T'HH:mm:ss.S'Z'}"))
                     .to("xslt:templates/signalMessage.xsl")
@@ -40,6 +42,7 @@ public class EbmsSignalMessageRouteBuilder extends RouteBuilder {
                     .setHeader(EbmsConstants.MESSAGE_ID,header("messageid"))
                     .setHeader(EbmsConstants.MESSAGE_TYPE,constant(MessageType.SIGNAL_MESSAGE_WITH_USER_MESSAGE))
                     .setHeader(EbmsConstants.REF_TO_MESSAGE_ID,ns.xpath("//eb3:RefToMessageId/text()",String.class))
+                    .to(wsseAddSecurityToHeader)
                     .to(messgeStoreEndpoint) //store the outbound signal message
                     .to(messageInsertEndpoint) //create message entry for tracking
                     .to(outboundEbmsQueue)
@@ -82,5 +85,13 @@ public class EbmsSignalMessageRouteBuilder extends RouteBuilder {
 
     public void setMessageInsertEndpoint(String messageInsertEndpoint) {
         this.messageInsertEndpoint = messageInsertEndpoint;
+    }
+
+    public String getWsseAddSecurityToHeader() {
+        return wsseAddSecurityToHeader;
+    }
+
+    public void setWsseAddSecurityToHeader(String wsseAddSecurityToHeader) {
+        this.wsseAddSecurityToHeader = wsseAddSecurityToHeader;
     }
 }

@@ -10,6 +10,7 @@ import org.apache.camel.impl.JndiRegistry;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.MessageType;
+import org.jentrata.ebms.cpa.PartnerAgreement;
 import org.jentrata.ebms.messaging.MessageStore;
 import org.jentrata.ebms.messaging.UUIDGenerator;
 import org.junit.Test;
@@ -87,9 +88,28 @@ public class EbmsSignalMessageRouteBuilderTest extends CamelTestSupport {
                         from(MessageStore.DEFAULT_MESSAGE_STORE_ENDPOINT)
                             .log(LoggingLevel.INFO, "Storing message no where ${headers}")
                         .routeId("mockStoreMessage");
+
+                        from("direct:wsseAddSecurityToHeader")
+                            .log(LoggingLevel.INFO,"adding WSSE Header")
+                        .routeId("");
+
+                        from("direct:lookupCpaId")
+                            .choice()
+                                .when(header("test").isEqualTo("unknownCPA"))
+                                    .setHeader(EbmsConstants.CPA, constant(null))
+                                    .setHeader(EbmsConstants.CPA_ID, constant(EbmsConstants.CPA_ID_UNKNOWN))
+                                .otherwise()
+                                    .setHeader(EbmsConstants.CPA,constant(getAgreement()))
+                        .routeId("mockLookupCpaId");
                     }
                 }
         };
+    }
+
+    private PartnerAgreement getAgreement() {
+        PartnerAgreement partnerAgreement = new PartnerAgreement();
+        partnerAgreement.setCpaId("testCPAId");
+        return partnerAgreement;
     }
 
     protected static File fileFromClasspath(String filename) {
