@@ -4,15 +4,23 @@ import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.commons.io.IOUtils;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.cpa.InvalidPartnerAgreementException;
+import org.jentrata.ebms.cpa.PartnerAgreement;
 import org.jentrata.ebms.messaging.MessageStore;
+import org.jentrata.ebms.soap.SoapMessageDataFormat;
+import org.jentrata.ebms.utils.EbmsUtils;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * Pickup outbound messages generates the ebMS envelope
@@ -44,11 +52,15 @@ public class EbmsOutboundMessageRouteBuilder extends RouteBuilder {
                     .process(new Processor() {
                         @Override
                         public void process(Exchange exchange) throws Exception {
+
+                            PartnerAgreement agreement = exchange.getIn().getHeader(EbmsConstants.CPA,PartnerAgreement.class);
+
                             String body = exchange.getIn().getBody(String.class);
                             String contentType = exchange.getIn().getHeader(EbmsConstants.CONTENT_TYPE, String.class);
                             String contentCharset = exchange.getIn().getHeader(EbmsConstants.CONTENT_CHAR_SET, "UTF-8", String.class);
-                            String payloadId = exchange.getIn().getHeader(EbmsConstants.PAYLOAD_ID, String.class);
+                            String payloadId = exchange.getIn().getHeader(EbmsConstants.PAYLOAD_ID,agreement.getPayloadService().getPayloadId(), String.class);
                             String schema = exchange.getIn().getHeader(EbmsConstants.MESSAGE_PAYLOAD_SCHEMA, String.class);
+                            String compressionType = exchange.getIn().getHeader(EbmsConstants.PAYLOAD_COMPRESSION,agreement.getPayloadService().getCompressionType().getType(),String.class);
                             List<Map<String, Object>> partProperties = extractPartProperties(exchange.getIn().getHeader(EbmsConstants.MESSAGE_PART_PROPERTIES, String.class));
 
                             List<Map<String, Object>> payloads = new ArrayList<>();
@@ -58,7 +70,12 @@ public class EbmsOutboundMessageRouteBuilder extends RouteBuilder {
                             payloadMap.put("charset", contentCharset);
                             payloadMap.put("partProperties", partProperties);
                             payloadMap.put("schema", schema);
-                            payloadMap.put("content", body);
+                            payloadMap.put("compressionType",compressionType);
+                            if(compressionType != null && compressionType.length() > 0) {
+                                payloadMap.put("content", EbmsUtils.compress(compressionType, body.getBytes(contentCharset)));
+                            } else {
+                                payloadMap.put("content", body.getBytes(contentCharset));
+                            }
                             payloads.add(payloadMap);
                             exchange.getIn().setBody(payloads);
                         }
@@ -70,8 +87,7 @@ public class EbmsOutboundMessageRouteBuilder extends RouteBuilder {
                     .to("freemarker:templates/soap-envelope.ftl")
                     .to(wsseSecurityAddEndpoint)
                     .convertBodyTo(String.class)
-                    .to("freemarker:templates/mimeMessage.ftl")
-                    .setHeader(EbmsConstants.CONTENT_TYPE, constant("Multipart/Related; boundary=\"----=_Jentrata_Mime_Message_\"; type=\"application/soap+xml\"; start=\"<soapPart@jentrata.org>\""))
+                    .marshal(new SoapMessageDataFormat())
                     .to(messgeStoreEndpoint)
                     .to(messageInsertEndpoint)
                     .to(outboundEbmsQueue)

@@ -51,6 +51,7 @@ public class EbmsConstants {
     public static final String CPA = "JentrataCPA";
     public static final String CPA_ID = "JentrataCPAId";
     public static final String PAYLOAD_ID = "JentrataPayloadId";
+    public static final String PAYLOAD_COMPRESSION = "JentrataPayloadCompression";
     public static final String CPA_ID_UNKNOWN = "UNKNOWN";
     public static final String CONTENT_CHAR_SET = "JentrataCharSet";
     public static final String SOAP_BODY_PAYLOAD_ID = "soapbodypart";
@@ -58,10 +59,10 @@ public class EbmsConstants {
     public static final String SECURITY_RESULTS = "JentrataSecurityResults";
     public static final String SECURITY_ERROR_CODE = "JentrataSecurityErrorCode";
     public static final String EBMS_ERROR = "JentrataEbmsError";
+
+
+
     public static final String EBMS_ERROR_CODE = "JentrataEbmsErrorCode";
-
-
-
     public static final String EBMS_ERROR_DESCRIPTION = "JentrataEbmsErrorDesc";
     public static final String MESSAGE_PAYLOADS = "JentrataPayloads";
     public static final String COMPRESSION_TYPE = "CompressionType";

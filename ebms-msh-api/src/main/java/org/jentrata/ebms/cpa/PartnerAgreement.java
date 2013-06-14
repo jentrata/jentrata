@@ -2,6 +2,7 @@ package org.jentrata.ebms.cpa;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+import org.jentrata.ebms.cpa.pmode.PayloadService;
 import org.jentrata.ebms.cpa.pmode.Security;
 
 import java.util.List;
@@ -18,7 +19,7 @@ public class PartnerAgreement {
     private String transportReceiverEndpoint;
     private List<Service> services;
     private Security security;
-
+    private PayloadService payloadService = PayloadService.DEFAULT_PAYLOAD_SERVICE;
 
     public String getCpaId() {
         return cpaId;
@@ -68,6 +69,14 @@ public class PartnerAgreement {
 
     public void setSecurity(Security security) {
         this.security = security;
+    }
+
+    public PayloadService getPayloadService() {
+        return payloadService;
+    }
+
+    public void setPayloadService(PayloadService payloadService) {
+        this.payloadService = payloadService;
     }
 
     public boolean hasSecurityToken() {

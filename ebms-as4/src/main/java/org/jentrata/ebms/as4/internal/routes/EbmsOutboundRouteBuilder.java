@@ -23,7 +23,6 @@ public class EbmsOutboundRouteBuilder extends RouteBuilder {
     @Override
     public void configure() throws Exception {
         from(outboundEbmsQueue)
-            .convertBodyTo(String.class)
             .removeHeaders("Camel*")
             .removeHeaders("JMS*")
             .setHeader(EbmsConstants.MESSAGE_STATUS, constant(MessageStatusType.DELIVER))

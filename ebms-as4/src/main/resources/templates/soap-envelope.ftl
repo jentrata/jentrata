@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<S12:Envelope
-        xmlns:S12="http://www.w3.org/2003/05/soap-envelope"
-        xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
-        xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
-        xmlns:eb="http://docs.oasis-open.org/ebxml-msg/ebms/v3.0/ns/core/200704/">
-    <S12:Header>
-        <eb:Messaging S12:mustUnderstand="true" id="_9ecb9d3c-cef8-4006-ac18-f425c5c7ae3d">
+<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+    <env:Header>
+        <eb:Messaging xmlns:eb="http://docs.oasis-open.org/ebxml-msg/ebms/v3.0/ns/core/200704/" xmlns:env="http://www.w3.org/2003/05/soap-envelope" env:mustUnderstand="true" id="_9ecb9d3c-cef8-4006-ac18-f425c5c7ae3d">
             <eb:UserMessage>
                 <eb:MessageInfo>
                     <eb:Timestamp>${.now?iso("UTC")}</eb:Timestamp>
@@ -36,6 +32,9 @@
                         <eb:Schema location="${payload.schema}"/>
                         </#if>
                         <eb:PartProperties>
+                            <#if payload.compressionType?has_content>
+                            <eb:Property name="CompressionType">${payload.compressionType}</eb:Property>
+                            </#if>
                             <eb:Property name="MimeType">${payload.contentType}</eb:Property>
                             <eb:Property name="CharacterSet">${payload.charset}</eb:Property>
                             <#list payload.partProperties as partProperty>
@@ -47,6 +46,6 @@
                 </eb:PayloadInfo>
             </eb:UserMessage>
         </eb:Messaging>
-     </S12:Header>
-    <S12:Body />
-</S12:Envelope>
+    </env:Header>
+    <env:Body/>
+</env:Envelope>

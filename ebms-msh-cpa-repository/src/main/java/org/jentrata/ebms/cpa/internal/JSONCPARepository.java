@@ -23,7 +23,7 @@ import java.util.Map;
  *
  * @author aaronwalker
  */
-public class    JSONCPARepository implements CPARepository {
+public class JSONCPARepository implements CPARepository {
 
     private static final Logger LOG = LoggerFactory.getLogger(JSONCPARepository.class);
 

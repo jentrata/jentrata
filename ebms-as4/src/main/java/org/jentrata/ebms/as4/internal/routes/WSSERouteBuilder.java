@@ -78,7 +78,7 @@ public class WSSERouteBuilder extends RouteBuilder {
                             results = securityEngine.processSecurityHeader(signedDoc, null, requestData);
                             if(results != null && results.size() > 0) {
                                 exchange.getIn().setHeader(EbmsConstants.SECURITY_CHECK,results.get(0).get(WSSecurityEngineResult.TAG_VALIDATED_TOKEN));
-                                if(exchange.getIn().hasAttachments() && attachmentCallback != null) {
+                                if(exchange.getIn().hasAttachments() && attachmentCallback != null && attachmentCallback.hasCallback()) {
                                     exchange.getIn().setAttachments(attachmentCallback.getVerifiedAttachments());
                                 }
                             } else {
@@ -171,8 +171,8 @@ public class WSSERouteBuilder extends RouteBuilder {
                 Attachment attachment = new Attachment();
                 attachment.setId((String) payload.get("payloadId"));
                 attachment.setMimeType((String) payload.get("contentType"));
-                String content = (String) payload.get("content");
-                attachment.setSourceStream(new ByteArrayInputStream(content.getBytes()));
+                byte [] content = (byte[]) payload.get("content");
+                attachment.setSourceStream(new ByteArrayInputStream(content));
                 attachments.add(attachment);
             }
 

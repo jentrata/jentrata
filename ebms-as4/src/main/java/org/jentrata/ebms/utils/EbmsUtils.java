@@ -1,6 +1,8 @@
-package org.jentrata.ebms.test;
+package org.jentrata.ebms.utils;
 
+import org.apache.camel.Exchange;
 import org.apache.commons.io.IOUtils;
+import org.jentrata.ebms.EbmsConstants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -9,6 +11,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.soap.AttachmentPart;
 import javax.xml.soap.MessageFactory;
+import javax.xml.soap.MimeHeaders;
 import javax.xml.soap.SOAPConstants;
 import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPHeader;
@@ -28,6 +31,8 @@ import java.io.OutputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * Ebms Test Utility Class
@@ -71,8 +76,32 @@ public class EbmsUtils {
         return soapMessage;
     }
 
+    public static final SOAPMessage parse(String soapProtocol, String contentType, InputStream stream) throws Exception {
+        MessageFactory messageFactory = MessageFactory.newInstance(soapProtocol);
+        MimeHeaders mimeHeaders = new MimeHeaders();
+        mimeHeaders.addHeader(Exchange.CONTENT_TYPE, contentType);
+        SOAPMessage message = messageFactory.createMessage(mimeHeaders, stream);
+        SOAPHeader soapHeader = message.getSOAPPart().getEnvelope().getHeader();
+        return message;
+    }
+
+    public static final SOAPMessage parse(Exchange exchange) throws Exception {
+        InputStream stream = exchange.getIn().getBody(InputStream.class);
+        String contentType = exchange.getIn().getHeader(EbmsConstants.CONTENT_TYPE,String.class);
+        String soapProtocol = exchange.getIn().getHeader(EbmsConstants.SOAP_VERSION,SOAPConstants.SOAP_1_2_PROTOCOL,String.class);
+        return parse(soapProtocol,contentType,stream);
+    }
+
     public static void addAttachment(SOAPMessage soapMessage,String contentId,String contentType,InputStream content) throws Exception {
         addAttachment(soapMessage, contentId, contentType, content, new HashMap<String, String>());
+    }
+
+    public static void addAttachment(SOAPMessage soapMessage, String payloadId, String contentType, byte[] content) throws Exception {
+        addAttachment(soapMessage,payloadId,contentType,new ByteArrayInputStream(content));
+    }
+
+    public static void addGZippedAttachment(SOAPMessage soapMessage, String payloadId, byte[] content) throws Exception {
+        addAttachment(soapMessage,payloadId, EbmsConstants.GZIP,compressStream(EbmsConstants.GZIP, content));
     }
 
     public static void addAttachment(SOAPMessage soapMessage,String contentId,String contentType,InputStream content,Map<String,String> headers) throws Exception {
@@ -87,6 +116,31 @@ public class EbmsUtils {
         soapMessage.saveChanges();
         soapMessage.getMimeHeaders().setHeader("Content-Type",soapMessage.getMimeHeaders().getHeader("Content-Type")[0] + "; start=\"<soapPart@jentrata.org>\"");
 
+    }
+
+    public static InputStream compressStream(String compressionType, byte [] content) throws IOException {
+        return new ByteArrayInputStream(compress(compressionType, content));
+    }
+
+    public static byte [] compress(String compressionType, byte [] content) throws IOException {
+        if(EbmsConstants.GZIP.equalsIgnoreCase(compressionType)) {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            try(GZIPOutputStream gzip = new GZIPOutputStream(bos)) {
+                gzip.write(content);
+            }
+            return bos.toByteArray();
+        }
+        throw new UnsupportedOperationException("unsupported compression type " + compressionType);
+    }
+
+    public static byte [] decompress(String compressionType, byte [] content) throws IOException {
+        if(EbmsConstants.GZIP.equalsIgnoreCase(compressionType)) {
+            ByteArrayInputStream bis = new ByteArrayInputStream(content);
+            try(GZIPInputStream gzip = new GZIPInputStream(bis)) {
+                return IOUtils.toByteArray(gzip);
+            }
+        }
+        throw new UnsupportedOperationException("unsupported compression type " + compressionType);
     }
 
     public static String toString(SOAPMessage soapMessage) throws Exception {

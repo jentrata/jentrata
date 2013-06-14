@@ -168,7 +168,7 @@ public class WSSERouteBuilderTest extends CamelTestSupport {
         payload.put("charset", "utf-8");
         payload.put("partProperties", "sourceABN=123456789;targetABN=987654321");
         payload.put("schema", "test");
-        payload.put("content", new String(data));
+        payload.put("content", data);
 
         payloads.add(payload);
 

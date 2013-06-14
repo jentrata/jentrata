@@ -19,7 +19,7 @@ import org.jentrata.ebms.cpa.pmode.UsernameToken;
 import org.jentrata.ebms.internal.messaging.MessageDetector;
 import org.jentrata.ebms.internal.messaging.PartPropertiesPayloadProcessor;
 import org.jentrata.ebms.messaging.MessageStore;
-import org.jentrata.ebms.test.EbmsUtils;
+import org.jentrata.ebms.utils.EbmsUtils;
 import org.junit.Test;
 
 import javax.xml.soap.SOAPConstants;

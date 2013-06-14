@@ -3,6 +3,7 @@ package org.jentrata.ebms.cpa.internal;
 import com.google.common.collect.ImmutableMap;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.cpa.PartnerAgreement;
+import org.jentrata.ebms.cpa.pmode.PayloadService;
 import org.jentrata.ebms.cpa.pmode.Security;
 import org.jentrata.ebms.cpa.pmode.Signature;
 import org.jentrata.ebms.cpa.pmode.UsernameToken;
@@ -224,6 +225,44 @@ public class JSONCPARepositoryTest {
                 .build();
         assertThat(repository.isValidPartnerAgreement(fields2),is(false));
 
+    }
+
+    @Test
+    public void testPayloadServiceWithDefaults() throws Exception {
+        JSONCPARepository repository = new JSONCPARepository();
+        repository.setCpaJsonFile(fileFromClasspath("singleAgreement.json"));
+        repository.init();
+
+        assertThat(repository.getActivePartnerAgreements(),hasSize(1));
+        assertThat(repository.getActivePartnerAgreements().get(0).getPayloadService(),notNullValue());
+        assertThat(repository.getActivePartnerAgreements().get(0).getPayloadService().getPayloadId(),nullValue());
+        assertThat(repository.getActivePartnerAgreements().get(0).getPayloadService().getCompressionType(), equalTo(PayloadService.CompressionType.NONE));
+
+    }
+
+    @Test
+    public void testPayloadServiceWithGZipCompression() throws Exception {
+        JSONCPARepository repository = new JSONCPARepository();
+        repository.setCpaJsonFile(fileFromClasspath("agreementWithGzipCompression.json"));
+        repository.init();
+
+        assertThat(repository.getActivePartnerAgreements(),hasSize(1));
+        assertThat(repository.getActivePartnerAgreements().get(0).getPayloadService(),notNullValue());
+        assertThat(repository.getActivePartnerAgreements().get(0).getPayloadService().getPayloadId(),nullValue());
+        assertThat(repository.getActivePartnerAgreements().get(0).getPayloadService().getCompressionType(), equalTo(PayloadService.CompressionType.GZIP));
+
+    }
+
+    @Test
+    public void testPayloadServiceWithPayloadId() throws Exception {
+        JSONCPARepository repository = new JSONCPARepository();
+        repository.setCpaJsonFile(fileFromClasspath("agreementWithPayloadId.json"));
+        repository.init();
+
+        assertThat(repository.getActivePartnerAgreements(),hasSize(1));
+        assertThat(repository.getActivePartnerAgreements().get(0).getPayloadService(),notNullValue());
+        assertThat(repository.getActivePartnerAgreements().get(0).getPayloadService().getPayloadId(),equalTo("attachment1234@jentrata.org"));
+        assertThat(repository.getActivePartnerAgreements().get(0).getPayloadService().getCompressionType(), equalTo(PayloadService.CompressionType.NONE));
 
     }
 

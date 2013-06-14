@@ -3,6 +3,7 @@ package org.jentrata.ebms.soap;
 import org.apache.camel.Exchange;
 import org.apache.camel.spi.DataFormat;
 import org.jentrata.ebms.EbmsConstants;
+import org.jentrata.ebms.utils.EbmsUtils;
 
 import javax.xml.soap.AttachmentPart;
 import javax.xml.soap.MessageFactory;
@@ -14,6 +15,8 @@ import javax.xml.soap.SOAPMessage;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Marshals/Unmarshals org.wc3.Document into a SOAPMessage
@@ -33,7 +36,22 @@ public class SoapMessageDataFormat implements DataFormat {
      */
     @Override
     public void marshal(Exchange exchange, Object graph, OutputStream stream) throws Exception {
-        throw new UnsupportedOperationException("marshal operation not supported for this dataformat");
+        String soapVersion = exchange.getIn().getHeader(EbmsConstants.SOAP_VERSION,SOAPConstants.SOAP_1_2_PROTOCOL,String.class);
+        SOAPMessage soapMessage = EbmsUtils.parse(soapVersion,EbmsConstants.SOAP_XML_CONTENT_TYPE,exchange.getIn().getBody(InputStream.class));
+        soapMessage.getSOAPPart().addMimeHeader(EbmsConstants.CONTENT_ID,"<soapPart@jentrata.org>");
+        List<Map<String,Object>> payloads = (List<Map<String, Object>>) exchange.getIn().getHeader(EbmsConstants.MESSAGE_PAYLOADS);
+        for(Map<String,Object> payload : payloads) {
+            String payloadId = (String) payload.get("payloadId");
+            String contentType = (String) payload.get("contentType");
+            String compressionType = (String) payload.get("compressionType");
+            byte [] content = (byte[]) payload.get("content");
+            if(EbmsConstants.GZIP.equalsIgnoreCase(compressionType)) {
+                contentType = compressionType;
+            }
+            EbmsUtils.addAttachment(soapMessage,payloadId,contentType,content);
+        }
+        exchange.getOut().setHeader(EbmsConstants.CONTENT_TYPE,soapMessage.getMimeHeaders().getHeader(EbmsConstants.CONTENT_TYPE)[0]);
+        soapMessage.writeTo(stream);
     }
 
     /**

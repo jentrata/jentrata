@@ -1,6 +1,7 @@
 package org.jentrata.ebms.as4.internal.routes;
 
 import org.apache.camel.Exchange;
+import org.apache.camel.ExchangePattern;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
@@ -59,8 +60,8 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
                 .handled(true)
                 .log(LoggingLevel.DEBUG, "headers:${headers}\nbody:\n${in.body}")
                 .log(LoggingLevel.ERROR, "${exception.message}\n${exception.stacktrace}")
-                .setHeader(EbmsConstants.MESSAGE_STATUS,constant(MessageStatusType.FAILED))
-                .setHeader(EbmsConstants.MESSAGE_STATUS_DESCRIPTION,simple("${exception.message}"))
+                .setHeader(EbmsConstants.MESSAGE_STATUS, constant(MessageStatusType.FAILED))
+                .setHeader(EbmsConstants.MESSAGE_STATUS_DESCRIPTION, simple("${exception.message}"))
                 .to(messageUpdateEndpoint)
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(500))
                 .to("direct:errorHandler")
@@ -82,36 +83,38 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
             .setHeader(EbmsConstants.MESSAGE_CONVERSATION_ID, ns.xpath("//eb3:CollaborationInfo/eb3:ConversationId/text()", String.class))
             .to("direct:lookupCpaId")
             .to(messageInsertEndpoint) //create a message entry in the message store to track the state of the message
+            .to("direct:securityCheck")
+            .choice()
+                .when(header(EbmsConstants.SECURITY_CHECK).isEqualTo(Boolean.FALSE))
+                    .to("direct:handleSecurityException")
+                .otherwise()
+                    .to("direct:processPayloads")
+                    .to(messageUpdateEndpoint)
+                    .setBody(constant(null))
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(204))
+                    .to("direct:removeHeaders")
+                    .setHeader("X-Jentrata-Version", simple("${sys.jentrataVersion}"))
+        .routeId("_jentrataEbmsInbound");
+
+        from("direct:securityCheck")
             .choice()
                 .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.SIGNAL_MESSAGE_ERROR))
-                    .setHeader(EbmsConstants.SECURITY_CHECK,constant(true))
+                    .setHeader(EbmsConstants.SECURITY_CHECK, constant(true))
                 .otherwise()
                     .to(validateTradingPartner)
                     .to(wsseSecurityCheck)
-                .end()
-                .choice()
-                    .when(header(EbmsConstants.SECURITY_CHECK).isEqualTo(Boolean.FALSE))
-                        .to("direct:handleSecurityException")
-                    .otherwise()
-                        .to("direct:processPayloads")
-                        .to(messageUpdateEndpoint)
-                        .setBody(constant(null))
-                        .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(204))
-                        .to("direct:removeHeaders")
-                        .setHeader("X-Jentrata-Version", simple("${sys.jentrataVersion}"))
-            .end()
-        .routeId("_jentrataEbmsInbound");
+        .routeId("_jentrataSecurityCheck");
 
         from("direct:processPayloads")
             .convertBodyTo(String.class)
              .choice()
-                .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.SIGNAL_MESSAGE_ERROR))
+                .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.SIGNAL_MESSAGE_ERROR.name()))
                     .inOnly(inboundEbmsSignalsQueue)
-                .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.SIGNAL_MESSAGE))
+                .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.SIGNAL_MESSAGE.name()))
                     .inOnly(inboundEbmsSignalsQueue)
-                .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.SIGNAL_MESSAGE_WITH_USER_MESSAGE))
+                .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.SIGNAL_MESSAGE_WITH_USER_MESSAGE.name()))
                     .inOnly(inboundEbmsSignalsQueue)
-                .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.USER_MESSAGE))
+                .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.USER_MESSAGE.name()))
                     .inOnly(inboundEbmsQueue)
                     .setHeader(SplitAttachmentsToBody.ORIGINAL_MESSAGE_BODY, body())
                     .setBody(xpath("//*[local-name()='Body']/*[1]"))
@@ -120,11 +123,13 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
                         .bean(payloadProcessor)
                         .choice()
                             .when(header(EbmsConstants.COMPRESSION_TYPE).isEqualTo(EbmsConstants.GZIP))
-                                  .unmarshal().gzip()
-                                  .setHeader(EbmsConstants.CONTENT_TYPE,header("MimeType"))
-                        .end()
-                        .removeHeader(SplitAttachmentsToBody.ORIGINAL_MESSAGE_BODY)
-                        .inOnly(inboundEbmsPayloadQueue)
+                                .unmarshal().gzip()
+                                .setHeader(EbmsConstants.CONTENT_TYPE, header("MimeType"))
+                                .removeHeader(SplitAttachmentsToBody.ORIGINAL_MESSAGE_BODY)
+                                .inOnly(inboundEbmsPayloadQueue)
+                            .otherwise()
+                                .removeHeader(SplitAttachmentsToBody.ORIGINAL_MESSAGE_BODY)
+                                .inOnly(inboundEbmsPayloadQueue)
         .routeId("_jentrataEbmsPayloadProcessing");
 
         from("direct:handleSecurityException")

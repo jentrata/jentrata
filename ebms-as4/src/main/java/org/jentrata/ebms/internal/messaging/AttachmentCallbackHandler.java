@@ -1,20 +1,15 @@
 package org.jentrata.ebms.internal.messaging;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.wss4j.common.ext.Attachment;
 import org.apache.wss4j.common.ext.AttachmentRequestCallback;
 import org.apache.wss4j.common.ext.AttachmentResultCallback;
-import org.jentrata.ebms.messaging.InputStreamDataSource;
 
 import javax.activation.DataHandler;
-import javax.mail.util.ByteArrayDataSource;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.UnsupportedCallbackException;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +23,7 @@ public class AttachmentCallbackHandler implements CallbackHandler {
 
     List<Attachment> attachments;
     List<Attachment> attachmentResults;
+    boolean callbacked = false;
 
     public AttachmentCallbackHandler(List<Attachment> attachments) {
         this.attachments = attachments;
@@ -44,6 +40,7 @@ public class AttachmentCallbackHandler implements CallbackHandler {
             } else {
                 AttachmentResultCallback attachmentResultCallback = (AttachmentResultCallback) callback;
                 attachmentResults.add(attachmentResultCallback.getAttachment());
+                callbacked = true;
             }
         }
     }
@@ -54,5 +51,9 @@ public class AttachmentCallbackHandler implements CallbackHandler {
             verifiedAttachments.put(attachment.getId(),new DataHandler(new AttachmentDataSource(attachment)));
         }
         return verifiedAttachments;
+    }
+
+    public boolean hasCallback() {
+        return callbacked;
     }
 }
