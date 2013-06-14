@@ -21,6 +21,7 @@ import org.apache.wss4j.dom.message.WSSecSignature;
 import org.apache.wss4j.dom.message.WSSecUsernameToken;
 import org.apache.xml.security.utils.Base64;
 import org.jentrata.ebms.EbmsConstants;
+import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.cpa.PartnerAgreement;
 import org.jentrata.ebms.cpa.pmode.Security;
 import org.jentrata.ebms.cpa.pmode.Signature;
@@ -178,6 +179,7 @@ public class WSSERouteBuilderTest extends CamelTestSupport {
         request.getIn().setHeader(EbmsConstants.CPA_ID,"JentrataTestCPA");
         request.getIn().setHeader(EbmsConstants.CPA,generateAgreement("jentrata",true));
         request.getIn().setHeader(EbmsConstants.MESSAGE_PAYLOADS,payloads);
+        request.getIn().setHeader(EbmsConstants.MESSAGE_TYPE, MessageType.USER_MESSAGE);
         Exchange response = context().createProducerTemplate().send("direct:wsseAddSecurityToHeader",request);
 
         Document body = response.getIn().getBody(Document.class);
@@ -193,6 +195,30 @@ public class WSSERouteBuilderTest extends CamelTestSupport {
         assertThat(body, hasXPath("//@*[name()='URI' and .='cid:attachment1234@jentrata.org']"));
         assertThat(body, hasXPath("//@*[name()='href' and .='cid:attachment1234@jentrata.org']"));
     }
+
+    @Test
+    public void testAddSignatureSecurityToHeaderForReceipt() throws Exception {
+
+        Exchange request = new DefaultExchange(context);
+        request.getIn().setBody(loadSoapReceipt());
+        request.getIn().setHeader(EbmsConstants.MESSAGE_ID, "testMSG-0001");
+        request.getIn().setHeader(EbmsConstants.CPA_ID,"JentrataTestCPA");
+        request.getIn().setHeader(EbmsConstants.CPA,generateAgreement("jentrata",true));
+        request.getIn().setHeader(EbmsConstants.MESSAGE_TYPE, MessageType.SIGNAL_MESSAGE);
+        Exchange response = context().createProducerTemplate().send("direct:wsseAddSecurityToHeader",request);
+
+        Document body = response.getIn().getBody(Document.class);
+        System.out.println(XMLUtils.PrettyDocumentToString(body));
+
+        assertThat(body, hasXPath("//*[local-name()='UsernameToken']"));
+        assertThat(body, hasXPath("//*[local-name()='Username' and text()='jentrata']"));
+        assertThat(body,hasXPath("//*[local-name()='Password']"));
+        assertThat(body,hasXPath("//*[local-name()='Created']"));
+
+        assertThat(body, hasXPath("//*[local-name()='Signature']"));
+    }
+
+
 
     @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
@@ -253,6 +279,10 @@ public class WSSERouteBuilderTest extends CamelTestSupport {
         return context().getTypeConverter().convertTo(Document.class, new FileInputStream(fileFromClasspath("sample-wsse-soap.xml")));
     }
 
+    private Document loadSoapReceipt() throws Exception {
+        return context().getTypeConverter().convertTo(Document.class, new FileInputStream(fileFromClasspath("simple-as4-receipt.xml")));
+    }
+
     private PartnerAgreement generateAgreement() {
         return generateAgreement("jentrata");
     }
@@ -275,6 +305,8 @@ public class WSSERouteBuilderTest extends CamelTestSupport {
             signature.setKeyStoreAlias(username);
             signature.setKeyStorePass("security");
             security.setSignature(signature);
+            security.setSendReceipt(true);
+            security.setSendReceiptNonRepudiation(true);
         }
         return agreement;
     }

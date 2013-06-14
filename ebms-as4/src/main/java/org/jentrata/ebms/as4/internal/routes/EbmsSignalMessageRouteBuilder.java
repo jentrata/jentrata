@@ -40,7 +40,7 @@ public class EbmsSignalMessageRouteBuilder extends RouteBuilder {
                     .setHeader(EbmsConstants.MESSAGE_DIRECTION, constant(EbmsConstants.MESSAGE_DIRECTION_OUTBOUND))
                     .setHeader(EbmsConstants.CONTENT_TYPE,constant(EbmsConstants.SOAP_XML_CONTENT_TYPE))
                     .setHeader(EbmsConstants.MESSAGE_ID,header("messageid"))
-                    .setHeader(EbmsConstants.MESSAGE_TYPE,constant(MessageType.SIGNAL_MESSAGE_WITH_USER_MESSAGE))
+                    .setHeader(EbmsConstants.MESSAGE_TYPE,constant(MessageType.SIGNAL_MESSAGE))
                     .setHeader(EbmsConstants.REF_TO_MESSAGE_ID,ns.xpath("//eb3:RefToMessageId/text()",String.class))
                     .to(wsseAddSecurityToHeader)
                     .to(messgeStoreEndpoint) //store the outbound signal message

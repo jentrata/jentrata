@@ -15,6 +15,7 @@ import org.apache.wss4j.dom.message.WSSecHeader;
 import org.apache.wss4j.dom.message.WSSecSignature;
 import org.apache.wss4j.dom.message.WSSecUsernameToken;
 import org.jentrata.ebms.EbmsConstants;
+import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.cpa.PartnerAgreement;
 import org.jentrata.ebms.cpa.pmode.Signature;
 import org.jentrata.ebms.cpa.pmode.SignaturePart;
@@ -122,17 +123,22 @@ public class WSSERouteBuilder extends RouteBuilder {
                 public void process(Exchange exchange) throws Exception {
                     Document message = exchange.getIn().getBody(Document.class);
                     PartnerAgreement agreement = exchange.getIn().getHeader(EbmsConstants.CPA, PartnerAgreement.class);
-                    if (agreement.requiresSignature()) {
+                    MessageType messageType = exchange.getIn().getHeader(EbmsConstants.MESSAGE_TYPE, MessageType.class);
+                    if (agreement.requiresSignature(messageType)) {
                         Signature signatureAgreement = agreement.getSecurity().getSignature();
                         List<WSEncryptionPart> parts = new ArrayList<>();
-                        for (SignaturePart signaturePart : signatureAgreement.getSignatureParts()) {
-                            WSEncryptionPart part;
-                            if (signaturePart.getNamespace() != null) {
-                                part = new WSEncryptionPart(signaturePart.getElementName(), signaturePart.getNamespace(), signaturePart.getEncryptMethod());
-                            } else {
-                                part = new WSEncryptionPart(signaturePart.getElementName(),signaturePart.getEncryptMethod());
+                        if (messageType == MessageType.USER_MESSAGE) {
+                            for (SignaturePart signaturePart : signatureAgreement.getSignatureParts()) {
+                                WSEncryptionPart part;
+                                if (signaturePart.getNamespace() != null) {
+                                    part = new WSEncryptionPart(signaturePart.getElementName(), signaturePart.getNamespace(), signaturePart.getEncryptMethod());
+                                } else {
+                                    part = new WSEncryptionPart(signaturePart.getElementName(), signaturePart.getEncryptMethod());
+                                }
+                                parts.add(part);
                             }
-                            parts.add(part);
+                        } else {
+                            parts.add(new WSEncryptionPart(Signature.EBMS3_MESSAGE_PART.getElementName(), Signature.EBMS3_MESSAGE_PART.getNamespace(), Signature.EBMS3_MESSAGE_PART.getEncryptMethod()));
                         }
                         WSSecSignature signature = new WSSecSignature();
                         signature.setUserInfo(signatureAgreement.getKeyStoreAlias(), signatureAgreement.getKeyStorePass());

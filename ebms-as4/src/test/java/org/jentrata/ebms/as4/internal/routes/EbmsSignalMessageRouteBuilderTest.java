@@ -60,7 +60,7 @@ public class EbmsSignalMessageRouteBuilderTest extends CamelTestSupport {
         assertThat(receipt.getIn().getBody(Document.class), hasXPath("//*[local-name()='MessageId' and contains(text(), '@jentrata.org')]"));
         assertThat(receipt.getIn().getBody(Document.class), hasXPath("//*[local-name()='RefToMessageId' and text()='orders123@buyer.jentrata.org']"));
 
-        assertThat(receipt.getIn().getHeader(EbmsConstants.MESSAGE_TYPE,String.class), equalTo(MessageType.SIGNAL_MESSAGE_WITH_USER_MESSAGE.name()));
+        assertThat(receipt.getIn().getHeader(EbmsConstants.MESSAGE_TYPE,String.class), equalTo(MessageType.SIGNAL_MESSAGE.name()));
         assertThat(receipt.getIn().getHeader(EbmsConstants.MESSAGE_ID,String.class), endsWith("@jentrata.org"));
         assertThat(receipt.getIn().getHeader(EbmsConstants.MESSAGE_DIRECTION, String.class), equalTo(EbmsConstants.MESSAGE_DIRECTION_OUTBOUND));
         assertThat(receipt.getIn().getHeader(EbmsConstants.CONTENT_TYPE, String.class), equalTo(EbmsConstants.SOAP_XML_CONTENT_TYPE));

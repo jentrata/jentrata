@@ -15,10 +15,12 @@ public class Signature {
     public static final String RSA = "http://www.w3.org/2000/09/xmldsig#rsa-sha1";
     public static final String SHA256 = "http://www.w3.org/2001/04/xmlenc#sha256";
 
+    public static final SignaturePart EBMS3_MESSAGE_PART = new SignaturePart("Messaging", EbmsConstants.EBXML_V3_NAMESPACE,"");
+
     private static final List<SignaturePart> DEFAULT_SIGNATURE_PARTS = new ArrayList<>();
 
     static {
-        DEFAULT_SIGNATURE_PARTS.add(new SignaturePart("Messaging", EbmsConstants.EBXML_V3_NAMESPACE,""));
+        DEFAULT_SIGNATURE_PARTS.add(EBMS3_MESSAGE_PART);
         DEFAULT_SIGNATURE_PARTS.add(new SignaturePart("Body", EbmsConstants.SOAP_1_2_NAMESPACE,"Content"));
         DEFAULT_SIGNATURE_PARTS.add(new SignaturePart("cid:Attachments", null,"Content"));
     }

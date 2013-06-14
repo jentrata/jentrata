@@ -2,6 +2,7 @@ package org.jentrata.ebms.cpa;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.cpa.pmode.PayloadService;
 import org.jentrata.ebms.cpa.pmode.Security;
 
@@ -83,7 +84,17 @@ public class PartnerAgreement {
         return security != null && security.getSecurityToken() != null;
     }
 
-    public boolean requiresSignature() {
-        return security != null && security.getSignature() != null;
+    public boolean requiresSignature(MessageType messageType) {
+        if(security != null && security.getSignature() != null) {
+            switch (messageType) {
+                case SIGNAL_MESSAGE:
+                    return security.isSendReceiptNonRepudiation();
+                case SIGNAL_MESSAGE_ERROR:
+                    return false;
+                default:
+                    return true;
+            }
+        }
+        return false;
     }
 }
