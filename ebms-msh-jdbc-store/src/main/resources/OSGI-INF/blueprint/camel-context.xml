@@ -31,6 +31,22 @@
                 <cm:property name="jentrata.messagestore.jdbc.username" value="jentrata"/>
                 <cm:property name="jentrata.messagestore.jdbc.password" value="jentrata"/>
                 <cm:property name="jentrata.messagestore.autoCreateTables" value="true"/>
+
+                <!--Default connection pool settings -->
+                <cm:property name="jentrata.messagestore.jdbc.initialSize" value="0"/>
+                <cm:property name="jentrata.messagestore.jdbc.maxActive" value="10"/>
+                <cm:property name="jentrata.messagestore.jdbc.maxIdle" value="10"/>
+                <cm:property name="jentrata.messagestore.jdbc.minIdle" value="0"/>
+                <cm:property name="jentrata.messagestore.jdbc.maxWait" value="-1"/>
+
+                <cm:property name="jentrata.messagestore.jdbc.validationQuery" value=""/>
+                <cm:property name="jentrata.messagestore.jdbc.testOnBorrow" value="true"/>
+                <cm:property name="jentrata.messagestore.jdbc.testOnReturn" value="false"/>
+                <cm:property name="jentrata.messagestore.jdbc.testWhileIdle" value="false"/>
+                <cm:property name="jentrata.messagestore.jdbc.timeBetweenEvictionRunsMillis" value="-1"/>
+                <cm:property name="jentrata.messagestore.jdbc.numTestsPerEvictionRun" value="3"/>
+                <cm:property name="jentrata.messagestore.jdbc.minEvictableIdleTimeMillis" value="1800000"/>
+
             </cm:default-properties>
         </cm:property-placeholder>
 
@@ -39,6 +55,16 @@
         <property name="url" value="${jentrata.messagestore.jdbc.url}"/>
         <property name="username" value="${jentrata.messagestore.jdbc.username}"/>
         <property name="password" value="${jentrata.messagestore.jdbc.password}"/>
+        <property name="initialSize" value="${jentrata.messagestore.jdbc.initialSize}"/>
+        <property name="maxActive" value="${jentrata.messagestore.jdbc.maxActive}"/>
+        <property name="maxIdle" value="${jentrata.messagestore.jdbc.maxIdle}"/>
+        <property name="maxWait" value="${jentrata.messagestore.jdbc.maxWait}"/>
+        <property name="validationQuery" value="${jentrata.messagestore.jdbc.validationQuery}"/>
+        <property name="testOnBorrow" value="${jentrata.messagestore.jdbctestOnBorrow.}"/>
+        <property name="testWhileIdle" value="${jentrata.messagestore.jdbc.testWhileIdle}"/>
+        <property name="timeBetweenEvictionRunsMillis" value="${jentrata.messagestore.jdbc.timeBetweenEvictionRunsMillis}"/>
+        <property name="numTestsPerEvictionRun" value="${jentrata.messagestore.jdbc.numTestsPerEvictionRun}"/>
+        <property name="minEvictableIdleTimeMillis" value="${jentrata.messagestore.jdbc.minEvictableIdleTimeMillis}"/>
     </bean>
 
     <bean id="repositoryManagerFactory" class="org.jentrata.ebms.messaging.internal.sql.RepositoryManagerFactory">
