@@ -60,7 +60,7 @@
         <property name="maxIdle" value="${jentrata.messagestore.jdbc.maxIdle}"/>
         <property name="maxWait" value="${jentrata.messagestore.jdbc.maxWait}"/>
         <property name="validationQuery" value="${jentrata.messagestore.jdbc.validationQuery}"/>
-        <property name="testOnBorrow" value="${jentrata.messagestore.jdbctestOnBorrow.}"/>
+        <property name="testOnBorrow" value="${jentrata.messagestore.jdbc.testOnBorrow}"/>
         <property name="testWhileIdle" value="${jentrata.messagestore.jdbc.testWhileIdle}"/>
         <property name="timeBetweenEvictionRunsMillis" value="${jentrata.messagestore.jdbc.timeBetweenEvictionRunsMillis}"/>
         <property name="numTestsPerEvictionRun" value="${jentrata.messagestore.jdbc.numTestsPerEvictionRun}"/>
