@@ -152,6 +152,7 @@
                                 <feature>config</feature>
                                 <feature>camel</feature>
                                 <feature>camel-context</feature>
+                                <feature>camel-jms</feature>
                                 <feature>activemq-broker</feature>
                                 <feature>camel-cxf</feature>
                                 <feature>jentrata-as4-core</feature>
