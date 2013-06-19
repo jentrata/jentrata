@@ -63,6 +63,7 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
                 .setHeader(EbmsConstants.MESSAGE_STATUS, constant(MessageStatusType.FAILED))
                 .setHeader(EbmsConstants.MESSAGE_STATUS_DESCRIPTION, simple("${exception.message}"))
                 .to(messageUpdateEndpoint)
+                .inOnly(EventNotificationRouteBuilder.SEND_NOTIFICATION_ENDPOINT) //hmm can't use wiretap in onException block
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(500))
                 .to("direct:errorHandler")
              .end()
@@ -90,6 +91,7 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
                 .otherwise()
                     .to("direct:processPayloads")
                     .to(messageUpdateEndpoint)
+                    .wireTap(EventNotificationRouteBuilder.SEND_NOTIFICATION_ENDPOINT)
                     .setBody(constant(null))
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(204))
                     .to("direct:removeHeaders")
@@ -137,6 +139,7 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
             .setHeader(EbmsConstants.EBMS_ERROR_DESCRIPTION, simple("${headers.JentrataSecurityResults?.message}"))
             .setHeader(EbmsConstants.SECURITY_ERROR_CODE, simple("${headers.JentrataSecurityResults?.errorCode}"))
             .log(LoggingLevel.INFO, "Security Exception for msgId:${headers.JentrataMessageID} - errorCode:${headers.JentrataSecurityErrorCode} - ${headers.JentrataEbmsErrorDesc}")
+            .wireTap(EventNotificationRouteBuilder.SEND_NOTIFICATION_ENDPOINT)
             .convertBodyTo(String.class)
             .choice()
                 .when(simple("${headers?.JentrataCPA?.security?.sendReceiptReplyPattern.name()} == 'Callback'"))

@@ -296,6 +296,10 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
                             .log(LoggingLevel.INFO, "Updating message no where ${headers}")
                         .routeId("mockUpdateStoreMessage");
 
+                        from(EventNotificationRouteBuilder.SEND_NOTIFICATION_ENDPOINT)
+                                .log(LoggingLevel.INFO, "mock event notification: ${headers}")
+                        .routeId("mockEventNotification");
+
                         from("direct:validatePartner")
                             .setHeader("JentrataIsValidTradingPartner", constant(Boolean.TRUE))
                             .setHeader("JentrataMEP", constant("One-Way"))

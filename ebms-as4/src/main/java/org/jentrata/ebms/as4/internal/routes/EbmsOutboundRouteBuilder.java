@@ -51,6 +51,7 @@ public class EbmsOutboundRouteBuilder extends RouteBuilder {
             .setHeader(EbmsConstants.MESSAGE_STATUS, constant(MessageStatusType.DELIVERED))
             .setHeader(EbmsConstants.MESSAGE_STATUS_DESCRIPTION, constant(null))
             .to(messageUpdateEndpoint)
+            .wireTap(EventNotificationRouteBuilder.SEND_NOTIFICATION_ENDPOINT)
         .routeId("_jentrataEbmsOutboundSuccess");
 
         from("direct:processFailure")
@@ -59,6 +60,7 @@ public class EbmsOutboundRouteBuilder extends RouteBuilder {
             .setHeader(EbmsConstants.MESSAGE_STATUS, constant(MessageStatusType.FAILED))
             .setHeader(EbmsConstants.MESSAGE_STATUS_DESCRIPTION, simple("${headers.CamelHttpResponseCode} - ${body}"))
             .to(messageUpdateEndpoint)
+            .wireTap(EventNotificationRouteBuilder.SEND_NOTIFICATION_ENDPOINT)
         .routeId("_jentrataEbmsOutboundFailure");
 
     }

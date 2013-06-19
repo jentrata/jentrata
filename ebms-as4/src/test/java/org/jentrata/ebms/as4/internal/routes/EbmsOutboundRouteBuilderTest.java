@@ -3,6 +3,7 @@ package org.jentrata.ebms.as4.internal.routes;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Exchange;
 import org.apache.camel.Header;
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.impl.DefaultExchange;
@@ -94,6 +95,10 @@ public class EbmsOutboundRouteBuilderTest extends CamelTestSupport {
                             .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(200))
                             .setBody(constant(null))
                         .routeId("mockAgreement2");
+
+                        from(EventNotificationRouteBuilder.SEND_NOTIFICATION_ENDPOINT)
+                            .log(LoggingLevel.INFO, "mock event notification: ${headers}")
+                        .routeId("mockEventNotification");
                     }
                 }
         };
