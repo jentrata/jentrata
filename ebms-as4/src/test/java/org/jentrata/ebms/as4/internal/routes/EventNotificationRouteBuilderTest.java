@@ -13,10 +13,12 @@ import org.jentrata.ebms.utils.EbmsUtils;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.Date;
 import java.util.Map;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 
 /**
  * Unit test for org.jentrata.ebms.as4.internal.routes.EventNotificationRouteBuilder
@@ -39,7 +41,74 @@ public class EventNotificationRouteBuilderTest extends CamelTestSupport {
         context().createProducerTemplate().send(EventNotificationRouteBuilder.SEND_NOTIFICATION_ENDPOINT,request);
 
         assertMockEndpointsSatisfied();
-        assertEventNotification(mockNotification.getExchanges().get(0));;
+        assertEventNotification(mockNotification.getExchanges().get(0));
+    }
+
+    @Test
+    public void testFireEventMinimal() throws Exception {
+        mockNotification.setExpectedMessageCount(1);
+
+        Exchange request = createRequest();
+        request.getIn().removeHeader(EbmsConstants.MESSAGE_STATUS_DESCRIPTION);
+        request.getIn().removeHeader(EbmsConstants.REF_TO_MESSAGE_ID);
+        request.getIn().removeHeader(EbmsConstants.MESSAGE_DATE);
+        request.getIn().removeHeader(EbmsConstants.MESSAGE_CONVERSATION_ID);
+
+        context().createProducerTemplate().send(EventNotificationRouteBuilder.SEND_NOTIFICATION_ENDPOINT,request);
+
+        assertMockEndpointsSatisfied();
+
+        Exchange event = mockNotification.getExchanges().get(0);
+        assertThat(event.getIn().getBody(),notNullValue());
+        System.out.println(event.getIn().getBody());
+        Map<String,Object> message = fromJson(event.getIn().getBody(String.class));
+        assertThat(message,notNullValue());
+        assertThat((String) message.get("messageId"),equalTo("orders123@buyer.jentrata.org"));
+        assertThat((String) message.get("direction"),equalTo(EbmsConstants.MESSAGE_DIRECTION_INBOUND));
+        assertThat((String) message.get("cpaId"),equalTo("testCPAId"));
+        assertThat((String) message.get("refMessageId"),equalTo(""));
+        assertThat((String) message.get("conversationId"),equalTo(""));
+        assertThat((String) message.get("status"),equalTo("RECEIVED"));
+        assertThat((String) message.get("statusDescription"),equalTo(""));
+        assertThat((String) message.get("messageDate"),equalTo(""));
+        Map<String,Object> headers = (Map<String, Object>) message.get("headers");
+        assertThat((String) headers.get("JentrataFrom"),equalTo("123456789"));
+        assertThat((String) headers.get("JentrataTo"),equalTo("192837465"));
+        assertThat((String) headers.get("jentrataVersion"),equalTo("TEST"));
+    }
+
+    @Test
+    public void testFireEventWithComplexHeader() throws Exception {
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        mockNotification.setExpectedMessageCount(1);
+
+        Exchange request = createRequest();
+        Date date = new Date();
+        request.getIn().setHeader("complexDate", date);
+        request.getIn().setHeader("complexList", Collections.emptyList());
+        context().createProducerTemplate().send(EventNotificationRouteBuilder.SEND_NOTIFICATION_ENDPOINT,request);
+
+        assertMockEndpointsSatisfied();
+        Map<String,Object> event = assertEventNotification(mockNotification.getExchanges().get(0));
+        Map<String,Object> headers = (Map<String, Object>) event.get("headers");
+        assertThat((String) headers.get("complexDate"),startsWith(df.format(date)));
+        assertThat(headers.get("complexList"),nullValue());
+
+    }
+
+    @Test
+    public void testFireEventWithNullHeader() throws Exception {
+        mockNotification.setExpectedMessageCount(1);
+
+        Exchange request = createRequest();
+        request.getIn().setHeader("nullHeader", null);
+        context().createProducerTemplate().send(EventNotificationRouteBuilder.SEND_NOTIFICATION_ENDPOINT,request);
+
+        assertMockEndpointsSatisfied();
+        Map<String,Object> event = assertEventNotification(mockNotification.getExchanges().get(0));
+        Map<String,Object> headers = (Map<String, Object>) event.get("headers");
+        assertThat(headers.get("nullHeader"),nullValue());
+
     }
 
     @Test
@@ -53,6 +122,7 @@ public class EventNotificationRouteBuilderTest extends CamelTestSupport {
 
         assertMockEndpointsSatisfied();
         assertEventNotification(mockNotification.getExchanges().get(0));
+
     }
 
     @Override
@@ -91,7 +161,7 @@ public class EventNotificationRouteBuilderTest extends CamelTestSupport {
 
     }
 
-    private void assertEventNotification(Exchange event) throws IOException {
+    private Map<String,Object> assertEventNotification(Exchange event) throws IOException {
         assertThat(event.getIn().getBody(),notNullValue());
         System.out.println(event.getIn().getBody());
         Map<String,Object> message = fromJson(event.getIn().getBody(String.class));
@@ -108,6 +178,7 @@ public class EventNotificationRouteBuilderTest extends CamelTestSupport {
         assertThat((String) headers.get("JentrataFrom"),equalTo("123456789"));
         assertThat((String) headers.get("JentrataTo"),equalTo("192837465"));
         assertThat((String) headers.get("jentrataVersion"),equalTo("TEST"));
+        return message;
     }
 
     @SuppressWarnings("unchecked")
