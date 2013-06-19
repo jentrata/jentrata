@@ -4,6 +4,8 @@ import org.apache.camel.Exchange;
 
 public class EbmsConstants {
 
+    public static final String JENTRATA_VERSION = "JentrataVersion";
+
     //Jentrata Message Header keys
     public static final String SOAP_VERSION = "JentrataSOAPVersion";
     public static final String EBMS_VERSION = "JentrataEBMSVersion";
@@ -67,4 +69,5 @@ public class EbmsConstants {
     public static final String MESSAGE_PAYLOADS = "JentrataPayloads";
     public static final String COMPRESSION_TYPE = "CompressionType";
     public static final String GZIP = "application/gzip";
+    public static final String MESSAGE_DATE = "JentrataMessageDate";
 }
