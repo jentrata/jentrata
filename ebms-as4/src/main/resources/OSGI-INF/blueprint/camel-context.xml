@@ -35,6 +35,10 @@
             <cm:property name="jentrata.ebms.inbound.queue" value="activemq:queue:jentrata_internal_ebms_inbound"/>
             <cm:property name="jentrata.ebms.outbound.queue" value="activemq:queue:jentrata_internal_ebms_outbound"/>
 
+            <cm:property name="jentrata.ebms.outbound.http.proxyHost" value=""/>
+            <cm:property name="jentrata.ebms.outbound.http.proxyPort" value=""/>
+            <cm:property name="jentrata.ebms.outbound.http.httpClientOverride" value=""/>
+
             <cm:property name="jentrata.ebms.outbound.dir" value="./data/jentrata/outbox"/>
             <cm:property name="jentrata.ebms.outbound.cpaId" value="jentrataLoopback"/>
             <cm:property name="jentrata.ebms.outbound.service" value="http://docs.oasis-open.org/ebxml-msg/as4/200902/service"/>
@@ -123,6 +127,9 @@
     <bean id="ebmsOutboundRouteBuilder" class="org.jentrata.ebms.as4.internal.routes.EbmsOutboundRouteBuilder">
         <property name="outboundEbmsQueue" value="${jentrata.ebms.outbound.queue}"/>
         <property name="cpaRepository" ref="cpaRepository"/>
+        <property name="httpProxyHost" value="${jentrata.ebms.outbound.http.proxyHost}"/>
+        <property name="httpProxyPort" value="${jentrata.ebms.outbound.http.proxyPort}"/>
+        <property name="httpClientOverride" value="${jentrata.ebms.outbound.http.httpClientOverride}"/>
     </bean>
 
     <bean id="ebmsOutboundMessageRouteBuilder" class="org.jentrata.ebms.as4.internal.routes.EbmsOutboundMessageRouteBuilder"/>

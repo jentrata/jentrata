@@ -9,6 +9,9 @@ import org.jentrata.ebms.cpa.CPARepository;
 import org.jentrata.ebms.cpa.PartnerAgreement;
 import org.jentrata.ebms.messaging.MessageStore;
 
+import java.io.IOException;
+import java.net.ConnectException;
+
 /**
  * Setups and outbound route per trading partner
  *
@@ -19,6 +22,9 @@ public class EbmsOutboundRouteBuilder extends RouteBuilder {
     private String outboundEbmsQueue = "activemq:queue:jentrata_internal_ebms_outbound";
     private String messageUpdateEndpoint = MessageStore.DEFAULT_MESSAGE_UPDATE_ENDPOINT;
     private CPARepository cpaRepository;
+    private String httpProxyHost = null;
+    private String httpProxyPort = null;
+    private String httpClientOverride = null;
 
     @Override
     public void configure() throws Exception {
@@ -33,6 +39,12 @@ public class EbmsOutboundRouteBuilder extends RouteBuilder {
 
         for(PartnerAgreement agreement : cpaRepository.getActivePartnerAgreements()) {
             from("direct:outbox_" + agreement.getCpaId())
+                .log(LoggingLevel.INFO,"Delivering message to cpaId:${headers.JentrataCPAId} - type:${headers.JentrataMessageType} - msgId:${headers.JentrataMessageId}")
+                .onException(Exception.class)
+                    .handled(true)
+                    .log(LoggingLevel.WARN,"Failed to send cpaId:${headers.JentrataCPAId} - type:${headers.JentrataMessageType} - msgId:${headers.JentrataMessgeId}: ${exception.message}")
+                    .to("direct:processFailure")
+                .end()
                 .setHeader(Exchange.HTTP_METHOD, constant("POST"))
                 .to(configureEndpoint(agreement.getTransportReceiverEndpoint()))
                 .choice()
@@ -89,6 +101,30 @@ public class EbmsOutboundRouteBuilder extends RouteBuilder {
         this.cpaRepository = cpaRepository;
     }
 
+    public String getHttpProxyHost() {
+        return httpProxyHost;
+    }
+
+    public void setHttpProxyHost(String httpProxyHost) {
+        this.httpProxyHost = httpProxyHost;
+    }
+
+    public String getHttpProxyPort() {
+        return httpProxyPort;
+    }
+
+    public void setHttpProxyPort(String httpProxyPort) {
+        this.httpProxyPort = httpProxyPort;
+    }
+
+    public String getHttpClientOverride() {
+        return httpClientOverride;
+    }
+
+    public void setHttpClientOverride(String httpClientOverride) {
+        this.httpClientOverride = httpClientOverride;
+    }
+
     private String configureEndpoint(String endpoint) {
         if(endpoint.startsWith("http://") || endpoint.startsWith("https://")) {
             return endpoint + "?" + configureOptions();
@@ -98,6 +134,20 @@ public class EbmsOutboundRouteBuilder extends RouteBuilder {
     }
 
     protected String configureOptions() {
-        return "throwExceptionOnFailure=false";
+        StringBuilder options = new StringBuilder();
+        options.append("throwExceptionOnFailure=false");
+        if(isNotEmpty(httpClientOverride)) {
+            options.append("&" + httpClientOverride);
+        } else {
+            if(isNotEmpty(httpProxyHost) && isNotEmpty(httpProxyPort)) {
+                options.append("&proxyHost=" + httpProxyHost);
+                options.append("&proxyPort=" + httpProxyPort);
+            }
+        }
+        return options.toString();
+    }
+
+    private static boolean isNotEmpty(String s) {
+        return s != null && s.length() > 0;
     }
 }
