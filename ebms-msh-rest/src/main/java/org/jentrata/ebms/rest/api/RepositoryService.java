@@ -13,14 +13,14 @@ import javax.ws.rs.core.Response;
 public class RepositoryService {
 
     @GET
-    @Path("/message/{id}")
-    public Response findMessageById(@PathParam("id") String messageId) {
+    @Path("/{direction}/message/{id}")
+    public Response findMessageById(@PathParam("id") String messageId, @PathParam("direction") String direction) {
         return null;
     }
 
     @GET
-    @Path("/payload/{id}/")
-    public Response findPayloadById(@PathParam("id") String messageId) {
+    @Path("/{direction}/payload/{id}/")
+    public Response findPayloadById(@PathParam("id") String messageId, @PathParam("direction") String direction) {
         return null;
     }
 }

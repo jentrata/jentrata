@@ -11,6 +11,7 @@ import org.jentrata.ebms.messaging.MessageStore;
 import org.junit.Test;
 
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -26,7 +27,7 @@ public class RepositoryServiceRouteBuilderTest extends CamelTestSupport {
     @Test
     public void testFindByMessageID() {
         Exchange request = new DefaultExchange(context);
-        request.getIn().setBody("testMessageID");
+        request.getIn().setBody(Arrays.asList("testMessageID","inbox"));
         Exchange response = context().createProducerTemplate().send("direct:repository-findMessageById",request);
         assertThat(response.getIn().getBody(Message.class).getMessageId(),equalTo("testMessageID"));
     }
