@@ -27,7 +27,7 @@ import java.util.zip.GZIPOutputStream;
  *
  * @author aaronwalker
  */
-public class EbmsOutboundMessageRouteBuilder extends RouteBuilder {
+public class  EbmsOutboundMessageRouteBuilder extends RouteBuilder {
 
     private String deliveryQueue = "activemq:queue:jentrata_as4_outbound";
     private String outboundEbmsQueue = "activemq:queue:jentrata_internal_ebms_outbound";

@@ -29,6 +29,8 @@
             <cm:property name="activemq.broker.username" value="jentrata"/>
             <cm:property name="activemq.broker.password" value="jentrata"/>
 
+            <cm:property name="jentrata.ebms.dlq" value=""/>
+
             <cm:property name="jentrata.ebms.inbound.httpPort" value="8081"/>
             <cm:property name="jentrata.ebms.inbound.httpHost" value="0.0.0.0"/>
             <cm:property name="jentrata.ebms.inbound.endpoint" value="jetty:http://${jentrata.ebms.inbound.httpHost}:${jentrata.ebms.inbound.httpPort}/jentrata/ebms/inbound"/>
@@ -118,6 +120,7 @@
     <bean id="ebmsInboundRouteBuilder" class="org.jentrata.ebms.as4.internal.routes.EbMS3InboundRouteBuilder">
         <property name="ebmsHttpEndpoint" value="${jentrata.ebms.inbound.endpoint}"/>
         <property name="inboundEbmsQueue" value="${jentrata.ebms.inbound.queue}"/>
+        <property name="ebmsDLQ" value="${jentrata.ebms.dlq}"/>
         <property name="messageDetector" ref="messageDetector"/>
         <property name="payloadProcessor" ref="payloadProcessor"/>
     </bean>

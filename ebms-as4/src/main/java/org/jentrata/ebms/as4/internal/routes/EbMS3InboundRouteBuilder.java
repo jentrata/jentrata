@@ -18,6 +18,7 @@ import org.jentrata.ebms.messaging.SplitAttachmentsToBody;
 import org.jentrata.ebms.soap.SoapMessageDataFormat;
 import org.jentrata.ebms.soap.SoapPayloadProcessor;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
 
@@ -29,6 +30,7 @@ import java.util.zip.GZIPInputStream;
 public class EbMS3InboundRouteBuilder extends RouteBuilder {
 
     private String ebmsHttpEndpoint = "jetty:http://0.0.0.0:8081/jentrata/ebms/inbound";
+    private String ebmsDLQ = null;
     private String inboundEbmsQueue = "activemq:queue:jentrata_internal_ebms_inbound";
     private String inboundEbmsPayloadQueue = "activemq:queue:jentrata_internal_ebms_inbound_payload";
     private String inboundEbmsSignalsQueue = "activemq:queue:jentrata_internal_ebms_inbound_signals";
@@ -46,6 +48,10 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
 
         final Namespaces ns = new Namespaces("S12", "http://www.w3.org/2003/05/soap-envelope")
                 .add("eb3", "http://docs.oasis-open.org/ebxml-msg/ebms/v3.0/ns/core/200704/");
+
+        if(ebmsDLQ != null && ebmsDLQ.length() > 0) {
+            deadLetterChannel(ebmsDLQ).useOriginalMessage();
+        }
 
         from(ebmsHttpEndpoint)
             .streamCaching()
@@ -72,7 +78,7 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
             .choice()
                 .when(header(Exchange.HTTP_METHOD).isNotEqualTo("POST"))
                     .throwException(new UnsupportedOperationException("Http Method Not Allowed"))
-             .end()
+            .end()
             .bean(messageDetector, "parse") //Determine what type of message it is for example SOAP 1.1 or SOAP 1.2 ebms2 or ebms3 etc
             .to(messgeStoreEndpoint) //essentially we claim check the raw incoming message/payload
             .unmarshal(new SoapMessageDataFormat()) //extract the SOAP Envelope as set it has the message body
@@ -159,9 +165,14 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
             .setHeader("CamelException",simple("${exception.message}"))
             .setHeader("CamelExceptionStackTrace",simple("${exception.stacktrace}"))
             .setHeader("X-JentrataVersion",simple("${sys.jentrataVersion}"))
-            .setHeader(FreemarkerConstants.FREEMARKER_RESOURCE_URI, simple("html/${headers.CamelHttpResponseCode}.html"))
-            .to("freemarker:html/500.html")
-        .end()
+            .choice()
+                .when(header(Exchange.HTTP_RESPONSE_CODE).isNotEqualTo(500))
+                    .setHeader(FreemarkerConstants.FREEMARKER_RESOURCE_URI, simple("html/${headers.CamelHttpResponseCode}.html"))
+                    .to("freemarker:html/500.html")
+                    .convertBodyTo(String.class)
+                .otherwise()
+                    .to("freemarker:templates/soap-fault.ftl")
+                    .convertBodyTo(String.class,"UTF-8")
         .routeId("_jentrataErrorHandler");
 
         from("direct:removeHeaders")
@@ -183,6 +194,14 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
 
     public void setEbmsHttpEndpoint(String ebmsHttpEndpoint) {
         this.ebmsHttpEndpoint = ebmsHttpEndpoint;
+    }
+
+    public String getEbmsDLQ() {
+        return ebmsDLQ;
+    }
+
+    public void setEbmsDLQ(String ebmsDLQ) {
+        this.ebmsDLQ = ebmsDLQ;
     }
 
     public String getInboundEbmsQueue() {

@@ -21,6 +21,7 @@ import org.jentrata.ebms.internal.messaging.PartPropertiesPayloadProcessor;
 import org.jentrata.ebms.messaging.MessageStore;
 import org.jentrata.ebms.utils.EbmsUtils;
 import org.junit.Test;
+import org.w3c.dom.Document;
 
 import javax.xml.soap.SOAPConstants;
 import javax.xml.soap.SOAPMessage;
@@ -28,14 +29,13 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.GZIPOutputStream;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
 
 /**
  * Unit tests for org.jentrata.ebms.as4.internal.routes.EbMS3InboundRouteBuilder
@@ -206,6 +206,7 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
 
         assertThat("should have gotten http 500 response code",response.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE,Integer.class),equalTo(500));
         assertThat("should have gotten error http response",response.getIn().getBody(),notNullValue());
+        assertThat(request.getIn().getBody(Document.class),hasXPath("//*[local-name()='Error']"));
     }
 
     @Test
@@ -229,6 +230,52 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
         //assert the response from the route
         assertThat("should have gotten http 204 response code",response.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE,Integer.class),equalTo(204));
         assertThat("should have gotten no content in the http response",response.getIn().getBody(),nullValue());
+    }
+
+    @Test
+    public void testErrorHandler() throws Exception {
+        mockEbmsInbound.setExpectedMessageCount(0);
+        mockEbmsInboundPayload.setExpectedMessageCount(0);
+        mockEbmsInboundSignals.setExpectedMessageCount(0);
+        mockEbmsErrors.setExpectedMessageCount(0);
+
+        Exchange request = new DefaultExchange(context());
+        request.getIn().setHeader(Exchange.CONTENT_TYPE,"Multipart/Related; boundary=\"----=_Part_7_10584188.1123489648993\"; type=\"application/soap+xml\"; start=\"<soapPart@jentrata.org>\"");
+        request.getIn().setHeader(Exchange.HTTP_METHOD,"POST");
+        request.getIn().setHeader("cpaMEP","callback");
+        request.getIn().setBody(new FileInputStream(fileFromClasspath("simple-as4-user-message.txt")));
+        request.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE,500);
+        Exchange response = context().createProducerTemplate().send("direct:testErrorHandler",request);
+
+        assertMockEndpointsSatisfied();
+
+        assertThat("should have gotten http 500 response code",response.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE,Integer.class),equalTo(500));
+        assertThat("should have gotten error http response",response.getIn().getBody(),notNullValue());
+        assertThat(response.getIn().getBody(Document.class),hasXPath("//*[local-name()='Text' and text()='failed doing something']"));
+
+    }
+
+    @Test
+    public void test405ErrorHandler() throws Exception {
+        mockEbmsInbound.setExpectedMessageCount(0);
+        mockEbmsInboundPayload.setExpectedMessageCount(0);
+        mockEbmsInboundSignals.setExpectedMessageCount(0);
+        mockEbmsErrors.setExpectedMessageCount(0);
+
+        Exchange request = new DefaultExchange(context());
+        request.getIn().setHeader(Exchange.CONTENT_TYPE,"Multipart/Related; boundary=\"----=_Part_7_10584188.1123489648993\"; type=\"application/soap+xml\"; start=\"<soapPart@jentrata.org>\"");
+        request.getIn().setHeader(Exchange.HTTP_METHOD,"POST");
+        request.getIn().setHeader("cpaMEP","callback");
+        request.getIn().setBody(new FileInputStream(fileFromClasspath("simple-as4-user-message.txt")));
+        request.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE,405);
+        Exchange response = context().createProducerTemplate().send("direct:testErrorHandler",request);
+
+        assertMockEndpointsSatisfied();
+
+        assertThat("should have gotten http 405 response code",response.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE, Integer.class),equalTo(405));
+        assertThat("should have gotten error http response",response.getIn().getBody(),notNullValue());
+        assertThat(response.getIn().getBody(String.class),containsString("Http Method Not Allowed"));
+
     }
 
     @Test
@@ -289,7 +336,11 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
                         .routeId("mockStoreMessage");
 
                         from(MessageStore.DEFAULT_MESSAGE_INSERT_ENDPOINT)
-                            .log(LoggingLevel.INFO, "Inserting message no where ${headers}")
+                            .choice()
+                                .when(header("testOnException").isNotNull())
+                                    .throwException(new IOException("failed to insert message"))
+                                .otherwise()
+                                    .log(LoggingLevel.INFO, "Inserting message no where ${headers}")
                         .routeId("mockInsertStoreMessage");
 
                         from(MessageStore.DEFAULT_MESSAGE_UPDATE_ENDPOINT)
@@ -311,6 +362,7 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
                                 .when(header("testSecurity").isEqualTo("fail"))
                                     .log(LoggingLevel.INFO, "testing WSSecurityException handling")
                                     .setHeader(EbmsConstants.SECURITY_CHECK, constant(Boolean.FALSE))
+                                    .setBody(constant(fileFromClasspath("simple-as4-error.xml")))
                                 .otherwise()
                                     .setHeader(EbmsConstants.SECURITY_CHECK, constant(Boolean.TRUE))
                         .routeId("mockWsseSecurityCheck");
@@ -330,6 +382,21 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
                                     })
                             .end()
                         .routeId("mockLookupCpaId");
+
+                        from("direct:testErrorHandler")
+                            .onException(Exception.class)
+                                .log(LoggingLevel.ERROR,"${exception.message}")
+                                .handled(true)
+                                .to("direct:errorHandler")
+                            .end()
+                            .choice()
+                                .when(header(Exchange.HTTP_RESPONSE_CODE).isEqualTo(405))
+                                    .log(LoggingLevel.WARN,"here")
+                                    .throwException(new UnsupportedOperationException("Http Method Not Allowed"))
+                                .otherwise()
+                                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(500))
+                                    .throwException(new IOException("failed doing something"))
+                        .routeId("testErrorHandler");
                     }
                 }
         };

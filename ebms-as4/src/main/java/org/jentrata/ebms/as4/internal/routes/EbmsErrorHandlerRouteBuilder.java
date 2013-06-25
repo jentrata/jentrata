@@ -42,7 +42,7 @@ public class EbmsErrorHandlerRouteBuilder extends RouteBuilder {
             .to(messgeStoreEndpoint)
             .to(messageInsertEndpoint)
             .to(outboundEbmsQueue)
-        .routeId("_jentrataErrorHandler");
+        .routeId("_jentrataEbmsErrorHandler");
     }
 
     public String getErrorQueue() {
