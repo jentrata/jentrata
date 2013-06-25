@@ -20,6 +20,7 @@ import java.net.ConnectException;
 public class EbmsOutboundRouteBuilder extends RouteBuilder {
 
     private String outboundEbmsQueue = "activemq:queue:jentrata_internal_ebms_outbound";
+    private String ebmsResponseInbound = "activemq:queue:jentrata_internal_ebms_response";
     private String messageUpdateEndpoint = MessageStore.DEFAULT_MESSAGE_UPDATE_ENDPOINT;
     private CPARepository cpaRepository;
     private String httpProxyHost = null;
@@ -50,6 +51,8 @@ public class EbmsOutboundRouteBuilder extends RouteBuilder {
                 .choice()
                     .when(header(Exchange.HTTP_RESPONSE_CODE).isEqualTo(200))
                         .to("direct:processSuccess")
+                        .setHeader(EbmsConstants.CONTENT_TYPE,constant(EbmsConstants.SOAP_XML_CONTENT_TYPE))
+                        .inOnly(ebmsResponseInbound)
                     .when(header(Exchange.HTTP_RESPONSE_CODE).isEqualTo(204))
                         .to("direct:processSuccess")
                     .otherwise()
@@ -83,6 +86,14 @@ public class EbmsOutboundRouteBuilder extends RouteBuilder {
 
     public void setOutboundEbmsQueue(String outboundEbmsQueue) {
         this.outboundEbmsQueue = outboundEbmsQueue;
+    }
+
+    public String getEbmsResponseInbound() {
+        return ebmsResponseInbound;
+    }
+
+    public void setEbmsResponseInbound(String ebmsResponseInbound) {
+        this.ebmsResponseInbound = ebmsResponseInbound;
     }
 
     public String getMessageUpdateEndpoint() {

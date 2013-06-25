@@ -320,6 +320,7 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
         org.apache.xml.security.Init.init();
         EbMS3InboundRouteBuilder routeBuilder = new EbMS3InboundRouteBuilder();
         routeBuilder.setEbmsHttpEndpoint("direct:testEbmsInbound");
+        routeBuilder.setEbmsResponseInbound("direct:testEbmsResponseInbound");
         routeBuilder.setInboundEbmsQueue(mockEbmsInbound.getEndpointUri());
         routeBuilder.setInboundEbmsPayloadQueue(mockEbmsInboundPayload.getEndpointUri());
         routeBuilder.setInboundEbmsSignalsQueue(mockEbmsInboundSignals.getEndpointUri());

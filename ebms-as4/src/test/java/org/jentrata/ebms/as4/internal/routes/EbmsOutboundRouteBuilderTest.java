@@ -8,6 +8,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.impl.DefaultExchange;
 import org.apache.camel.test.junit4.CamelTestSupport;
+import org.apache.commons.io.IOUtils;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.cpa.CPARepository;
@@ -38,12 +39,17 @@ public class EbmsOutboundRouteBuilderTest extends CamelTestSupport {
     @EndpointInject(uri = "mock:mockUpdateMessageStore")
     protected MockEndpoint mockUpdateMessageStore;
 
+    @EndpointInject(uri = "mock:mockEbmsResponseInbound")
+    protected MockEndpoint mockEbmsResponseInbound;
+
     @Test
     public void testSendMessageToPartner() throws Exception {
 
         mockAgreement1.setExpectedMessageCount(1);
         mockAgreement2.setExpectedMessageCount(1);
         mockUpdateMessageStore.setExpectedMessageCount(4);
+        mockEbmsResponseInbound.setExpectedMessageCount(1);
+        mockEbmsResponseInbound.expectedBodiesReceived(IOUtils.toString(new FileInputStream(fileFromClasspath("simple-as4-receipt.xml"))));
 
         sendMessage("agreement1",
                 "simple-as4-user-message.txt",
@@ -78,6 +84,7 @@ public class EbmsOutboundRouteBuilderTest extends CamelTestSupport {
     protected RouteBuilder [] createRouteBuilders() throws Exception {
         EbmsOutboundRouteBuilder routeBuilder = new EbmsOutboundRouteBuilder();
         routeBuilder.setOutboundEbmsQueue("direct:testOutboundEbmsQueue");
+        routeBuilder.setEbmsResponseInbound(mockEbmsResponseInbound.getEndpointUri());
         routeBuilder.setMessageUpdateEndpoint(mockUpdateMessageStore.getEndpointUri());
         routeBuilder.setCpaRepository(new DummyCPARepository());
         return new RouteBuilder[] {
@@ -93,7 +100,7 @@ public class EbmsOutboundRouteBuilderTest extends CamelTestSupport {
                         from("direct:agreement2")
                             .to(mockAgreement2.getEndpointUri())
                             .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(200))
-                            .setBody(constant(null))
+                            .setBody(constant(IOUtils.toString(new FileInputStream(fileFromClasspath("simple-as4-receipt.xml")))))
                         .routeId("mockAgreement2");
 
                         from(EventNotificationRouteBuilder.SEND_NOTIFICATION_ENDPOINT)

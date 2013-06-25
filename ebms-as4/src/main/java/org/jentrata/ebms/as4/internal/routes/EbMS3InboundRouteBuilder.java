@@ -30,6 +30,7 @@ import java.util.zip.GZIPInputStream;
 public class EbMS3InboundRouteBuilder extends RouteBuilder {
 
     private String ebmsHttpEndpoint = "jetty:http://0.0.0.0:8081/jentrata/ebms/inbound";
+    private String ebmsResponseInbound = "activemq:queue:jentrata_internal_ebms_response";
     private String ebmsDLQ = null;
     private String inboundEbmsQueue = "activemq:queue:jentrata_internal_ebms_inbound";
     private String inboundEbmsPayloadQueue = "activemq:queue:jentrata_internal_ebms_inbound_payload";
@@ -53,7 +54,7 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
             deadLetterChannel(ebmsDLQ).useOriginalMessage();
         }
 
-        from(ebmsHttpEndpoint)
+        from(ebmsHttpEndpoint,ebmsResponseInbound)
             .streamCaching()
             .onException(UnsupportedOperationException.class)
                 .handled(true)
@@ -194,6 +195,14 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
 
     public void setEbmsHttpEndpoint(String ebmsHttpEndpoint) {
         this.ebmsHttpEndpoint = ebmsHttpEndpoint;
+    }
+
+    public String getEbmsResponseInbound() {
+        return ebmsResponseInbound;
+    }
+
+    public void setEbmsResponseInbound(String ebmsResponseInbound) {
+        this.ebmsResponseInbound = ebmsResponseInbound;
     }
 
     public String getEbmsDLQ() {
