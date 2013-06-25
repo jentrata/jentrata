@@ -199,6 +199,7 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
         request.getIn().setHeader(Exchange.CONTENT_TYPE,"Multipart/Related; boundary=\"----=_Part_7_10584188.1123489648993\"; type=\"application/soap+xml\"; start=\"<soapPart@jentrata.org>\"");
         request.getIn().setHeader(Exchange.HTTP_METHOD,"POST");
         request.getIn().setHeader("testSecurity","fail");
+        request.getIn().setHeader("cpaMEP","response");
         request.getIn().setBody(new FileInputStream(fileFromClasspath("simple-as4-user-message.txt")));
         Exchange response = context().createProducerTemplate().send("direct:testEbmsInbound",request);
 
@@ -373,12 +374,12 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
                             .setHeader(EbmsConstants.CPA_ID, constant(partnerAgreement.getCpaId()))
                             .setHeader(EbmsConstants.CPA,constant(partnerAgreement))
                             .choice()
-                                .when(header("cpaMEP").isEqualTo("callback"))
+                                .when(header("cpaMEP").isEqualTo("response"))
                                     .process(new Processor() {
                                         @Override
                                         public void process(Exchange exchange) throws Exception {
                                             PartnerAgreement agreement = exchange.getIn().getHeader(EbmsConstants.CPA,PartnerAgreement.class);
-                                            agreement.getSecurity().setSendReceiptReplyPattern(Security.ReplyPatternType.Callback);
+                                            agreement.getSecurity().setSendReceiptReplyPattern(Security.ReplyPatternType.Response);
                                         }
                                     })
                             .end()
@@ -411,7 +412,7 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
         token.setUsername(username);
         token.setPassword("gocDv4SEXRDxNjucDDfo7I7ACTc=");
         security.setSecurityToken(token);
-        security.setSendReceiptReplyPattern(Security.ReplyPatternType.Response);
+        security.setSendReceiptReplyPattern(Security.ReplyPatternType.Callback);
         agreement.setSecurity(security);
         if(signatureEnabled) {
             Signature signature = new Signature();

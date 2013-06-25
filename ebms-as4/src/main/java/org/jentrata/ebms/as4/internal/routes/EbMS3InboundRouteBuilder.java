@@ -12,6 +12,7 @@ import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.EbmsError;
 import org.jentrata.ebms.MessageStatusType;
 import org.jentrata.ebms.MessageType;
+import org.jentrata.ebms.cpa.pmode.Security;
 import org.jentrata.ebms.internal.messaging.MessageDetector;
 import org.jentrata.ebms.messaging.MessageStore;
 import org.jentrata.ebms.messaging.SplitAttachmentsToBody;
@@ -90,6 +91,7 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
             .setHeader(EbmsConstants.MESSAGE_ACTION, ns.xpath("//eb3:CollaborationInfo/eb3:Action/text()", String.class))
             .setHeader(EbmsConstants.MESSAGE_CONVERSATION_ID, ns.xpath("//eb3:CollaborationInfo/eb3:ConversationId/text()", String.class))
             .to("direct:lookupCpaId")
+            .setHeader(EbmsConstants.MESSAGE_RECEIPT_PATTERN,simple("${headers.JentrataCPA.security.sendReceiptReplyPattern}"))
             .to(messageInsertEndpoint) //create a message entry in the message store to track the state of the message
             .to("direct:securityCheck")
             .choice()
@@ -99,8 +101,6 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
                     .to("direct:processPayloads")
                     .to(messageUpdateEndpoint)
                     .wireTap(EventNotificationRouteBuilder.SEND_NOTIFICATION_ENDPOINT)
-                    .setBody(constant(null))
-                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(204))
                     .to("direct:removeHeaders")
                     .setHeader("X-Jentrata-Version", simple("${sys.jentrataVersion}"))
         .routeId("_jentrataEbmsInbound");
@@ -119,27 +119,53 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
              .choice()
                 .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.SIGNAL_MESSAGE_ERROR.name()))
                     .inOnly(inboundEbmsSignalsQueue)
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE,constant(204))
+                    .setBody(constant(null))
                 .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.SIGNAL_MESSAGE.name()))
                     .inOnly(inboundEbmsSignalsQueue)
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE,constant(204))
+                    .setBody(constant(null))
                 .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.SIGNAL_MESSAGE_WITH_USER_MESSAGE.name()))
                     .inOnly(inboundEbmsSignalsQueue)
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE,constant(204))
+                    .setBody(constant(null))
                 .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.USER_MESSAGE.name()))
-                    .inOnly(inboundEbmsQueue)
-                    .setHeader(SplitAttachmentsToBody.ORIGINAL_MESSAGE_BODY, body())
-                    .setBody(xpath("//*[local-name()='Body']/*[1]"))
-                    .convertBodyTo(String.class)
-                    .split(new SplitAttachmentsToBody(true, false, true))
-                        .bean(payloadProcessor)
-                        .choice()
-                            .when(header(EbmsConstants.COMPRESSION_TYPE).isEqualTo(EbmsConstants.GZIP))
-                                .unmarshal().gzip()
-                                .setHeader(EbmsConstants.CONTENT_TYPE, header("MimeType"))
-                                .removeHeader(SplitAttachmentsToBody.ORIGINAL_MESSAGE_BODY)
-                                .inOnly(inboundEbmsPayloadQueue)
-                            .otherwise()
-                                .removeHeader(SplitAttachmentsToBody.ORIGINAL_MESSAGE_BODY)
-                                .inOnly(inboundEbmsPayloadQueue)
+                    .to("direct:processUserMessage")
         .routeId("_jentrataEbmsPayloadProcessing");
+
+        from("direct:processUserMessage")
+            .setProperty("JentrataMessageBody",body())
+            .setHeader(SplitAttachmentsToBody.ORIGINAL_MESSAGE_BODY, body())
+            .setBody(xpath("//*[local-name()='Body']/*[1]"))
+            .convertBodyTo(String.class)
+            .split(new SplitAttachmentsToBody(true, false, true))
+                .bean(payloadProcessor)
+                .choice()
+                    .when(header(EbmsConstants.COMPRESSION_TYPE).isEqualTo(EbmsConstants.GZIP))
+                        .unmarshal().gzip()
+                        .setHeader(EbmsConstants.CONTENT_TYPE, header("MimeType"))
+                        .removeHeader(SplitAttachmentsToBody.ORIGINAL_MESSAGE_BODY)
+                        .inOnly(inboundEbmsPayloadQueue)
+                    .otherwise()
+                        .removeHeader(SplitAttachmentsToBody.ORIGINAL_MESSAGE_BODY)
+                        .inOnly(inboundEbmsPayloadQueue)
+                .end()
+            .end()
+            .setBody(property("JentrataMessageBody"))
+            .to("direct:generateReceipt")
+        .routeId("_jentrataProcessUserMessage");
+
+        from("direct:generateReceipt")
+            .choice()
+                .when(header(EbmsConstants.MESSAGE_RECEIPT_PATTERN).isEqualTo(Security.ReplyPatternType.Callback))
+                    .inOnly(inboundEbmsQueue)
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE,constant(204))
+                    .setBody(constant(null))
+                .otherwise()
+                    .to(inboundEbmsQueue)
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE,constant(200))
+            .end()
+        .routeId("_jentrataGenerateReceipt");
 
         from("direct:handleSecurityException")
             .setHeader(EbmsConstants.EBMS_ERROR_CODE, constant(EbmsError.EBMS_0101.getErrorCode()))
@@ -149,7 +175,7 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
             .wireTap(EventNotificationRouteBuilder.SEND_NOTIFICATION_ENDPOINT)
             .convertBodyTo(String.class)
             .choice()
-                .when(simple("${headers?.JentrataCPA?.security?.sendReceiptReplyPattern.name()} == 'Callback'"))
+                .when(header(EbmsConstants.MESSAGE_RECEIPT_PATTERN).isEqualTo(Security.ReplyPatternType.Callback))
                     .inOnly(securityErrorQueue)
                     .setBody(constant(null))
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(204))

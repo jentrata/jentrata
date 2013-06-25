@@ -11,6 +11,7 @@ import org.apache.camel.test.junit4.CamelTestSupport;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.cpa.PartnerAgreement;
+import org.jentrata.ebms.cpa.pmode.Security;
 import org.jentrata.ebms.messaging.MessageStore;
 import org.jentrata.ebms.messaging.UUIDGenerator;
 import org.junit.Test;
@@ -109,6 +110,8 @@ public class EbmsSignalMessageRouteBuilderTest extends CamelTestSupport {
     private PartnerAgreement getAgreement() {
         PartnerAgreement partnerAgreement = new PartnerAgreement();
         partnerAgreement.setCpaId("testCPAId");
+        Security security = new Security();
+        partnerAgreement.setSecurity(security);
         return partnerAgreement;
     }
 

@@ -5,6 +5,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.MessageType;
+import org.jentrata.ebms.cpa.pmode.Security;
 import org.jentrata.ebms.messaging.MessageStore;
 
 /**
@@ -33,6 +34,7 @@ public class EbmsSignalMessageRouteBuilder extends RouteBuilder {
                 .when(header(EbmsConstants.EBMS_RECEIPT_REQUIRED).isEqualTo(true))
                     .log(LoggingLevel.INFO, "Generating receipt message for from:${headers.jentrataFrom} - to:${headers.jentrataTo} - ${headers.jentrataMessageId}")
                     .to("direct:lookupCpaId")
+                    .setHeader(EbmsConstants.MESSAGE_RECEIPT_PATTERN,simple("${headers.JentrataCPA.security.sendReceiptReplyPattern}"))
                     .setHeader("messageid", simple("${bean:uuidGenerator.generateId}"))
                     .setHeader("timestamp",simple("${date:now:yyyy-MM-dd'T'HH:mm:ss.S'Z'}"))
                     .to("xslt:templates/signalMessage.xsl")
@@ -45,7 +47,7 @@ public class EbmsSignalMessageRouteBuilder extends RouteBuilder {
                     .to(wsseAddSecurityToHeader)
                     .to(messgeStoreEndpoint) //store the outbound signal message
                     .to(messageInsertEndpoint) //create message entry for tracking
-                    .to(outboundEbmsQueue)
+                    .to("direct:deliveryReceipt")
                 .otherwise()
                     .log(LoggingLevel.INFO,"No receipt required for from:${headers.jentrataFrom} - to:${headers.jentrataTo} - ${headers.jentrataMessageId}")
         .routeId("_jentrataEbmsGenerateSignalMessage");
@@ -53,6 +55,14 @@ public class EbmsSignalMessageRouteBuilder extends RouteBuilder {
         from("direct:receiptRequired")
             .setHeader(EbmsConstants.EBMS_RECEIPT_REQUIRED,constant("true"))
         .routeId("_jentrataEbmsReceiptRequired");
+
+        from("direct:deliveryReceipt")
+            .choice()
+                .when(header(EbmsConstants.MESSAGE_RECEIPT_PATTERN).isEqualTo(Security.ReplyPatternType.Callback))
+                    .to(outboundEbmsQueue)
+                .otherwise()
+                    .log(LoggingLevel.DEBUG,"receipt returned on response")
+        .routeId("_jentrataEbmsDeliveryReceipt");
     }
 
     public String getInboundEbmsQueue() {
