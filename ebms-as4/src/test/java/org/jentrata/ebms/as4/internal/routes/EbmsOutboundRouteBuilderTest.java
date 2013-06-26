@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static org.hamcrest.Matchers.hasSize;
+
 /**
  * Unit tests for org.jentrata.ebms.as4.internal.routes.EbmsOutboundRouteBuilder
  *
@@ -50,6 +52,8 @@ public class EbmsOutboundRouteBuilderTest extends CamelTestSupport {
         mockUpdateMessageStore.setExpectedMessageCount(4);
         mockEbmsResponseInbound.setExpectedMessageCount(1);
         mockEbmsResponseInbound.expectedBodiesReceived(IOUtils.toString(new FileInputStream(fileFromClasspath("simple-as4-receipt.xml"))));
+        mockEbmsResponseInbound.expectedHeaderReceived(EbmsConstants.CONTENT_TYPE,EbmsConstants.SOAP_XML_CONTENT_TYPE);
+        mockEbmsResponseInbound.expectedHeaderReceived(Exchange.HTTP_METHOD,"POST");
 
         sendMessage("agreement1",
                 "simple-as4-user-message.txt",
@@ -64,6 +68,9 @@ public class EbmsOutboundRouteBuilderTest extends CamelTestSupport {
                 MessageType.SIGNAL_MESSAGE_WITH_USER_MESSAGE);
 
         assertMockEndpointsSatisfied();
+
+        Exchange e = mockEbmsResponseInbound.getExchanges().get(0);
+        assertThat(e.getIn().getHeaders().values(),hasSize(2));
     }
 
     private void sendMessage(String cpaId, String filename, String contentType, String msgId, MessageType type) throws Exception {

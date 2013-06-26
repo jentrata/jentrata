@@ -1,12 +1,14 @@
 package org.jentrata.ebms.as4.internal.routes;
 
 import org.apache.camel.Exchange;
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.EbmsError;
 import org.jentrata.ebms.MessageStatusType;
 import org.jentrata.ebms.MessageType;
+import org.jentrata.ebms.cpa.pmode.Security;
 import org.jentrata.ebms.messaging.MessageStore;
 
 /**
@@ -41,8 +43,16 @@ public class EbmsErrorHandlerRouteBuilder extends RouteBuilder {
             .to("freemarker:templates/errorMessage.ftl")
             .to(messgeStoreEndpoint)
             .to(messageInsertEndpoint)
-            .to(outboundEbmsQueue)
+            .to("direct:deliveryErrorReceipt")
         .routeId("_jentrataEbmsErrorHandler");
+
+        from("direct:deliveryErrorReceipt")
+            .choice()
+                .when(header(EbmsConstants.MESSAGE_RECEIPT_PATTERN).isEqualTo(Security.ReplyPatternType.Response))
+                    .log(LoggingLevel.DEBUG,"receipt returned on response")
+                .otherwise()
+                    .to(outboundEbmsQueue)
+        .routeId("_jentrataEbmsDeliveryErrorReceipt");
     }
 
     public String getErrorQueue() {
