@@ -28,6 +28,12 @@ public class FileOutboundMessageRouter extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
+
+        String convId =  "${bean:uuidGenerator.generateId}";
+        if(conversationId != null && conversationId.length() > 0) {
+            convId = conversationId;
+        }
+
         from(fileEndpoint)
             .setHeader(EbmsConstants.CPA_ID, constant(cpaId))
             .setHeader(EbmsConstants.MESSAGE_SERVICE, constant(service))
@@ -38,7 +44,7 @@ public class FileOutboundMessageRouter extends RouteBuilder {
             .setHeader(EbmsConstants.MESSAGE_TO, constant(to))
             .setHeader(EbmsConstants.MESSAGE_TO_TYPE, constant(toPartyIdType))
             .setHeader(EbmsConstants.PAYLOAD_ID, constant(payloadId))
-            .setHeader(EbmsConstants.MESSAGE_CONVERSATION_ID, simple(conversationId))
+            .setHeader(EbmsConstants.MESSAGE_CONVERSATION_ID, simple(convId))
             .setHeader(EbmsConstants.MESSAGE_AGREEMENT_REF,constant(agreementRef))
             .setHeader(EbmsConstants.MESSAGE_PAYLOAD_SCHEMA,constant(schema))
             .setHeader(EbmsConstants.MESSAGE_PART_PROPERTIES,constant(partProperties))

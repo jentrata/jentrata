@@ -54,6 +54,7 @@
             <cm:property name="jentrata.ebms.outbound.agreementRef" value=""/>
             <cm:property name="jentrata.ebms.outbound.schema" value=""/>
             <cm:property name="jentrata.ebms.outbound.partProperties" value=""/>
+            <cm:property name="jentrata.ebms.outbound.conversationId" value=""/>
 
             <cm:property name="jentrata.ebms.security.keystore.file" value="etc/keys/jentrata.jks"/>
             <cm:property name="jentrata.ebms.security.keystore.type" value="jks"/>
@@ -157,6 +158,7 @@
         <property name="agreementRef" value="${jentrata.ebms.outbound.agreementRef}"/>
         <property name="schema" value="${jentrata.ebms.outbound.schema}"/>
         <property name="partProperties" value="${jentrata.ebms.outbound.partProperties}"/>
+        <property name="conversationId" value="${jentrata.ebms.outbound.conversationId}"/>
 
     </bean>
 
