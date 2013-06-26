@@ -67,7 +67,7 @@ public class SoapMessageDataFormat implements DataFormat {
     @Override
     public Object unmarshal(Exchange exchange, InputStream stream) throws Exception {
         InputStream body = exchange.getContext().getTypeConverter().convertTo(InputStream.class,exchange.getIn().getBody());
-        String soapVersion = exchange.getIn().getHeader(EbmsConstants.SOAP_VERSION, SOAPConstants.SOAP_1_1_CONTENT_TYPE, String.class);
+        String soapVersion = exchange.getIn().getHeader(EbmsConstants.SOAP_VERSION, SOAPConstants.SOAP_1_2_PROTOCOL, String.class);
         MessageFactory messageFactory = MessageFactory.newInstance(soapVersion);
         MimeHeaders mimeHeaders = new MimeHeaders();
         mimeHeaders.addHeader(Exchange.CONTENT_TYPE, exchange.getIn().getHeader(Exchange.CONTENT_TYPE, String.class));
