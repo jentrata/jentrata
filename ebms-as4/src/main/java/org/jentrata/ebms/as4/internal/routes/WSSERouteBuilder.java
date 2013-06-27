@@ -17,6 +17,7 @@ import org.apache.wss4j.dom.message.WSSecUsernameToken;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.cpa.PartnerAgreement;
+import org.jentrata.ebms.cpa.pmode.Security;
 import org.jentrata.ebms.cpa.pmode.Signature;
 import org.jentrata.ebms.cpa.pmode.SignaturePart;
 import org.jentrata.ebms.cpa.pmode.UsernameToken;
@@ -103,17 +104,22 @@ public class WSSERouteBuilder extends RouteBuilder {
                 public void process(Exchange exchange) throws Exception {
                     Document message = exchange.getIn().getBody(Document.class);
                     PartnerAgreement agreement = exchange.getIn().getHeader(EbmsConstants.CPA, PartnerAgreement.class);
-                    if (agreement.hasSecurityToken() && agreement.getSecurity().getSecurityToken() instanceof UsernameToken) {
-                        UsernameToken token = (UsernameToken) agreement.getSecurity().getSecurityToken();
-                        WSSecUsernameToken builder = new WSSecUsernameToken();
-                        builder.setPasswordsAreEncoded(token.isDigest());
-                        builder.setUserInfo(token.getUsername(), token.getPassword());
+                    MessageType messageType = exchange.getIn().getHeader(EbmsConstants.MESSAGE_TYPE, MessageType.class);
+                    if (agreement.hasSecurityToken()
+                            && agreement.getSecurity().getSecurityToken() instanceof UsernameToken) {
+                        if(agreement.getSecurity().getSendReceiptReplyPattern() == Security.ReplyPatternType.Callback
+                                || messageType == MessageType.USER_MESSAGE) {
+                            UsernameToken token = (UsernameToken) agreement.getSecurity().getSecurityToken();
+                            WSSecUsernameToken builder = new WSSecUsernameToken();
+                            builder.setPasswordsAreEncoded(token.isDigest());
+                            builder.setUserInfo(token.getUsername(), token.getPassword());
 
-                        WSSecHeader secHeader = new WSSecHeader();
-                        secHeader.insertSecurityHeader(message);
-                        Document signedDoc = builder.build(message, secHeader);
+                            WSSecHeader secHeader = new WSSecHeader();
+                            secHeader.insertSecurityHeader(message);
+                            Document signedDoc = builder.build(message, secHeader);
 
-                        exchange.getIn().setBody(signedDoc);
+                            exchange.getIn().setBody(signedDoc);
+                        }
                     }
                 }
             })

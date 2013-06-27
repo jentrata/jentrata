@@ -218,6 +218,46 @@ public class WSSERouteBuilderTest extends CamelTestSupport {
         assertThat(body, hasXPath("//*[local-name()='Signature']"));
     }
 
+    @Test
+    public void testShouldNotAddSecurityHeaderForResponseMEPSignalMessage() throws Exception {
+        Exchange request = new DefaultExchange(context);
+        request.getIn().setBody(loadSoapReceipt());
+        request.getIn().setHeader(EbmsConstants.MESSAGE_ID, "testMSG-0001");
+        request.getIn().setHeader(EbmsConstants.CPA_ID,"JentrataTestCPA");
+        PartnerAgreement agreement = generateAgreement("jentrata", false);
+        agreement.getSecurity().setSendReceiptReplyPattern(Security.ReplyPatternType.Response);
+        request.getIn().setHeader(EbmsConstants.CPA, agreement);
+        request.getIn().setHeader(EbmsConstants.MESSAGE_TYPE, MessageType.SIGNAL_MESSAGE);
+        Exchange response = context().createProducerTemplate().send("direct:wsseAddSecurityToHeader",request);
+
+        Document body = response.getIn().getBody(Document.class);
+        System.out.println(XMLUtils.PrettyDocumentToString(body));
+
+        assertThat(body, not(hasXPath("//*[local-name()='Security']")));
+        assertThat(body, not(hasXPath("//*[local-name()='UsernameToken']")));
+        assertThat(body, not(hasXPath("//*[local-name()='Signature']")));
+    }
+
+    @Test
+    public void testShouldNotAddUserTokenForResponseMEPSignalMessage() throws Exception {
+        Exchange request = new DefaultExchange(context);
+        request.getIn().setBody(loadSoapReceipt());
+        request.getIn().setHeader(EbmsConstants.MESSAGE_ID, "testMSG-0001");
+        request.getIn().setHeader(EbmsConstants.CPA_ID,"JentrataTestCPA");
+        PartnerAgreement agreement = generateAgreement("jentrata", true);
+        agreement.getSecurity().setSendReceiptReplyPattern(Security.ReplyPatternType.Response);
+        request.getIn().setHeader(EbmsConstants.CPA, agreement);
+        request.getIn().setHeader(EbmsConstants.MESSAGE_TYPE, MessageType.SIGNAL_MESSAGE);
+        Exchange response = context().createProducerTemplate().send("direct:wsseAddSecurityToHeader",request);
+
+        Document body = response.getIn().getBody(Document.class);
+        System.out.println(XMLUtils.PrettyDocumentToString(body));
+
+        assertThat(body, hasXPath("//*[local-name()='Security']"));
+        assertThat(body, not(hasXPath("//*[local-name()='UsernameToken']")));
+        assertThat(body, hasXPath("//*[local-name()='Signature']"));
+    }
+
 
 
     @Override
