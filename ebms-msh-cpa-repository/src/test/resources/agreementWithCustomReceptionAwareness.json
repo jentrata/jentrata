@@ -1,0 +1,18 @@
+[
+    {
+        "cpaId":"testCPAId1",
+        "active":"true",
+        "transportReceiverEndpoint":"http://example.jentrata.org",
+        "receptionAwareness":{
+            "retry":{
+                "enabled":true,
+                "maxretries":10,
+                "period":3000
+            },
+            "duplicateDetection": {
+                "enabled":true,
+                "checkwindow":"7D"
+            }
+        }
+    }
+]

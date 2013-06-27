@@ -4,6 +4,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.cpa.pmode.PayloadService;
+import org.jentrata.ebms.cpa.pmode.ReceptionAwareness;
 import org.jentrata.ebms.cpa.pmode.Security;
 
 import java.util.List;
@@ -21,6 +22,7 @@ public class PartnerAgreement {
     private List<Service> services;
     private Security security;
     private PayloadService payloadService = PayloadService.DEFAULT_PAYLOAD_SERVICE;
+    private ReceptionAwareness receptionAwareness = ReceptionAwareness.DEFAULT;
 
     public String getCpaId() {
         return cpaId;
@@ -78,6 +80,14 @@ public class PartnerAgreement {
 
     public void setPayloadService(PayloadService payloadService) {
         this.payloadService = payloadService;
+    }
+
+    public ReceptionAwareness getReceptionAwareness() {
+        return receptionAwareness;
+    }
+
+    public void setReceptionAwareness(ReceptionAwareness receptionAwareness) {
+        this.receptionAwareness = receptionAwareness;
     }
 
     public boolean hasSecurityToken() {

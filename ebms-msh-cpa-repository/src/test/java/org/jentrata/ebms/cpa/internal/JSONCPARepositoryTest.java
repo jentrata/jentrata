@@ -1,9 +1,11 @@
 package org.jentrata.ebms.cpa.internal;
 
 import com.google.common.collect.ImmutableMap;
+import org.hamcrest.Matchers;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.cpa.PartnerAgreement;
 import org.jentrata.ebms.cpa.pmode.PayloadService;
+import org.jentrata.ebms.cpa.pmode.ReceptionAwareness;
 import org.jentrata.ebms.cpa.pmode.Security;
 import org.jentrata.ebms.cpa.pmode.Signature;
 import org.jentrata.ebms.cpa.pmode.UsernameToken;
@@ -292,6 +294,37 @@ public class JSONCPARepositoryTest {
         PartnerAgreement agreement1 = repository.findByMessage(ebmsMessage,EbmsConstants.EBMS_V3);
         assertThat(agreement1,notNullValue());
         assertThat(agreement1.getCpaId(),equalTo("testCPAId2"));
+    }
+
+    @Test
+    public void testDefaultReceptionAwareness() throws Exception {
+        JSONCPARepository repository = new JSONCPARepository();
+        repository.setCpaJsonFile(fileFromClasspath("agreementWithReceptionAwareness.json"));
+        repository.init();
+
+        assertThat(repository.getActivePartnerAgreements(),hasSize(1));
+        PartnerAgreement agreement = repository.getActivePartnerAgreements().get(0);
+        assertThat(agreement.getReceptionAwareness(),notNullValue());
+        assertThat(agreement.getReceptionAwareness().isDuplicateDetectionEnabled(),is(false));
+        assertThat(agreement.getReceptionAwareness().isRetryEnabled(), is(false));
+
+    }
+
+    @Test
+    public void testCustomReceptionAwareness() throws Exception {
+        JSONCPARepository repository = new JSONCPARepository();
+        repository.setCpaJsonFile(fileFromClasspath("agreementWithCustomReceptionAwareness.json"));
+        repository.init();
+
+        assertThat(repository.getActivePartnerAgreements(),hasSize(1));
+        ReceptionAwareness receptionAwareness = repository.getActivePartnerAgreements().get(0).getReceptionAwareness();
+        assertThat(receptionAwareness,notNullValue());
+        assertThat(receptionAwareness.isDuplicateDetectionEnabled(),is(true));
+        assertThat(receptionAwareness.isRetryEnabled(), is(true));
+        assertThat((Integer) receptionAwareness.getRetry().get("maxretries"), equalTo(10));
+        assertThat((Integer) receptionAwareness.getRetry().get("period"), equalTo(3000));
+        assertThat((String) receptionAwareness.getDuplicateDetection().get("checkwindow"), equalTo("7D"));
+
     }
 
     protected static File fileFromClasspath(String filename) {
