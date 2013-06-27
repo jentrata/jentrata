@@ -307,6 +307,35 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
 
     }
 
+    @Test
+    public void testInboundUserMessageWithResponseMEP() throws Exception {
+        final String exceptedResponse = EbmsUtils.toStringFromClasspath("simple-as4-receipt.xml");
+        mockEbmsInbound.setExpectedMessageCount(1);
+        mockEbmsInbound.whenAnyExchangeReceived(new Processor() {
+            @Override
+            public void process(Exchange exchange) throws Exception {
+                exchange.getIn().setBody(exceptedResponse);
+            }
+        });
+        mockEbmsInboundPayload.setExpectedMessageCount(1);
+        mockEbmsInboundSignals.setExpectedMessageCount(0);
+        mockEbmsErrors.setExpectedMessageCount(0);
+
+        Exchange request = new DefaultExchange(context());
+        request.getIn().setHeader(Exchange.CONTENT_TYPE,"Multipart/Related; boundary=\"----=_Part_7_10584188.1123489648993\"; type=\"application/soap+xml\"; start=\"<soapPart@jentrata.org>\"");
+        request.getIn().setHeader(Exchange.HTTP_METHOD,"POST");
+        request.getIn().setHeader("cpaMEP","response");
+        request.getIn().setBody(new FileInputStream(fileFromClasspath("simple-as4-user-message.txt")));
+        Exchange response = context().createProducerTemplate().send("direct:testEbmsInbound",request);
+
+        assertMockEndpointsSatisfied();
+
+        //assert the response from the route
+        assertThat("should have gotten http 200 response code",response.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE,Integer.class),equalTo(200));
+        assertThat(response.getIn().getBody(String.class),equalTo(exceptedResponse));
+
+    }
+
     private InputStream getCompressedPayload(String filename) throws Exception {
         byte [] payload = IOUtils.toByteArray(new FileInputStream(fileFromClasspath(filename)));
         ByteArrayOutputStream bos = new ByteArrayOutputStream();

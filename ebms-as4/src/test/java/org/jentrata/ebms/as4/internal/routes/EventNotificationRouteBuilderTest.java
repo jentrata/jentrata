@@ -25,6 +25,7 @@ import static org.hamcrest.Matchers.*;
  *
  * @author aaronwalker
  */
+@SuppressWarnings("unchecked")
 public class EventNotificationRouteBuilderTest extends CamelTestSupport {
 
     @EndpointInject(uri = "mock:mockNotification")

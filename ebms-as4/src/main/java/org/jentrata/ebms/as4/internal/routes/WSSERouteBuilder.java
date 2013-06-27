@@ -32,12 +32,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-
 /**
  * Provides WSSE integration for the incoming AS4 Message
  *
  * @author aaronwalker
  */
+@SuppressWarnings("unchecked")
 public class WSSERouteBuilder extends RouteBuilder {
 
     private String wsseSecurityCheck = "direct:wsseSecurityCheck";
@@ -84,7 +84,13 @@ public class WSSERouteBuilder extends RouteBuilder {
                                     exchange.getIn().setAttachments(attachmentCallback.getVerifiedAttachments());
                                 }
                             } else {
-                                exchange.getIn().setHeader(EbmsConstants.SECURITY_CHECK,Boolean.FALSE);
+                                MessageType messageType = exchange.getIn().getHeader(EbmsConstants.MESSAGE_TYPE,MessageType.class);
+                                if(messageType == MessageType.SIGNAL_MESSAGE_WITH_USER_MESSAGE
+                                        && agreement.getSecurity().getSendReceiptReplyPattern() == Security.ReplyPatternType.Response) {
+                                    exchange.getIn().setHeader(EbmsConstants.SECURITY_CHECK,Boolean.TRUE);
+                                } else {
+                                    exchange.getIn().setHeader(EbmsConstants.SECURITY_CHECK,Boolean.FALSE);
+                                }
                             }
                         } catch (WSSecurityException ex) {
                             exchange.getIn().setHeader(EbmsConstants.SECURITY_CHECK,Boolean.FALSE);

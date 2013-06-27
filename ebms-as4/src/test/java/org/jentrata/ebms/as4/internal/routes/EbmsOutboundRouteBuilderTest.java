@@ -1,10 +1,7 @@
 package org.jentrata.ebms.as4.internal.routes;
 
-import org.apache.camel.Body;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Exchange;
-import org.apache.camel.Header;
-import org.apache.camel.Headers;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
@@ -56,7 +53,9 @@ public class EbmsOutboundRouteBuilderTest extends CamelTestSupport {
         mockEbmsResponseInbound.setExpectedMessageCount(1);
         mockEbmsResponseInbound.expectedBodiesReceived(IOUtils.toString(new FileInputStream(fileFromClasspath("simple-as4-receipt.xml"))));
         mockEbmsResponseInbound.expectedHeaderReceived(EbmsConstants.CONTENT_TYPE,EbmsConstants.SOAP_XML_CONTENT_TYPE);
+        mockEbmsResponseInbound.expectedHeaderReceived(EbmsConstants.CPA_ID,"agreement2");
         mockEbmsResponseInbound.expectedHeaderReceived(Exchange.HTTP_METHOD,"POST");
+
 
         sendMessage("agreement1",
                 "simple-as4-user-message.txt",
@@ -73,7 +72,7 @@ public class EbmsOutboundRouteBuilderTest extends CamelTestSupport {
         assertMockEndpointsSatisfied();
 
         Exchange e = mockEbmsResponseInbound.getExchanges().get(0);
-        assertThat(e.getIn().getHeaders().values(),hasSize(2));
+        assertThat(e.getIn().getHeaders().values(),hasSize(3));
     }
 
     private void sendMessage(String cpaId, String filename, String contentType, String msgId, MessageType type) throws Exception {

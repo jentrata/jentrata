@@ -36,7 +36,7 @@ public class ValidatePartnerAgreementRouteBuilder extends RouteBuilder {
                 .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.USER_MESSAGE))
                     .to("direct:lookupCpaIdByServiceAndAction")
                 .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.SIGNAL_MESSAGE_WITH_USER_MESSAGE))
-                    .to("direct:lookupCpaIdByServiceAndAction")
+                    .to("direct:lookupCpaIdByRefMessageId")
                 .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.SIGNAL_MESSAGE))
                     .to("direct:lookupCpaIdByRefMessageId")
                 .otherwise()

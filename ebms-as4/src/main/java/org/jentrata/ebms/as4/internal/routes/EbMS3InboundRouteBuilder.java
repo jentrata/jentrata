@@ -76,12 +76,14 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
                 .to("direct:errorHandler")
              .end()
             .log(LoggingLevel.INFO, "Request:${headers}")
+            .log(LoggingLevel.DEBUG, "Request Body:\n${body}")
             .setHeader(EbmsConstants.MESSAGE_DIRECTION, constant(EbmsConstants.MESSAGE_DIRECTION_INBOUND))
             .choice()
                 .when(header(Exchange.HTTP_METHOD).isNotEqualTo("POST"))
                     .throwException(new UnsupportedOperationException("Http Method Not Allowed"))
             .end()
             .bean(messageDetector, "parse") //Determine what type of message it is for example SOAP 1.1 or SOAP 1.2 ebms2 or ebms3 etc
+            .log(LoggingLevel.INFO,"Received ebms Message msgId:${headers.JentrataMessageID} - type:${headers.JentrataMessageType}")
             .to(messgeStoreEndpoint) //essentially we claim check the raw incoming message/payload
             .unmarshal(new SoapMessageDataFormat()) //extract the SOAP Envelope as set it has the message body
             .setHeader(EbmsConstants.MESSAGE_STATUS, constant(MessageStatusType.RECEIVED.name()))

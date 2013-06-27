@@ -102,6 +102,18 @@ public class ValidatePartnerAgreementRouteBuilderTest extends CamelTestSupport {
     }
 
     @Test
+    public void testLookupCPAIdForSignalMessageWithUserMessage() throws Exception {
+        Exchange request = new DefaultExchange(context());
+        request.getIn().setBody(loadEbmsMessage("simple-as4-receipt.xml"));
+        request.getIn().setHeader(EbmsConstants.MESSAGE_ID, "testMsgID");
+        request.getIn().setHeader(EbmsConstants.MESSAGE_TYPE, MessageType.SIGNAL_MESSAGE_WITH_USER_MESSAGE);
+        Exchange response = context().createProducerTemplate().send("direct:lookupCpaId",request);
+
+        assertThat(response.getIn().getHeader(EbmsConstants.CPA, PartnerAgreement.class),is(notNullValue()));
+        assertThat(response.getIn().getHeader(EbmsConstants.CPA_ID, String.class),equalTo("testCPAId"));
+    }
+
+    @Test
     public void testInvalidLookupCPAId() throws Exception {
         Exchange request = new DefaultExchange(context());
         request.getIn().setBody(loadEbmsMessage());
@@ -114,7 +126,11 @@ public class ValidatePartnerAgreementRouteBuilderTest extends CamelTestSupport {
     }
 
     private InputStream loadEbmsMessage() throws IOException {
-        return new ByteArrayInputStream(EbmsUtils.toStringFromClasspath("sample-ebms-user-message.xml").getBytes());
+        return loadEbmsMessage("sample-ebms-user-message.xml");
+    }
+
+    private InputStream loadEbmsMessage(String filename) throws IOException {
+        return new ByteArrayInputStream(EbmsUtils.toStringFromClasspath(filename).getBytes());
     }
 
     @Override

@@ -24,6 +24,7 @@ import java.util.Map;
  *
  * @author aaronwalker
  */
+@SuppressWarnings("unchecked")
 public class SoapMessageDataFormat implements DataFormat {
 
     /**

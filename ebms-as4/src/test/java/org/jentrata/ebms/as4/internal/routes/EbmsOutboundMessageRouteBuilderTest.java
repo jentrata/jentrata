@@ -10,10 +10,8 @@ import org.apache.camel.impl.JndiRegistry;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.apache.commons.io.IOUtils;
 import org.jentrata.ebms.EbmsConstants;
-import org.jentrata.ebms.cpa.InvalidPartnerAgreementException;
 import org.jentrata.ebms.cpa.PartnerAgreement;
 import org.jentrata.ebms.messaging.UUIDGenerator;
-import org.jentrata.ebms.soap.SoapMessageDataFormat;
 import org.jentrata.ebms.utils.EbmsUtils;
 import org.junit.Test;
 
@@ -29,16 +27,14 @@ import java.io.InputStream;
 import java.util.Iterator;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.hasXPath;
-import static org.hamcrest.Matchers.is;
 
 /**
  * Unit test for EbmsOutboundMessageRouteBuilder
  *
  * @author aaronwalker
  */
+@SuppressWarnings("unchecked")
 public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
 
     @EndpointInject(uri = "mock:mockEbmsOutbound")
@@ -224,7 +220,6 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
     }
 
     protected static File fileFromClasspath(String filename) {
-        File file = new File(Thread.currentThread().getContextClassLoader().getResource(filename).getFile());
-        return file;
+        return EbmsUtils.fileFromClasspath(filename);
     }
 }
