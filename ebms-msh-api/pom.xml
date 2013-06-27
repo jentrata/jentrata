@@ -36,7 +36,8 @@
             org.jentrata.ebms.messaging;version=${project.version},
             org.jentrata.ebms.security;version=${project.version},
             org.jentrata.ebms.cpa;version=${project.version},
-            org.jentrata.ebms.cpa.pmode;version=${project.version}
+            org.jentrata.ebms.cpa.pmode;version=${project.version},
+            org.jentrata.ebms.utils;version=${project.version}
         </osgi.export>
     </properties>
 
@@ -52,6 +53,10 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
         </dependency>
     </dependencies>
 </project>

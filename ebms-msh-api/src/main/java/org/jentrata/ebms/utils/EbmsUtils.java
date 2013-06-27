@@ -1,6 +1,7 @@
 package org.jentrata.ebms.utils;
 
 import org.apache.camel.Exchange;
+import org.apache.camel.builder.xml.Namespaces;
 import org.apache.commons.io.IOUtils;
 import org.jentrata.ebms.EbmsConstants;
 import org.w3c.dom.Document;
@@ -21,6 +22,10 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -182,5 +187,17 @@ public class EbmsUtils {
     public static File fileFromClasspath(String filename) {
         File file = new File(Thread.currentThread().getContextClassLoader().getResource(filename).getFile());
         return file;
+    }
+
+    public static final String ebmsXpathValue(Element element,String xpath) throws XPathExpressionException {
+        XPath xPath = XPathFactory.newInstance().newXPath();
+        xPath.setNamespaceContext(Ebms3NamespaceContext.instance());
+        return (String)xPath.evaluate(xpath,element, XPathConstants.STRING);
+    }
+
+    public static boolean hasEbmsXpath(Document element, String query) throws XPathExpressionException {
+        XPath xPath = XPathFactory.newInstance().newXPath();
+        xPath.setNamespaceContext(Ebms3NamespaceContext.instance());
+        return xPath.evaluate(query,element, XPathConstants.NODE) != null;
     }
 }
