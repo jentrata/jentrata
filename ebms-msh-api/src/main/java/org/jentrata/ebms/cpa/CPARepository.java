@@ -1,8 +1,10 @@
 package org.jentrata.ebms.cpa;
 
+import org.apache.camel.Body;
 import org.apache.camel.Header;
 import org.apache.camel.Headers;
 import org.jentrata.ebms.EbmsConstants;
+import org.w3c.dom.Document;
 
 import java.util.List;
 import java.util.Map;
@@ -44,6 +46,16 @@ public interface CPARepository {
      * @return the partner agreement that has the service/action defined
      */
     PartnerAgreement findByServiceAndAction(@Header(EbmsConstants.MESSAGE_SERVICE) final String service, @Header(EbmsConstants.MESSAGE_ACTION) final String action);
+
+
+    /**
+     * Finds a active partner agreement given the ebms Messahe
+     *
+     * @param message the ebms message
+     * @param ebmsVersion  the ebms message version
+     * @return the first matching partner agreement
+     */
+    PartnerAgreement findByMessage(@Body Document message, @Header(EbmsConstants.EBMS_V3) String ebmsVersion);
 
     /**
      * Returns true if a valid partner agreements exists matching the

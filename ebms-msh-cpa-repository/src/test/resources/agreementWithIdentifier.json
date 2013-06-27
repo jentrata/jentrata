@@ -1,0 +1,48 @@
+[
+    {
+        "cpaId":"testCPAId1",
+        "active":"true",
+        "transportReceiverEndpoint":"http://example.jentrata.org",
+        "services" : [
+            {
+                "service":"service1",
+                "action":"action1",
+                "identifier": {
+                    "xpath":"//wsse:Security/wsse:UsernameToken/wsse:Username/text()",
+                    "identifier":"jentrata"
+                }
+            },
+            {
+                "service":"service2",
+                "action":"action2",
+                "identifier": {
+                    "xpath":"//wsse:Security/wsse:UsernameToken/wsse:Username/text()",
+                    "identifier":"jentrata"
+                }
+            }
+        ]
+    },
+    {
+        "cpaId":"testCPAId2",
+        "active":"true",
+        "transportReceiverEndpoint":"http://example2.jentrata.org",
+        "services" : [
+            {
+                "service":"service1",
+                "action":"action1",
+                "identifier": {
+                    "xpath":"//wsse:Security/wsse:UsernameToken/wsse:Username/text()",
+                    "identifier":"test"
+                }
+            },
+            {
+                "service":"service2",
+                "action":"action2",
+                "identifier": {
+                    "xpath":"//wsse:Security/wsse:UsernameToken/wsse:Username/text()",
+                    "identifier":"test"
+                }
+            }
+        ]
+    }
+]

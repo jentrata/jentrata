@@ -7,7 +7,9 @@ import org.jentrata.ebms.cpa.pmode.PayloadService;
 import org.jentrata.ebms.cpa.pmode.Security;
 import org.jentrata.ebms.cpa.pmode.Signature;
 import org.jentrata.ebms.cpa.pmode.UsernameToken;
+import org.jentrata.ebms.utils.EbmsUtils;
 import org.junit.Test;
+import org.w3c.dom.Document;
 
 import java.io.File;
 import java.io.IOException;
@@ -264,6 +266,32 @@ public class JSONCPARepositoryTest {
         assertThat(repository.getActivePartnerAgreements().get(0).getPayloadService().getPayloadId(),equalTo("attachment1234@jentrata.org"));
         assertThat(repository.getActivePartnerAgreements().get(0).getPayloadService().getCompressionType(), equalTo(PayloadService.CompressionType.NONE));
 
+    }
+
+    @Test
+    public void testFindByMessageWithDefaultMatches() throws Exception {
+        JSONCPARepository repository = new JSONCPARepository();
+        repository.setCpaJsonFile(fileFromClasspath("agreementWithSecurity.json"));
+        repository.init();
+
+        Document ebmsMessage = EbmsUtils.toXML(EbmsUtils.toStringFromClasspath("sample-ebms-user-message.xml"));
+
+        PartnerAgreement agreement1 = repository.findByMessage(ebmsMessage,EbmsConstants.EBMS_V3);
+        assertThat(agreement1,notNullValue());
+        assertThat(agreement1.getCpaId(),equalTo("testCPAId1"));
+    }
+
+    @Test
+    public void testFindByMessageWithServiceIdentifier() throws Exception {
+        JSONCPARepository repository = new JSONCPARepository();
+        repository.setCpaJsonFile(fileFromClasspath("agreementWithIdentifier.json"));
+        repository.init();
+
+        Document ebmsMessage = EbmsUtils.toXML(EbmsUtils.toStringFromClasspath("sample-ebms-user-message.xml"));
+
+        PartnerAgreement agreement1 = repository.findByMessage(ebmsMessage,EbmsConstants.EBMS_V3);
+        assertThat(agreement1,notNullValue());
+        assertThat(agreement1.getCpaId(),equalTo("testCPAId2"));
     }
 
     protected static File fileFromClasspath(String filename) {

@@ -44,7 +44,7 @@ public class ValidatePartnerAgreementRouteBuilder extends RouteBuilder {
         .routeId("_jentratalookupCpaId");
 
         from("direct:lookupCpaIdByServiceAndAction")
-            .setHeader(EbmsConstants.CPA, simple("bean:cpaRepository?method=findByServiceAndAction"))
+            .setHeader(EbmsConstants.CPA, simple("bean:cpaRepository?method=findByMessage"))
             .choice()
                 .when(header(EbmsConstants.CPA).isNotEqualTo(null))
                     .setHeader(EbmsConstants.CPA_ID,simple("${headers.JentrataCPA.cpaId}"))

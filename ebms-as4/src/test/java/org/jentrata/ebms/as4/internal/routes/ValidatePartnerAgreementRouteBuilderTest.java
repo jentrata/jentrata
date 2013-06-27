@@ -1,8 +1,10 @@
 package org.jentrata.ebms.as4.internal.routes;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.camel.Body;
 import org.apache.camel.Exchange;
 import org.apache.camel.Header;
+import org.apache.camel.Headers;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.impl.DefaultExchange;
 import org.apache.camel.impl.JndiRegistry;
@@ -15,9 +17,14 @@ import org.jentrata.ebms.cpa.PartnerAgreement;
 import org.jentrata.ebms.cpa.Service;
 import org.jentrata.ebms.messaging.Message;
 import org.jentrata.ebms.messaging.MessageStore;
+import org.jentrata.ebms.utils.EbmsUtils;
 import org.junit.Test;
+import org.w3c.dom.Document;
 
+import javax.xml.xpath.XPathExpressionException;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -32,21 +39,21 @@ import static org.mockito.Mockito.*;
 public class ValidatePartnerAgreementRouteBuilderTest extends CamelTestSupport {
 
     @Test
-    public void testHasValidPartnerAgreement() {
+    public void testHasValidPartnerAgreement() throws Exception {
         Exchange request = new DefaultExchange(context());
-        request.getIn().setBody(new ByteArrayInputStream("test".getBytes()));
+        request.getIn().setBody(loadEbmsMessage());
         request.getIn().setHeader(EbmsConstants.MESSAGE_ID, "testMsgID");
-        request.getIn().setHeader(EbmsConstants.MESSAGE_SERVICE, "testService");
-        request.getIn().setHeader(EbmsConstants.MESSAGE_ACTION,"testAction");
+        request.getIn().setHeader(EbmsConstants.MESSAGE_SERVICE, "service1");
+        request.getIn().setHeader(EbmsConstants.MESSAGE_ACTION,"action1");
         Exchange response = context().createProducerTemplate().send("direct:validatePartner",request);
 
         assertThat(response.getIn().getHeader(EbmsConstants.VALID_PARTNER_AGREEMENT,Boolean.class),is(true));
     }
 
     @Test
-    public void testHasInvalidPartnerAgreement() {
+    public void testHasInvalidPartnerAgreement() throws Exception {
         Exchange request = new DefaultExchange(context());
-        request.getIn().setBody(new ByteArrayInputStream("test".getBytes()));
+        request.getIn().setBody(loadEbmsMessage());
         request.getIn().setHeader(EbmsConstants.MESSAGE_ID, "testMsgID");
         request.getIn().setHeader(EbmsConstants.MESSAGE_SERVICE, "testServiceInvalid");
         request.getIn().setHeader(EbmsConstants.MESSAGE_ACTION, "testAction");
@@ -58,9 +65,9 @@ public class ValidatePartnerAgreementRouteBuilderTest extends CamelTestSupport {
     }
 
     @Test
-    public void testNullServiceAndAction() {
+    public void testNullServiceAndAction() throws Exception {
         Exchange request = new DefaultExchange(context());
-        request.getIn().setBody(new ByteArrayInputStream("test".getBytes()));
+        request.getIn().setBody(loadEbmsMessage());
         Exchange response = context().createProducerTemplate().send("direct:validatePartner",request);
 
         assertThat(request.isFailed(), equalTo(true));
@@ -69,9 +76,9 @@ public class ValidatePartnerAgreementRouteBuilderTest extends CamelTestSupport {
     }
 
     @Test
-    public void testLookupCPAId() {
+    public void testLookupCPAId() throws Exception {
         Exchange request = new DefaultExchange(context());
-        request.getIn().setBody(new ByteArrayInputStream("test".getBytes()));
+        request.getIn().setBody(loadEbmsMessage());
         request.getIn().setHeader(EbmsConstants.MESSAGE_ID, "testMsgID");
         request.getIn().setHeader(EbmsConstants.MESSAGE_SERVICE, "testService");
         request.getIn().setHeader(EbmsConstants.MESSAGE_ACTION,"testAction");
@@ -83,9 +90,9 @@ public class ValidatePartnerAgreementRouteBuilderTest extends CamelTestSupport {
     }
 
     @Test
-    public void testLookupCPAIdForSignalMessage() {
+    public void testLookupCPAIdForSignalMessage() throws Exception {
         Exchange request = new DefaultExchange(context());
-        request.getIn().setBody(new ByteArrayInputStream("test".getBytes()));
+        request.getIn().setBody(loadEbmsMessage());
         request.getIn().setHeader(EbmsConstants.MESSAGE_ID, "testMsgID");
         request.getIn().setHeader(EbmsConstants.MESSAGE_TYPE, MessageType.SIGNAL_MESSAGE);
         Exchange response = context().createProducerTemplate().send("direct:lookupCpaId",request);
@@ -95,15 +102,19 @@ public class ValidatePartnerAgreementRouteBuilderTest extends CamelTestSupport {
     }
 
     @Test
-    public void testInvalidLookupCPAId() {
+    public void testInvalidLookupCPAId() throws Exception {
         Exchange request = new DefaultExchange(context());
-        request.getIn().setBody(new ByteArrayInputStream("test".getBytes()));
+        request.getIn().setBody(loadEbmsMessage());
         request.getIn().setHeader(EbmsConstants.MESSAGE_ID, "testMsgID");
         request.getIn().setHeader(EbmsConstants.MESSAGE_SERVICE, "testService");
         request.getIn().setHeader(EbmsConstants.MESSAGE_ACTION,"testAction2");
         Exchange response = context().createProducerTemplate().send("direct:lookupCpaId",request);
         assertThat(response.getIn().getHeader(EbmsConstants.CPA, PartnerAgreement.class),is(nullValue()));
         assertThat(response.getIn().getHeader(EbmsConstants.CPA_ID, String.class),equalTo(EbmsConstants.CPA_ID_UNKNOWN));
+    }
+
+    private InputStream loadEbmsMessage() throws IOException {
+        return new ByteArrayInputStream(EbmsUtils.toStringFromClasspath("sample-ebms-user-message.xml").getBytes());
     }
 
     @Override
@@ -147,7 +158,7 @@ public class ValidatePartnerAgreementRouteBuilderTest extends CamelTestSupport {
         @Override
         public PartnerAgreement findByServiceAndAction(String service, String action) {
             switch (service + "|" + action) {
-                case "testService|testAction":
+                case "service1|action1":
                     PartnerAgreement partnerAgreement = new PartnerAgreement();
                     partnerAgreement.setCpaId("testCPAId");
                     partnerAgreement.setTransportReceiverEndpoint("http://example.jentrata.com");
@@ -158,6 +169,18 @@ public class ValidatePartnerAgreementRouteBuilderTest extends CamelTestSupport {
                     return partnerAgreement;
                 default:
                     return null;
+            }
+        }
+
+        @Override
+        public PartnerAgreement findByMessage(Document message, String ebmsVersion) {
+            try {
+                String serviceValue = EbmsUtils.ebmsXpathValue(message.getDocumentElement(), "//eb3:CollaborationInfo/eb3:Service/text()");
+                String actionValue = EbmsUtils.ebmsXpathValue(message.getDocumentElement(),"//eb3:CollaborationInfo/eb3:Action/text()");
+                return findByServiceAndAction(serviceValue,actionValue);
+
+            } catch (XPathExpressionException e) {
+                throw new RuntimeException(e);
             }
         }
 

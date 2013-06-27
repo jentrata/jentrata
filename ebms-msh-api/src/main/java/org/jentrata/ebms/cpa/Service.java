@@ -9,6 +9,7 @@ public class Service {
 
     private String service;
     private String action;
+    private ServiceIdentifier identifier = null;
 
     public Service() {}
 
@@ -31,5 +32,14 @@ public class Service {
 
     public void setAction(String action) {
         this.action = action;
+    }
+
+
+    public ServiceIdentifier getIdentifier() {
+        return identifier;
+    }
+
+    public void setIdentifier(ServiceIdentifier identifier) {
+        this.identifier = identifier;
     }
 }

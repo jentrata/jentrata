@@ -1,8 +1,10 @@
 package org.jentrata.ebms.as4.internal.routes;
 
+import org.apache.camel.Body;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Exchange;
 import org.apache.camel.Header;
+import org.apache.camel.Headers;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
@@ -14,6 +16,7 @@ import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.cpa.CPARepository;
 import org.jentrata.ebms.cpa.PartnerAgreement;
 import org.junit.Test;
+import org.w3c.dom.Document;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -141,7 +144,7 @@ public class EbmsOutboundRouteBuilderTest extends CamelTestSupport {
         }
 
         @Override
-        public PartnerAgreement findByCPAId(@Header(EbmsConstants.CPA_ID) String cpaId) {
+        public PartnerAgreement findByCPAId(String cpaId) {
             return null;
         }
 
@@ -149,6 +152,12 @@ public class EbmsOutboundRouteBuilderTest extends CamelTestSupport {
         public PartnerAgreement findByServiceAndAction(String service, String action) {
             return null;
         }
+
+        @Override
+        public PartnerAgreement findByMessage(Document message, String ebmsVersion) {
+            return null;
+        }
+
 
         @Override
         public boolean isValidPartnerAgreement(Map<String, Object> fields) {

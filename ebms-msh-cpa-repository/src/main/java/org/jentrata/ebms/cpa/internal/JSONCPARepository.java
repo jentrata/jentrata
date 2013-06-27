@@ -2,16 +2,18 @@ package org.jentrata.ebms.cpa.internal;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-import org.apache.camel.Header;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.jentrata.ebms.EbmsConstants;
-import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.cpa.CPARepository;
 import org.jentrata.ebms.cpa.PartnerAgreement;
+import org.jentrata.ebms.cpa.Service;
+import org.jentrata.ebms.utils.EbmsUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
 
+import javax.xml.xpath.XPathExpressionException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -57,7 +59,7 @@ public class JSONCPARepository implements CPARepository {
     }
 
     @Override
-    public PartnerAgreement findByCPAId(@Header(EbmsConstants.CPA_ID) String cpaId) {
+    public PartnerAgreement findByCPAId(String cpaId) {
         for(PartnerAgreement partnerAgreement : getActivePartnerAgreements()) {
             if(partnerAgreement.getCpaId().equals(cpaId)) {
                 return partnerAgreement;
@@ -81,6 +83,22 @@ public class JSONCPARepository implements CPARepository {
         }
     }
 
+    @Override
+    public PartnerAgreement findByMessage(Document message, String ebmsVersion) {
+        for(PartnerAgreement partnerAgreement : getActivePartnerAgreements()) {
+            for(Service service :partnerAgreement.getServices()) {
+                try {
+                    if(serviceMatches(message,service)) {
+                        return partnerAgreement;
+                    }
+                } catch (XPathExpressionException e) {
+                    LOG.error("Error finding matching service for partner " + partnerAgreement.getCpaId() + ":" + e,e);
+                }
+            }
+        }
+        return null;
+    }
+
     public boolean isValidPartnerAgreement(final Map<String, Object> fields) {
         String service = (String) fields.get(EbmsConstants.MESSAGE_SERVICE);
         String action = (String) fields.get(EbmsConstants.MESSAGE_ACTION);
@@ -91,13 +109,22 @@ public class JSONCPARepository implements CPARepository {
         return  agreement != null;
     }
 
-
-
     public File getCpaJsonFile() {
         return cpaJsonFile;
     }
 
     public void setCpaJsonFile(File cpaJsonFile) {
         this.cpaJsonFile = cpaJsonFile;
+    }
+
+    private boolean serviceMatches(Document ebms, Service service) throws XPathExpressionException {
+        String serviceValue = EbmsUtils.ebmsXpathValue(ebms.getDocumentElement(),"//eb3:CollaborationInfo/eb3:Service/text()");
+        String actionValue = EbmsUtils.ebmsXpathValue(ebms.getDocumentElement(),"//eb3:CollaborationInfo/eb3:Action/text()");
+        boolean matches = service.getService().equals(serviceValue) && service.getAction().equals(actionValue);
+        if(matches &&  service.getIdentifier() != null) {
+            String value = EbmsUtils.ebmsXpathValue(ebms.getDocumentElement(),service.getIdentifier().getXpath());
+            matches = service.getIdentifier().getIdentifier().equals(value);
+        }
+        return matches;
     }
 }
