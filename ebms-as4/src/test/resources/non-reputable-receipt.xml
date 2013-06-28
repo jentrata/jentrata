@@ -1,0 +1,24 @@
+<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+    <env:Header>
+        <eb:Messaging xmlns:eb="http://docs.oasis-open.org/ebxml-msg/ebms/v3.0/ns/core/200704/">
+            <eb:SignalMessage>
+                <eb:MessageInfo>
+                    <eb:Timestamp>2013-06-28T03:30:00.894Z</eb:Timestamp>
+                    <eb:MessageId>FMS-A-20130628-133000.516-0.2841385150532064@74151023755</eb:MessageId>
+                    <eb:RefToMessageId>f8078537-464f-4663-8f7f-a854b9d99f2f@jentrata.org</eb:RefToMessageId>
+                </eb:MessageInfo>
+                <eb:Receipt>
+                    <ebbpsig:NonRepudiationInformation
+                            xmlns:ebbpsig="http://docs.oasis-open.org/ebxml-bp/ebbp-signals-2.0">
+                        <ebbpsig:MessagePartNRInformation>
+                            <ebbp:MessagePartIdentifier xmlns:ebbp="http://docs.oasis-open.org/ebxml-bp/ebbp-2.0">
+                                payload-id@jentrata.org
+                            </ebbp:MessagePartIdentifier>
+                        </ebbpsig:MessagePartNRInformation>
+                    </ebbpsig:NonRepudiationInformation>
+                </eb:Receipt>
+            </eb:SignalMessage>
+        </eb:Messaging>
+    </env:Header>
+    <env:Body/>
+</env:Envelope>

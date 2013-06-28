@@ -87,6 +87,40 @@ public class WSSERouteBuilderTest extends CamelTestSupport {
     }
 
     @Test
+    public void testReceiptWithResponseMepShouldBeAuthenticated() throws Exception {
+        Exchange request = new DefaultExchange(context);
+        request.getIn().setBody(loadSoapReceipt());
+        request.getIn().setHeader(EbmsConstants.MESSAGE_ID, "testMSG-0001");
+        request.getIn().setHeader(EbmsConstants.CPA_ID,"JentrataTestCPA");
+        PartnerAgreement agreement = generateAgreement("jentrata", false);
+        agreement.getSecurity().setSendReceiptReplyPattern(Security.ReplyPatternType.Response);
+        request.getIn().setHeader(EbmsConstants.CPA, agreement);
+        request.getIn().setHeader(EbmsConstants.MESSAGE_TYPE, MessageType.SIGNAL_MESSAGE_WITH_USER_MESSAGE);
+
+        Exchange response = context().createProducerTemplate().send("direct:wsseSecurityCheck",request);
+        assertThat(request.isFailed(),is(false));
+        assertThat(response.getIn().getHeader(EbmsConstants.SECURITY_CHECK,Boolean.class),is(true));
+
+    }
+
+    @Test
+    public void testNonReputableReceiptWithResponseMepShouldBeAuthenticated() throws Exception {
+        Exchange request = new DefaultExchange(context);
+        request.getIn().setBody(loadSoapNonReputableReceipt());
+        request.getIn().setHeader(EbmsConstants.MESSAGE_ID, "testMSG-0001");
+        request.getIn().setHeader(EbmsConstants.CPA_ID,"JentrataTestCPA");
+        PartnerAgreement agreement = generateAgreement("jentrata", false);
+        agreement.getSecurity().setSendReceiptReplyPattern(Security.ReplyPatternType.Response);
+        request.getIn().setHeader(EbmsConstants.CPA, agreement);
+        request.getIn().setHeader(EbmsConstants.MESSAGE_TYPE, MessageType.SIGNAL_MESSAGE);
+
+        Exchange response = context().createProducerTemplate().send("direct:wsseSecurityCheck",request);
+        assertThat(request.isFailed(),is(false));
+        assertThat(response.getIn().getHeader(EbmsConstants.SECURITY_CHECK,Boolean.class),is(true));
+
+    }
+
+    @Test
     public void testAddSecurityToHeader() throws Exception {
         Exchange request = new DefaultExchange(context);
         request.getIn().setBody(loadSoapMessage());
@@ -239,6 +273,27 @@ public class WSSERouteBuilderTest extends CamelTestSupport {
     }
 
     @Test
+    public void testShouldNotAddSecurityHeaderForResponseMEPSignalMessageNonReputable() throws Exception {
+        Exchange request = new DefaultExchange(context);
+        request.getIn().setBody(loadSoapNonReputableReceipt());
+        request.getIn().setHeader(EbmsConstants.MESSAGE_ID, "testMSG-0001");
+        request.getIn().setHeader(EbmsConstants.CPA_ID,"JentrataTestCPA");
+        PartnerAgreement agreement = generateAgreement("jentrata", false);
+        agreement.getSecurity().setSendReceiptReplyPattern(Security.ReplyPatternType.Response);
+        request.getIn().setHeader(EbmsConstants.CPA, agreement);
+        request.getIn().setHeader(EbmsConstants.MESSAGE_TYPE, MessageType.SIGNAL_MESSAGE);
+        Exchange response = context().createProducerTemplate().send("direct:wsseAddSecurityToHeader",request);
+
+        Document body = response.getIn().getBody(Document.class);
+        System.out.println(XMLUtils.PrettyDocumentToString(body));
+
+        assertThat(body, not(hasXPath("//*[local-name()='Security']")));
+        assertThat(body, not(hasXPath("//*[local-name()='UsernameToken']")));
+        assertThat(body, not(hasXPath("//*[local-name()='Signature']")));
+
+    }
+
+    @Test
     public void testShouldNotAddUserTokenForResponseMEPSignalMessage() throws Exception {
         Exchange request = new DefaultExchange(context);
         request.getIn().setBody(loadSoapReceipt());
@@ -321,6 +376,10 @@ public class WSSERouteBuilderTest extends CamelTestSupport {
 
     private Document loadSoapReceipt() throws Exception {
         return context().getTypeConverter().convertTo(Document.class, new FileInputStream(fileFromClasspath("simple-as4-receipt.xml")));
+    }
+
+    private Document loadSoapNonReputableReceipt() throws Exception {
+        return context().getTypeConverter().convertTo(Document.class, new FileInputStream(fileFromClasspath("non-reputable-receipt.xml")));
     }
 
     private PartnerAgreement generateAgreement() {

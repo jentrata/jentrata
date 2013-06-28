@@ -85,7 +85,7 @@ public class WSSERouteBuilder extends RouteBuilder {
                                 }
                             } else {
                                 MessageType messageType = exchange.getIn().getHeader(EbmsConstants.MESSAGE_TYPE,MessageType.class);
-                                if(messageType == MessageType.SIGNAL_MESSAGE_WITH_USER_MESSAGE
+                                if((messageType == MessageType.SIGNAL_MESSAGE_WITH_USER_MESSAGE || messageType == MessageType.SIGNAL_MESSAGE)
                                         && agreement.getSecurity().getSendReceiptReplyPattern() == Security.ReplyPatternType.Response) {
                                     exchange.getIn().setHeader(EbmsConstants.SECURITY_CHECK,Boolean.TRUE);
                                 } else {
