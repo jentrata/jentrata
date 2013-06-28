@@ -28,6 +28,7 @@ import java.util.Iterator;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.hasXPath;
+import static org.hamcrest.Matchers.not;
 
 /**
  * Unit test for EbmsOutboundMessageRouteBuilder
@@ -67,7 +68,7 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
         request.getIn().setHeader(EbmsConstants.MESSAGE_PAYLOAD_SCHEMA,"http://jentrata.org/schema/example");
         request.getIn().setHeader(EbmsConstants.MESSAGE_AGREEMENT_REF,"http://jentrata.org/agreement");
 
-        request.getIn().setHeader(EbmsConstants.MESSAGE_PART_PROPERTIES,"PartID=testpayload@jentrata.org;SourceABN=123456789");
+        request.getIn().setHeader(EbmsConstants.MESSAGE_PART_PROPERTIES,"PartID=testpayload@jentrata.org;SourceABN=123456789;test=");
 
         request.getIn().setHeader(EbmsConstants.MESSAGE_DIRECTION,EbmsConstants.MESSAGE_DIRECTION_OUTBOUND);
 
@@ -94,6 +95,7 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
         assertThat(soapHeader.getOwnerDocument(),hasXPath("//@name[.='CharacterSet' and ../text()='UTF-8']"));
         assertThat(soapHeader.getOwnerDocument(),hasXPath("//@name[.='PartID' and ../text()='testpayload@jentrata.org']"));
         assertThat(soapHeader.getOwnerDocument(),hasXPath("//@name[.='SourceABN' and ../text()='123456789']"));
+        assertThat(soapHeader.getOwnerDocument(),not(hasXPath("//@name[.='test']")));
     }
 
     @Test

@@ -33,8 +33,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -199,5 +201,24 @@ public class EbmsUtils {
         XPath xPath = XPathFactory.newInstance().newXPath();
         xPath.setNamespaceContext(Ebms3NamespaceContext.instance());
         return xPath.evaluate(query,element, XPathConstants.NODE) != null;
+    }
+
+    public static List<Map<String, Object>> extractPartProperties(String partProperties) {
+        List<Map<String,Object>> properites = new ArrayList<>();
+        if(partProperties != null && partProperties.length() > 0) {
+            String [] propertyArray = partProperties.split(";");
+            for (String property : propertyArray) {
+                String [] value = property.split("=");
+                Map<String,Object> propertyMap = new HashMap<>();
+                propertyMap.put("name",value[0]);
+                if(value.length == 2) {
+                    propertyMap.put("value",value[1]);
+                } else {
+                    propertyMap.put("value",null);
+                }
+                properites.add(propertyMap);
+            }
+        }
+        return properites;
     }
 }

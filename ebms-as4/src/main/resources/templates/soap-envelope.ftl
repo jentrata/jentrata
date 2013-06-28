@@ -38,7 +38,7 @@
                             <eb:Property name="MimeType">${payload.contentType}</eb:Property>
                             <eb:Property name="CharacterSet">${payload.charset}</eb:Property>
                             <#list payload.partProperties as partProperty>
-                            <eb:Property name="${partProperty.name}">${partProperty.value}</eb:Property>
+                            <#if partProperty['value']?has_content><eb:Property name="${partProperty.name}">${partProperty.value}</eb:Property></#if>
                             </#list>
                         </eb:PartProperties>
                     </eb:PartInfo>

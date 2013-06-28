@@ -61,7 +61,7 @@ public class  EbmsOutboundMessageRouteBuilder extends RouteBuilder {
                             String payloadId = exchange.getIn().getHeader(EbmsConstants.PAYLOAD_ID,agreement.getPayloadService().getPayloadId(), String.class);
                             String schema = exchange.getIn().getHeader(EbmsConstants.MESSAGE_PAYLOAD_SCHEMA, String.class);
                             String compressionType = exchange.getIn().getHeader(EbmsConstants.PAYLOAD_COMPRESSION,agreement.getPayloadService().getCompressionType().getType(),String.class);
-                            List<Map<String, Object>> partProperties = extractPartProperties(exchange.getIn().getHeader(EbmsConstants.MESSAGE_PART_PROPERTIES, String.class));
+                            List<Map<String, Object>> partProperties = EbmsUtils.extractPartProperties(exchange.getIn().getHeader(EbmsConstants.MESSAGE_PART_PROPERTIES, String.class));
 
                             List<Map<String, Object>> payloads = new ArrayList<>();
                             Map<String, Object> payloadMap = new HashMap<>();
@@ -93,21 +93,6 @@ public class  EbmsOutboundMessageRouteBuilder extends RouteBuilder {
                     .to(outboundEbmsQueue)
         .routeId("_jentrataEbmsGenerateMessage");
 
-    }
-
-    private List<Map<String, Object>> extractPartProperties(String partProperties) {
-        List<Map<String,Object>> properites = new ArrayList<>();
-        if(partProperties != null && partProperties.length() > 0) {
-            String [] propertyArray = partProperties.split(";");
-            for (String property : propertyArray) {
-                String [] value = property.split("=");
-                Map<String,Object> propertyMap = new HashMap<>();
-                propertyMap.put("name",value[0]);
-                propertyMap.put("value",value[1]);
-                properites.add(propertyMap);
-            }
-        }
-        return properites;
     }
 
     public String getDeliveryQueue() {
