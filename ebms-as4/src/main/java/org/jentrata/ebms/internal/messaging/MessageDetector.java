@@ -34,7 +34,7 @@ public class MessageDetector {
      */
     public void parse(@Body InputStream input, @Headers Map<String, Object> headers) throws IOException {
         try {
-            byte [] msgData = new byte[4096];
+            byte [] msgData = new byte[20480];
             int count = input.read(msgData);
             if(count > 0) {
                 String msg = new String(msgData); //should be able to use a header to determine encoding
