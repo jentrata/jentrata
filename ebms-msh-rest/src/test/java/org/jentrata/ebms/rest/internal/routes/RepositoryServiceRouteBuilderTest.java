@@ -1,9 +1,11 @@
 package org.jentrata.ebms.rest.internal.routes;
 
 import org.apache.camel.Exchange;
+import org.apache.camel.Header;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.impl.DefaultExchange;
 import org.apache.camel.test.junit4.CamelTestSupport;
+import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.MessageStatusType;
 import org.jentrata.ebms.messaging.DefaultMessage;
 import org.jentrata.ebms.messaging.Message;
@@ -13,6 +15,7 @@ import org.junit.Test;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -64,6 +67,11 @@ public class RepositoryServiceRouteBuilderTest extends CamelTestSupport {
         @Override
         public InputStream findPayloadById(String messageId) {
             return messageStore.get(messageId);
+        }
+
+        @Override
+        public List<Message> findByMessageStatus(String messageDirection, String status) {
+            return null;
         }
     }
 }

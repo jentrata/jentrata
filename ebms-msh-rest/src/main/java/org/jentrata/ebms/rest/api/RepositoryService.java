@@ -19,6 +19,12 @@ public class RepositoryService {
     }
 
     @GET
+    @Path("/{direction}/message/status/{status}/")
+    public Response findMessageByStatus(@PathParam("direction") String direction, @PathParam("status") String messageStatus) {
+        return null;
+    }
+
+    @GET
     @Path("/{direction}/payload/{id}/")
     public Response findPayloadById(@PathParam("id") String messageId, @PathParam("direction") String direction) {
         return null;

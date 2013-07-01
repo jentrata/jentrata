@@ -96,6 +96,17 @@ public class JDBCMessageStore implements MessageStore {
         return payload;
     }
 
+    @Override
+    public List<Message> findByMessageStatus(String messageDirection, String status) {
+        Map<String,Object> fields = new HashMap<>();
+        fields.put("status",status);
+        fields.put("message_box",messageDirection);
+        fields.put("orderByDesc","time_stamp");
+        fields.put("maxResults",100);
+        List<Message> messages = repositoryManager.selectMessageBy(fields);
+        return messages;
+    }
+
     public RepositoryManager getRepositoryManager() {
         return repositoryManager;
     }

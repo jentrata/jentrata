@@ -16,8 +16,10 @@ import org.junit.Test;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -75,6 +77,11 @@ public class MessageStoreRouteBuilderTest extends CamelTestSupport {
         @Override
         public InputStream findPayloadById(String messageId) {
             return messageStore.get(messageId);
+        }
+
+        @Override
+        public List<Message> findByMessageStatus(String messageDirection,String status) {
+            return Collections.emptyList();
         }
     }
 }

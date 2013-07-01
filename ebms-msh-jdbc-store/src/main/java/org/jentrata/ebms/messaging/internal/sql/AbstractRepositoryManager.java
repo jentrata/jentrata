@@ -20,6 +20,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -121,7 +122,9 @@ public abstract class AbstractRepositoryManager implements RepositoryManager {
     @Override
     public List<Message> selectMessageBy(String columnName, String value) {
         try(Connection connection = dataSource.getConnection()) {
-            String sql = getMessageSelectSQL(columnName);
+            Map<String,Object> fields = new HashMap<>();
+            fields.put(columnName,value);
+            String sql = getMessageSelectSQL(fields);
             try(PreparedStatement stmt = connection.prepareStatement(sql)) {
                 stmt.setString(1,value);
                 ResultSet result = stmt.executeQuery();
@@ -137,13 +140,17 @@ public abstract class AbstractRepositoryManager implements RepositoryManager {
     @Override
     public List<Message> selectMessageBy(Map<String, Object> fields) {
         try(Connection connection = dataSource.getConnection()) {
-            String sql = getMessageSelectSQL(fields.keySet().toArray(new String[fields.size()]));
+            String sql = getMessageSelectSQL(fields);
             try(PreparedStatement stmt = connection.prepareStatement(sql)) {
                 int i = 1;
-                for(Map.Entry entry : fields.entrySet()) {
-                    stmt.setObject(i++,entry.getValue());
+                for(Map.Entry<String,Object> entry : fields.entrySet()) {
+                    if(!entry.getKey().startsWith("orderBy") && !entry.getKey().equals("maxResults")) {
+                        stmt.setObject(i++,entry.getValue());
+                    } else if(entry.getKey().equals("maxResults")) {
+                        int max = (int) entry.getValue();
+                        stmt.setMaxRows(max);
+                    }
                 }
-//                stmt.setString(1,value);
                 ResultSet result = stmt.executeQuery();
                 return JDBCMessageMapper.getMessage(result);
             }
@@ -172,21 +179,34 @@ public abstract class AbstractRepositoryManager implements RepositoryManager {
         return null;
     }
 
-    private String getRepositorySelectSQL(String columnName) {
+    protected String getRepositorySelectSQL(String columnName) {
         return "SELECT * from REPOSITORY WHERE " + columnName + "=?";
     }
 
-    protected String getMessageSelectSQL(String...columnName) {
+    protected String getMessageSelectSQL(Map<String,Object> fields) {
         StringBuilder sql = new StringBuilder("SELECT * FROM MESSAGE WHERE ");
+        String orderBy = "";
         boolean first = true;
-        for(String column : columnName) {
-            if(!first) {
-                sql.append(" AND ");
+        for(String column : fields.keySet()) {
+            switch (column) {
+                case "orderByAsc":
+                    orderBy = " ORDER BY " + fields.get(column);
+                    break;
+                case "orderByDesc":
+                    orderBy = " ORDER BY " + fields.get(column) + " DESC";
+                    break;
+                case "maxResults":
+                    break;
+                default:
+                    if(!first) {
+                        sql.append(" AND ");
+                    }
+                    sql.append(column);
+                    sql.append("=?");
+                    first = false;
             }
-            sql.append(column);
-            sql.append("=?");
-            first = false;
         }
+        sql.append(orderBy);
         return sql.toString();
     }
 

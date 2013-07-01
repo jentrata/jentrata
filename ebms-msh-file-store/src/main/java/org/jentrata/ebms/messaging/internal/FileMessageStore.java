@@ -2,6 +2,7 @@ package org.jentrata.ebms.messaging.internal;
 
 import org.apache.camel.Body;
 import org.apache.camel.Exchange;
+import org.apache.camel.Header;
 import org.apache.camel.builder.ExpressionBuilder;
 import org.apache.commons.io.IOUtils;
 import org.jentrata.ebms.EbmsConstants;
@@ -17,7 +18,9 @@ import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 /**
  * A simple filesystem based message store
@@ -67,6 +70,11 @@ public class FileMessageStore implements MessageStore {
         } catch (FileNotFoundException e) {
             return null;
         }
+    }
+
+    @Override
+    public List<Message> findByMessageStatus(String messageDirection,String status) {
+        return Collections.emptyList();
     }
 
     private String getFilename(final String messageId) {

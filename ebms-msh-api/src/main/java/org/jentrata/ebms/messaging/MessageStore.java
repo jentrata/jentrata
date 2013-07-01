@@ -7,6 +7,7 @@ import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.MessageStatusType;
 
 import java.io.InputStream;
+import java.util.List;
 
 /**
  *  A ebMS MessageStore interface
@@ -33,4 +34,5 @@ public interface MessageStore {
 
     Message findByMessageId(@Header(EbmsConstants.MESSAGE_ID)String messageId, @Header(EbmsConstants.MESSAGE_DIRECTION) String messageDirection);
     InputStream findPayloadById(@Header(EbmsConstants.MESSAGE_ID)String messageId);
+    List<Message> findByMessageStatus(@Header(EbmsConstants.MESSAGE_DIRECTION)String messageDirection, @Header(EbmsConstants.MESSAGE_STATUS)String status);
 }

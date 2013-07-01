@@ -27,10 +27,18 @@ public class RepositoryServiceRouteBuilder extends RouteBuilder {
         .routeId("_jentrataRestRepositoryService-findMessageById");
 
         from("direct:repository-findPayloadById")
-            .setHeader(EbmsConstants.MESSAGE_ID,body())
-            .bean(messageStore, "findPayloadById")
-            .setHeader(EbmsConstants.CONTENT_TYPE,constant(MediaType.APPLICATION_OCTET_STREAM))
-        .routeId("_jentrataRestRepositoryService-findPayloadById");
+                .setHeader(EbmsConstants.MESSAGE_ID,body())
+                .bean(messageStore, "findPayloadById")
+                .setHeader(EbmsConstants.CONTENT_TYPE,constant(MediaType.APPLICATION_OCTET_STREAM))
+                .routeId("_jentrataRestRepositoryService-findPayloadById");
+
+
+        from("direct:repository-findMessageByStatus")
+            .setHeader(EbmsConstants.MESSAGE_DIRECTION, simple("${body[0]}"))
+            .setHeader(EbmsConstants.MESSAGE_STATUS, simple("${body[1]}"))
+            .bean(messageStore, "findByMessageStatus")
+            .setHeader(EbmsConstants.CONTENT_TYPE, constant(MediaType.APPLICATION_JSON))
+        .routeId("_jentrataRestRepositoryService-findMessageByStatus");
     }
 
     public MessageStore getMessageStore() {

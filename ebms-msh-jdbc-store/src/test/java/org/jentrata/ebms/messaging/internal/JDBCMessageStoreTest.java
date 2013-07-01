@@ -26,6 +26,7 @@ import java.sql.Statement;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.Matchers.hasSize;
 
 /**
  * unit test for org.jentrata.ebms.messaging.internal.JDBCMessageStore
@@ -101,6 +102,20 @@ public class JDBCMessageStoreTest extends CamelTestSupport {
         InputStream stream = messageStore.findPayloadById("testSoapMessage1");
         assertThat(stream,notNullValue());
         assertThat(IOUtils.toString(stream),equalTo(IOUtils.toString(new FileInputStream(fileFromClasspath("simple-as4-receipt.xml")))));
+    }
+
+    @Test
+    public void testFindMessageByStatus() throws Exception {
+        testFindByMessageId();
+        List<Message> messages = messageStore.findByMessageStatus(EbmsConstants.MESSAGE_DIRECTION_INBOUND,MessageStatusType.RECEIVED.name());
+        assertThat(messages,notNullValue());
+        assertThat(messages,hasSize(1));
+        Message message = messages.get(0);
+        assertThat(message,notNullValue());
+        assertThat(message.getMessageId(),equalTo("testSoapMessage1"));
+        assertThat(message.getStatus(),equalTo(MessageStatusType.RECEIVED));
+        assertThat(message.getStatusDescription(),equalTo("Message Received"));
+
     }
 
     private void assertStoredMessage(String messageId, String contentType, File body, MessageType messageType) throws SQLException, IOException {
