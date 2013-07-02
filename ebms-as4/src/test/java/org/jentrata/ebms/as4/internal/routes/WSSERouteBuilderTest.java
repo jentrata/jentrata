@@ -228,6 +228,10 @@ public class WSSERouteBuilderTest extends CamelTestSupport {
         assertThat(body, hasXPath("//*[local-name()='Signature']"));
         assertThat(body, hasXPath("//@*[name()='URI' and .='cid:attachment1234@jentrata.org']"));
         assertThat(body, hasXPath("//@*[name()='href' and .='cid:attachment1234@jentrata.org']"));
+
+        assertThat(body, hasXPath("//*[local-name()='Reference'][1]"));
+        assertThat(body, hasXPath("//*[local-name()='Reference'][2]"));
+        assertThat(body, hasXPath("//*[local-name()='Reference'][3]"));
     }
 
     @Test
@@ -250,6 +254,9 @@ public class WSSERouteBuilderTest extends CamelTestSupport {
         assertThat(body,hasXPath("//*[local-name()='Created']"));
 
         assertThat(body, hasXPath("//*[local-name()='Signature']"));
+        assertThat(body, hasXPath("//*[local-name()='Reference'][1]"));
+        assertThat(body, hasXPath("//*[local-name()='Reference'][2]"));
+
     }
 
     @Test

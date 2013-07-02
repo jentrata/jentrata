@@ -16,12 +16,14 @@ public class Signature {
     public static final String SHA256 = "http://www.w3.org/2001/04/xmlenc#sha256";
 
     public static final SignaturePart EBMS3_MESSAGE_PART = new SignaturePart("Messaging", EbmsConstants.EBXML_V3_NAMESPACE,"");
+    public static final SignaturePart SOAP_BODY_PART = new SignaturePart("Body", EbmsConstants.SOAP_1_2_NAMESPACE,"Content");
+
 
     private static final List<SignaturePart> DEFAULT_SIGNATURE_PARTS = new ArrayList<>();
 
     static {
         DEFAULT_SIGNATURE_PARTS.add(EBMS3_MESSAGE_PART);
-        DEFAULT_SIGNATURE_PARTS.add(new SignaturePart("Body", EbmsConstants.SOAP_1_2_NAMESPACE,"Content"));
+        DEFAULT_SIGNATURE_PARTS.add(SOAP_BODY_PART);
         DEFAULT_SIGNATURE_PARTS.add(new SignaturePart("cid:Attachments", null,"Content"));
     }
 
