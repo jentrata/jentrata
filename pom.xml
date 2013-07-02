@@ -117,6 +117,7 @@
         <module>ebms-as4</module>
         <module>features</module>
         <module>dist</module>
+        <module>testsuite</module>
     </modules>
 
     <dependencyManagement>
@@ -219,6 +220,21 @@
                 <groupId>com.h2database</groupId>
                 <artifactId>h2</artifactId>
                 <version>${h2.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <!-- PAX Exam Test Deps -->
+            <!-- Karaf Test Framework Version -->
+            <dependency>
+                <groupId>org.apache.karaf.tooling.exam</groupId>
+                <artifactId>org.apache.karaf.tooling.exam.container</artifactId>
+                <version>${karaf.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <!-- Pax Exam version you would like to use. At least 2.2.x is required. -->
+            <dependency>
+                <groupId>org.ops4j.pax.exam</groupId>
+                <artifactId>pax-exam-junit4</artifactId>
+                <version>2.6.0</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
@@ -337,6 +353,11 @@
                     <groupId>org.apache.karaf.tooling</groupId>
                     <artifactId>features-maven-plugin</artifactId>
                     <version>2.3.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.servicemix.tooling</groupId>
+                    <artifactId>depends-maven-plugin</artifactId>
+                    <version>1.2</version>
                 </plugin>
             </plugins>
         </pluginManagement>
