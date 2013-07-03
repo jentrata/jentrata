@@ -13,7 +13,7 @@ import org.ops4j.pax.exam.spi.reactors.AllConfinedStagedReactorFactory;
  */
 @RunWith(JUnit4TestRunner.class)
 @ExamReactorStrategy(AllConfinedStagedReactorFactory.class)
-public class JentrataBootFeaturesTest extends JentrataTestSupport {
+public class JentrataBootFeaturesIT extends JentrataTestSupport {
 
     @Test
     public void testJentrataBoot() throws Exception {

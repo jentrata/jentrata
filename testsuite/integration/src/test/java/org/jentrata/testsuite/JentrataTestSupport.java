@@ -47,6 +47,7 @@ import static org.ops4j.pax.exam.CoreOptions.maven;
  *
  * @author aaronwalker
  */
+@SuppressWarnings("unchecked")
 public class JentrataTestSupport {
 
     static final Long COMMAND_TIMEOUT = 10000L;
