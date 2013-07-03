@@ -74,6 +74,7 @@ public class WSSERouteBuilder extends RouteBuilder {
                         requestData.setAddUsernameTokenNonce(token.isNonce());
                         requestData.setCallbackHandler(userTokenCallbackHandler);
                         requestData.setUsername(token.getUsername());
+                        requestData.setDisableBSPEnforcement(agreement.getSecurity().isDisableBSPEnforcement());
 
                         List<WSSecurityEngineResult> results;
                         try {

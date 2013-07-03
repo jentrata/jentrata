@@ -16,6 +16,7 @@ public class Security {
     private boolean sendReceipt = true;
     private ReplyPatternType sendReceiptReplyPattern = ReplyPatternType.Callback;
     private boolean sendReceiptNonRepudiation = false;
+    private boolean disableBSPEnforcement = false;
     private Signature signature = null;
 
 
@@ -57,5 +58,13 @@ public class Security {
 
     public void setSignature(Signature signature) {
         this.signature = signature;
+    }
+
+    public boolean isDisableBSPEnforcement() {
+        return disableBSPEnforcement;
+    }
+
+    public void setDisableBSPEnforcement(boolean disableBSPEnforcement) {
+        this.disableBSPEnforcement = disableBSPEnforcement;
     }
 }
