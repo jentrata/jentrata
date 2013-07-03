@@ -189,7 +189,11 @@ public class WSSERouteBuilder extends RouteBuilder {
             for(Map<String,Object> payload : payloads) {
                 Attachment attachment = new Attachment();
                 attachment.setId((String) payload.get("payloadId"));
-                attachment.setMimeType((String) payload.get("contentType"));
+                if(payload.get("compressionType") == null) {
+                    attachment.setMimeType((String) payload.get("contentType"));
+                } else {
+                    attachment.setMimeType((String) payload.get("compressionType"));
+                }
                 byte [] content = (byte[]) payload.get("content");
                 attachment.setSourceStream(new ByteArrayInputStream(content));
                 attachments.add(attachment);

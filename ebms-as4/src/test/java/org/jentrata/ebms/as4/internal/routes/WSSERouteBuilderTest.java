@@ -27,6 +27,7 @@ import org.jentrata.ebms.cpa.pmode.Security;
 import org.jentrata.ebms.cpa.pmode.Signature;
 import org.jentrata.ebms.cpa.pmode.UsernameToken;
 import org.jentrata.ebms.internal.messaging.AttachmentDataSource;
+import org.jentrata.ebms.utils.EbmsUtils;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -151,6 +152,32 @@ public class WSSERouteBuilderTest extends CamelTestSupport {
 
         Exchange request = new DefaultExchange(context);
         request.getIn().setBody(generateSoapMessage("jentrata", attachment));
+        request.getIn().setHeader(EbmsConstants.MESSAGE_ID, "testMSG-0001");
+        request.getIn().setHeader(EbmsConstants.CPA_ID,"JentrataTestCPA");
+        request.getIn().setHeader(EbmsConstants.CPA,generateAgreement("jentrata"));
+        request.getIn().addAttachment(attachment.getId(),new DataHandler(dataSource));
+
+        //perform the signing verification and security check
+        Exchange response = context().createProducerTemplate().send("direct:wsseSecurityCheck",request);
+        assertThat(request.isFailed(),is(false));
+        assertThat(response.getIn().getHeader(EbmsConstants.SECURITY_CHECK,Boolean.class),is(true));
+        assertThat(response.getIn().hasAttachments(),is(true));
+        assertThat(response.getIn().getAttachment("attachment1234@jentrata.org"),notNullValue());
+        assertThat(IOUtils.toByteArray(request.getIn().getAttachment("attachment1234@jentrata.org").getInputStream()),equalTo(data));
+    }
+
+    @Test
+    public void testSignedMessageWithCompressedAttachments() throws Exception {
+
+        byte [] data = EbmsUtils.compress("application/gzip",IOUtils.toByteArray(new FileInputStream(fileFromClasspath("sample-payload.xml"))));
+        Attachment attachment = new Attachment();
+        attachment.setId("attachment1234@jentrata.org");
+        attachment.setMimeType("application/gzip");
+        attachment.setSourceStream(new ByteArrayInputStream(data));
+        AttachmentDataSource dataSource = new AttachmentDataSource(attachment);
+
+        Exchange request = new DefaultExchange(context);
+        request.getIn().setBody(generateSoapMessage("jentrata",true, attachment));
         request.getIn().setHeader(EbmsConstants.MESSAGE_ID, "testMSG-0001");
         request.getIn().setHeader(EbmsConstants.CPA_ID,"JentrataTestCPA");
         request.getIn().setHeader(EbmsConstants.CPA,generateAgreement("jentrata"));
@@ -320,6 +347,34 @@ public class WSSERouteBuilderTest extends CamelTestSupport {
         assertThat(body, hasXPath("//*[local-name()='Signature']"));
     }
 
+    @Test
+    public void testAddSignatureSecurityToHeaderWithCompression() throws Exception {
+        byte [] data = EbmsUtils.compress("application/gzip",IOUtils.toByteArray(new FileInputStream(fileFromClasspath("sample-payload.xml"))));
+        List<Map<String,Object>> payloads = new ArrayList<>();
+        Map<String,Object> payload = new HashMap<>();
+        payload.put("payloadId", "attachment1234@jentrata.org");
+        payload.put("contentType", "application/xml");
+        payload.put("compressionType","application/gzip");
+        payload.put("charset", "utf-8");
+        payload.put("partProperties", "sourceABN=123456789;targetABN=987654321");
+        payload.put("schema", "test");
+        payload.put("content", data);
+
+        payloads.add(payload);
+
+        Exchange request = new DefaultExchange(context);
+        request.getIn().setBody(loadSoapMessage());
+        request.getIn().setHeader(EbmsConstants.MESSAGE_ID, "testMSG-0001");
+        request.getIn().setHeader(EbmsConstants.CPA_ID,"JentrataTestCPA");
+        request.getIn().setHeader(EbmsConstants.CPA,generateAgreement("jentrata",true));
+        request.getIn().setHeader(EbmsConstants.MESSAGE_PAYLOADS,payloads);
+        request.getIn().setHeader(EbmsConstants.MESSAGE_TYPE, MessageType.USER_MESSAGE);
+        Exchange response = context().createProducerTemplate().send("direct:wsseAddSecurityToHeader",request);
+
+        Document body = response.getIn().getBody(Document.class);
+        System.out.println(XMLUtils.PrettyDocumentToString(body));
+    }
+
 
 
     @Override
@@ -333,11 +388,20 @@ public class WSSERouteBuilderTest extends CamelTestSupport {
     }
 
     private String generateSoapMessage(String username, final Attachment...attachments) throws Exception {
+        return generateSoapMessage(username, false, attachments);
+    }
+
+    private String generateSoapMessage(String username, boolean compressed, final Attachment...attachments) throws Exception {
         WSSecUsernameToken builder = new WSSecUsernameToken();
         builder.setPasswordsAreEncoded(true);
         builder.setUserInfo(username, getEncodedPassword());
         LOG.info("Before adding UsernameToken PW Digest....");
-        Document doc = loadSoapMessage();
+        Document doc;
+        if(compressed) {
+            doc = loadSoapMessage("sample-wsse-soap-compression.xml");
+        } else {
+            doc = loadSoapMessage();
+        }
         WSSecHeader secHeader = new WSSecHeader();
         secHeader.insertSecurityHeader(doc);
         Document signedDoc = builder.build(doc, secHeader);
@@ -376,9 +440,12 @@ public class WSSERouteBuilderTest extends CamelTestSupport {
         return outputString;
     }
 
-
     private Document loadSoapMessage() throws Exception {
-        return context().getTypeConverter().convertTo(Document.class, new FileInputStream(fileFromClasspath("sample-wsse-soap.xml")));
+        return loadSoapMessage("sample-wsse-soap.xml");
+    }
+
+    private Document loadSoapMessage(String filename) throws Exception {
+        return context().getTypeConverter().convertTo(Document.class, new FileInputStream(fileFromClasspath(filename)));
     }
 
     private Document loadSoapReceipt() throws Exception {
