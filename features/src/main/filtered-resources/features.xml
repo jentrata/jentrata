@@ -53,7 +53,18 @@
         <bundle dependency="true">mvn:com.google.guava/guava/${guava.version}</bundle>
         <bundle dependency="true">mvn:org.jentrata/jentrata-ebms3-msh-api/${project.version}</bundle>
         <bundle>mvn:org.jentrata/jentrata-ebms3-msh-jdbc-store/${project.version}</bundle>
-        <configfile finalname="/etc/org.jentrata.ebms.message.store.jdbc.cfg">mvn:org.jentrata/jentrata-ebms3-msh-jdbc-store/${pom.version}/cfg</configfile>
+        <configfile finalname="/etc/org.jentrata.ebms.message.store.jdbc.cfg">mvn:org.jentrata/jentrata-ebms3-msh-jdbc-store/${pom.version}/postgres-cfg</configfile>
+    </feature>
+
+    <feature name="jentrata-h2-store" version="${pom.version}">
+        <feature version="${camel.version}">camel-jackson</feature>
+        <bundle dependency="true">mvn:commons-io/commons-io/${commons-io.version}</bundle>
+        <bundle dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.commons-dbcp/${commons-dbcp.version}</bundle>
+        <bundle dependency="true">mvn:com.h2database/h2/${h2.version}</bundle>
+        <bundle dependency="true">mvn:com.google.guava/guava/${guava.version}</bundle>
+        <bundle dependency="true">mvn:org.jentrata/jentrata-ebms3-msh-api/${project.version}</bundle>
+        <bundle>mvn:org.jentrata/jentrata-ebms3-msh-jdbc-store/${project.version}</bundle>
+        <configfile finalname="/etc/org.jentrata.ebms.message.store.jdbc.cfg">mvn:org.jentrata/jentrata-ebms3-msh-jdbc-store/${pom.version}/h2-cfg</configfile>
     </feature>
 
     <feature name="jentrata-rest-services" version="${pom.version}">

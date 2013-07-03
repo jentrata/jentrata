@@ -78,8 +78,12 @@
                         <configuration>
                             <artifacts>
                                 <artifact>
-                                    <file>${project.build.outputDirectory}/META-INF/org.jentrata.ebms.message.store.jdbc.cfg</file>
-                                    <type>cfg</type>
+                                    <file>${project.build.outputDirectory}/META-INF/postgres.jdbc.cfg</file>
+                                    <type>postgres-cfg</type>
+                                </artifact>
+                                <artifact>
+                                    <file>${project.build.outputDirectory}/META-INF/h2.jdbc.cfg</file>
+                                    <type>h2-cfg</type>
                                 </artifact>
                             </artifacts>
                         </configuration>
