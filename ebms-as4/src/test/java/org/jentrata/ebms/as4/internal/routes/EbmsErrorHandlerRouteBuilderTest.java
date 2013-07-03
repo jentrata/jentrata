@@ -10,6 +10,7 @@ import org.apache.camel.test.junit4.CamelTestSupport;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.EbmsError;
 import org.jentrata.ebms.MessageStatusType;
+import org.jentrata.ebms.cpa.pmode.Security;
 import org.jentrata.ebms.messaging.UUIDGenerator;
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -96,6 +97,7 @@ public class EbmsErrorHandlerRouteBuilderTest extends CamelTestSupport {
         Exchange request = new DefaultExchange(context());
         request.getIn().setHeader(EbmsConstants.CPA_ID,"testCPAId");
         request.getIn().setHeader(EbmsConstants.MESSAGE_ID,messageId);
+        request.getIn().setHeader(EbmsConstants.MESSAGE_RECEIPT_PATTERN, Security.ReplyPatternType.Callback.name());
 
         if(ebmsError == null) {
             ebmsError = EbmsError.EBMS_0004; //default error code

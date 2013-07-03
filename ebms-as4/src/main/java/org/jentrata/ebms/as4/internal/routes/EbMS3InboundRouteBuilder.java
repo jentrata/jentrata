@@ -93,7 +93,7 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
             .setHeader(EbmsConstants.MESSAGE_ACTION, ns.xpath("//eb3:CollaborationInfo/eb3:Action/text()", String.class))
             .setHeader(EbmsConstants.MESSAGE_CONVERSATION_ID, ns.xpath("//eb3:CollaborationInfo/eb3:ConversationId/text()", String.class))
             .to("direct:lookupCpaId")
-            .setHeader(EbmsConstants.MESSAGE_RECEIPT_PATTERN,simple("${headers.JentrataCPA.security.sendReceiptReplyPattern}"))
+            .setHeader(EbmsConstants.MESSAGE_RECEIPT_PATTERN,simple("${headers.JentrataCPA.security.sendReceiptReplyPattern.name()}"))
             .setHeader(EbmsConstants.MESSAGE_DUP_DETECTION,simple("${headers.JentrataCPA.receptionAwareness.duplicateDetectionEnabled}"))
             .to(messageInsertEndpoint) //create a message entry in the message store to track the state of the message
             .to("direct:securityCheck")
@@ -160,7 +160,7 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
 
         from("direct:generateReceipt")
             .choice()
-                .when(header(EbmsConstants.MESSAGE_RECEIPT_PATTERN).isEqualTo(Security.ReplyPatternType.Callback))
+                .when(header(EbmsConstants.MESSAGE_RECEIPT_PATTERN).isEqualTo(Security.ReplyPatternType.Callback.name()))
                     .inOnly(inboundEbmsQueue)
                     .setHeader(Exchange.HTTP_RESPONSE_CODE,constant(204))
                     .setBody(constant(null))
@@ -178,7 +178,7 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
             .wireTap(EventNotificationRouteBuilder.SEND_NOTIFICATION_ENDPOINT)
             .convertBodyTo(String.class)
             .choice()
-                .when(header(EbmsConstants.MESSAGE_RECEIPT_PATTERN).isEqualTo(Security.ReplyPatternType.Callback))
+                .when(header(EbmsConstants.MESSAGE_RECEIPT_PATTERN).isEqualTo(Security.ReplyPatternType.Callback.name()))
                     .inOnly(securityErrorQueue)
                     .setBody(constant(null))
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(204))

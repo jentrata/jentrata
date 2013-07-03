@@ -48,10 +48,10 @@ public class EbmsErrorHandlerRouteBuilder extends RouteBuilder {
 
         from("direct:deliveryErrorReceipt")
             .choice()
-                .when(header(EbmsConstants.MESSAGE_RECEIPT_PATTERN).isEqualTo(Security.ReplyPatternType.Response))
-                    .log(LoggingLevel.DEBUG,"receipt returned on response")
-                .otherwise()
+                .when(header(EbmsConstants.MESSAGE_RECEIPT_PATTERN).isEqualTo(Security.ReplyPatternType.Callback.name()))
                     .to(outboundEbmsQueue)
+                .otherwise()
+                    .log(LoggingLevel.DEBUG,"receipt returned on response")
         .routeId("_jentrataEbmsDeliveryErrorReceipt");
     }
 
