@@ -2,6 +2,7 @@ package org.jentrata.ebms.as4.internal.routes;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
+import org.apache.camel.Message;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.commons.io.IOUtils;
@@ -16,7 +17,9 @@ import org.jentrata.ebms.utils.EbmsUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +64,7 @@ public class  EbmsOutboundMessageRouteBuilder extends RouteBuilder {
                             String payloadId = exchange.getIn().getHeader(EbmsConstants.PAYLOAD_ID,agreement.getPayloadService().getPayloadId(), String.class);
                             String schema = exchange.getIn().getHeader(EbmsConstants.MESSAGE_PAYLOAD_SCHEMA, String.class);
                             String compressionType = exchange.getIn().getHeader(EbmsConstants.PAYLOAD_COMPRESSION,agreement.getPayloadService().getCompressionType().getType(),String.class);
+                            Map<String,String> mimeHeaders = extractMimeHeaders(contentType,exchange.getIn());
                             List<Map<String, Object>> partProperties = EbmsUtils.extractPartProperties(exchange.getIn().getHeader(EbmsConstants.MESSAGE_PART_PROPERTIES, String.class));
 
                             List<Map<String, Object>> payloads = new ArrayList<>();
@@ -76,6 +80,7 @@ public class  EbmsOutboundMessageRouteBuilder extends RouteBuilder {
                             } else {
                                 payloadMap.put("content", body.getBytes(contentCharset));
                             }
+                            payloadMap.put("mimeHeaders",mimeHeaders);
                             payloads.add(payloadMap);
                             exchange.getIn().setBody(payloads);
                         }
@@ -93,6 +98,29 @@ public class  EbmsOutboundMessageRouteBuilder extends RouteBuilder {
                     .to(outboundEbmsQueue)
         .routeId("_jentrataEbmsGenerateMessage");
 
+    }
+
+    private Map<String, String> extractMimeHeaders(String contentType, Message message) {
+        Map<String,String> mimeHeaders = new HashMap<>();
+        mimeHeaders.put(EbmsConstants.CONTENT_TRANSFER_ENCODING,message.getHeader(EbmsConstants.CONTENT_TRANSFER_ENCODING,"binary",String.class));
+        String filename = message.getHeader(EbmsConstants.PAYLOAD_FILENAME,generateFilename(contentType),String.class);
+        mimeHeaders.put(EbmsConstants.CONTENT_DISPOSITION,"attachment; filename=" + filename);
+        return mimeHeaders;
+
+    }
+
+    private String generateFilename(String contentType) {
+        StringBuilder filename = new StringBuilder();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+        filename.append(sdf.format(new Date()));
+        if(contentType == null || contentType.isEmpty()) {
+            filename.append(".txt");
+        } else if(contentType.toLowerCase().contains("xml")) {
+            filename.append(".xml");
+        } else if(contentType.toLowerCase().contains("text")) {
+            filename.append(".txt");
+        }
+        return filename.toString();
     }
 
     public String getDeliveryQueue() {

@@ -49,7 +49,8 @@ public class SoapMessageDataFormat implements DataFormat {
             if(EbmsConstants.GZIP.equalsIgnoreCase(compressionType)) {
                 contentType = compressionType;
             }
-            EbmsUtils.addAttachment(soapMessage,payloadId,contentType,content);
+            Map<String,String> mimeHeaders = (Map<String, String>) payload.get("mimeHeaders");
+            EbmsUtils.addAttachment(soapMessage,payloadId,contentType,content,mimeHeaders);
         }
         exchange.getOut().setHeader(EbmsConstants.CONTENT_TYPE,soapMessage.getMimeHeaders().getHeader(EbmsConstants.CONTENT_TYPE)[0]);
         soapMessage.writeTo(stream);

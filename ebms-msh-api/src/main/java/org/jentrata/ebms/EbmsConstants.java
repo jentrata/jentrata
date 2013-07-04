@@ -27,10 +27,10 @@ public class EbmsConstants {
     public static final String CONTENT_ID = "Content-ID";
     public static final String CONTENT_LENGTH = Exchange.CONTENT_LENGTH;
     public static final String CONTENT_TRANSFER_ENCODING = "Content-Transfer-Encoding";
-
+    public static final String CONTENT_DISPOSITION = "Content-Disposition";
     public static final String CONTENT_TYPE = Exchange.CONTENT_TYPE;
-    public static final String SOAP_XML_CONTENT_TYPE = "application/soap+xml";
 
+    public static final String SOAP_XML_CONTENT_TYPE = "application/soap+xml";
     public static final String TEXT_XML_CONTENT_TYPE = "text/xml";
     public static final String MESSAGE_ID = "JentrataMessageID";
     public static final String REF_TO_MESSAGE_ID = "JentrataRefMessageID";
@@ -53,17 +53,16 @@ public class EbmsConstants {
     public static final String CPA = "JentrataCPA";
     public static final String CPA_ID = "JentrataCPAId";
     public static final String PAYLOAD_ID = "JentrataPayloadId";
+    public static final String PAYLOAD_FILENAME = "JentrataPayloadFilename";
     public static final String PAYLOAD_COMPRESSION = "JentrataPayloadCompression";
     public static final String CPA_ID_UNKNOWN = "UNKNOWN";
     public static final String CONTENT_CHAR_SET = "JentrataCharSet";
     public static final String SOAP_BODY_PAYLOAD_ID = "soapbodypart";
     public static final String SECURITY_CHECK = "JentrataSecurityCheck";
     public static final String SECURITY_RESULTS = "JentrataSecurityResults";
+
     public static final String SECURITY_ERROR_CODE = "JentrataSecurityErrorCode";
     public static final String EBMS_ERROR = "JentrataEbmsError";
-
-
-
     public static final String EBMS_ERROR_CODE = "JentrataEbmsErrorCode";
     public static final String EBMS_ERROR_DESCRIPTION = "JentrataEbmsErrorDesc";
     public static final String MESSAGE_PAYLOADS = "JentrataPayloads";

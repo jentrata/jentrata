@@ -1,7 +1,6 @@
 package org.jentrata.ebms.utils;
 
 import org.apache.camel.Exchange;
-import org.apache.camel.builder.xml.Namespaces;
 import org.apache.commons.io.IOUtils;
 import org.jentrata.ebms.EbmsConstants;
 import org.w3c.dom.Document;
@@ -34,7 +33,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -105,6 +103,10 @@ public class EbmsUtils {
 
     public static void addAttachment(SOAPMessage soapMessage, String payloadId, String contentType, byte[] content) throws Exception {
         addAttachment(soapMessage,payloadId,contentType,new ByteArrayInputStream(content));
+    }
+
+    public static void addAttachment(SOAPMessage soapMessage, String payloadId, String contentType, byte[] content, Map<String, String> mimeHeaders) throws Exception {
+       addAttachment(soapMessage,payloadId,contentType,new ByteArrayInputStream(content),mimeHeaders);
     }
 
     public static void addGZippedAttachment(SOAPMessage soapMessage, String payloadId, byte[] content) throws Exception {
