@@ -17,6 +17,7 @@ import org.apache.wss4j.dom.message.WSSecUsernameToken;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.cpa.PartnerAgreement;
+import org.jentrata.ebms.cpa.pmode.PayloadService;
 import org.jentrata.ebms.cpa.pmode.Security;
 import org.jentrata.ebms.cpa.pmode.Signature;
 import org.jentrata.ebms.cpa.pmode.SignaturePart;
@@ -190,10 +191,11 @@ public class WSSERouteBuilder extends RouteBuilder {
             for(Map<String,Object> payload : payloads) {
                 Attachment attachment = new Attachment();
                 attachment.setId((String) payload.get("payloadId"));
-                if(payload.get("compressionType") == null) {
+                String compressionType = (String) payload.get("compressionType");
+                if(compressionType == null || compressionType.isEmpty()) {
                     attachment.setMimeType((String) payload.get("contentType"));
                 } else {
-                    attachment.setMimeType((String) payload.get("compressionType"));
+                    attachment.setMimeType(compressionType);
                 }
                 byte [] content = (byte[]) payload.get("content");
                 attachment.setSourceStream(new ByteArrayInputStream(content));
