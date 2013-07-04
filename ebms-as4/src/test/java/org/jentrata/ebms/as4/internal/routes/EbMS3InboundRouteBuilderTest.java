@@ -95,7 +95,7 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
         assertStringContains(message, "<S12:Envelope xmlns:S12=\"http://www.w3.org/2003/05/soap-envelope\"");
         assertThat(msg.hasAttachments(), is(Boolean.TRUE));
         assertThat(msg.getAttachmentNames().size(), equalTo(1));
-        assertThat(msg.getAttachmentNames(),contains("<attachmentPart@jentrata.org>"));
+        assertThat(msg.getAttachmentNames(),contains("attachmentPart@jentrata.org"));
     }
 
     @Test

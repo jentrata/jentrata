@@ -145,7 +145,7 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
         Iterator<AttachmentPart> attachments = soapMessage.getAttachments();
         while (attachments.hasNext()) {
             AttachmentPart part = attachments.next();
-            assertThat(part.getContentId(),equalTo("testpayload@jentrata.org"));
+            assertThat(part.getContentId(),equalTo("<testpayload@jentrata.org>"));
             assertThat(part.getContentType(),equalTo(EbmsConstants.GZIP));
             byte [] payload = EbmsUtils.decompress(EbmsConstants.GZIP,part.getRawContentBytes());
             System.out.println(new String(payload));

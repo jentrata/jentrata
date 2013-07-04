@@ -113,7 +113,9 @@ public class EbmsUtils {
 
     public static void addAttachment(SOAPMessage soapMessage,String contentId,String contentType,InputStream content,Map<String,String> headers) throws Exception {
         AttachmentPart attachmentPart = soapMessage.createAttachmentPart();
-        attachmentPart.setContentId(contentId);
+        //attachmentPart.setContentId(encodeContentId(contentId));
+        attachmentPart.setMimeHeader("Content-ID",encodeContentId(contentId));
+//        attachmentPart.setMimeHeader("Content-ID",contentId);
         attachmentPart.setContentType(contentType);
         attachmentPart.setRawContent(content,contentType);
         for(Map.Entry<String,String> header : headers.entrySet()) {
@@ -123,6 +125,22 @@ public class EbmsUtils {
         soapMessage.saveChanges();
         soapMessage.getMimeHeaders().setHeader("Content-Type",soapMessage.getMimeHeaders().getHeader("Content-Type")[0] + "; start=\"<soapPart@jentrata.org>\"");
 
+    }
+
+    public static String encodeContentId(String contentId) {
+        if(contentId != null && !contentId.startsWith("<") && !contentId.endsWith(">")) {
+            return "<" + contentId + ">";
+        } else {
+            return contentId;
+        }
+    }
+
+
+    public static String decodeContentID(String contentId) {
+        if(contentId.startsWith("<") && contentId.endsWith(">")) {
+            return contentId.substring(1,contentId.length()-1);
+        }
+        return contentId;
     }
 
     public static InputStream compressStream(String compressionType, byte [] content) throws IOException {

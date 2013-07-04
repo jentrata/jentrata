@@ -86,7 +86,8 @@ public class SoapMessageDataFormat implements DataFormat {
         Iterator<AttachmentPart> attachments = message.getAttachments();
         while (attachments.hasNext()) {
             AttachmentPart attachment = attachments.next();
-            exchange.getOut().addAttachment(attachment.getContentId(),attachment.getDataHandler());
+            String contentId = EbmsUtils. decodeContentID(attachment.getContentId());
+            exchange.getOut().addAttachment(contentId,attachment.getDataHandler());
         }
     }
 }
