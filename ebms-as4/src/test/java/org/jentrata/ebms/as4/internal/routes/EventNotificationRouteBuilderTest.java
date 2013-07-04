@@ -54,6 +54,7 @@ public class EventNotificationRouteBuilderTest extends CamelTestSupport {
         request.getIn().removeHeader(EbmsConstants.REF_TO_MESSAGE_ID);
         request.getIn().removeHeader(EbmsConstants.MESSAGE_DATE);
         request.getIn().removeHeader(EbmsConstants.MESSAGE_CONVERSATION_ID);
+        request.getIn().removeHeader(EbmsConstants.CPA_ID);
 
         context().createProducerTemplate().send(EventNotificationRouteBuilder.SEND_NOTIFICATION_ENDPOINT,request);
 
@@ -66,7 +67,7 @@ public class EventNotificationRouteBuilderTest extends CamelTestSupport {
         assertThat(message,notNullValue());
         assertThat((String) message.get("messageId"),equalTo("orders123@buyer.jentrata.org"));
         assertThat((String) message.get("direction"),equalTo(EbmsConstants.MESSAGE_DIRECTION_INBOUND));
-        assertThat((String) message.get("cpaId"),equalTo("testCPAId"));
+        assertThat((String) message.get("cpaId"),equalTo("UNKNOWN"));
         assertThat((String) message.get("refMessageId"),equalTo(""));
         assertThat((String) message.get("conversationId"),equalTo(""));
         assertThat((String) message.get("status"),equalTo("RECEIVED"));

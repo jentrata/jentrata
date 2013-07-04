@@ -1,7 +1,7 @@
 {
     "messageId":"${headers.JentrataMessageID}",
     "direction":"${headers.JentrataMessageDirection}",
-    "cpaId":"${headers.JentrataCPAId}",
+    "cpaId":"${headers.JentrataCPAId!'UNKNOWN'}",
     "refMessageId":"${headers.JentrataRefMessageID!}",
     "conversationId":"${headers.JentrataConversationId!}",
     "status":"${headers.JentrataMessageStatus}",
