@@ -1,27 +1,18 @@
 package org.jentrata.ebms.as4.internal.routes;
 
 import org.apache.camel.Exchange;
-import org.apache.camel.ExchangePattern;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
 import org.apache.camel.component.freemarker.FreemarkerConstants;
-import org.apache.commons.io.IOUtils;
-import org.jentrata.ebms.EbmsConstants;
-import org.jentrata.ebms.EbmsError;
-import org.jentrata.ebms.MessageStatusType;
-import org.jentrata.ebms.MessageType;
+import org.jentrata.ebms.*;
 import org.jentrata.ebms.cpa.pmode.Security;
 import org.jentrata.ebms.internal.messaging.MessageDetector;
 import org.jentrata.ebms.messaging.MessageStore;
 import org.jentrata.ebms.messaging.SplitAttachmentsToBody;
 import org.jentrata.ebms.soap.SoapMessageDataFormat;
 import org.jentrata.ebms.soap.SoapPayloadProcessor;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.zip.GZIPInputStream;
 
 /**
  * Exposes an HTTP endpoint that consumes AS4 Messages
@@ -55,35 +46,54 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
             deadLetterChannel(ebmsDLQ).useOriginalMessage();
         }
 
-        from(ebmsHttpEndpoint,ebmsResponseInbound)
+        from(ebmsHttpEndpoint)
             .streamCaching()
-            .onException(UnsupportedOperationException.class)
-                .handled(true)
-                .setHeader("X-Jentrata-Version", simple("${sys.jentrataVersion}"))
-                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(405))
-                .setHeader("Allow", constant("POST"))
-                .to("direct:errorHandler")
-            .end()
-            .onException(Exception.class)
-                .handled(true)
-                .log(LoggingLevel.DEBUG, "headers:${headers}\nbody:\n${in.body}")
-                .log(LoggingLevel.ERROR, "${exception.message}\n${exception.stacktrace}")
-                .setHeader(EbmsConstants.MESSAGE_STATUS, constant(MessageStatusType.FAILED))
-                .setHeader(EbmsConstants.MESSAGE_STATUS_DESCRIPTION, simple("${exception.message}"))
-                .to(messageUpdateEndpoint)
-                .inOnly(EventNotificationRouteBuilder.SEND_NOTIFICATION_ENDPOINT) //hmm can't use wiretap in onException block
-                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(500))
-                .to("direct:errorHandler")
-             .end()
             .log(LoggingLevel.INFO, "Request:${headers}")
             .log(LoggingLevel.DEBUG, "Request Body:\n${body}")
-            .setHeader(EbmsConstants.MESSAGE_DIRECTION, constant(EbmsConstants.MESSAGE_DIRECTION_INBOUND))
             .choice()
                 .when(header(Exchange.HTTP_METHOD).isNotEqualTo("POST"))
-                    .throwException(new UnsupportedOperationException("Http Method Not Allowed"))
+                    .log(LoggingLevel.INFO, "Ignoring request, received HTTP Method other than POST ")
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(405))
+                    .setHeader("Allow", constant("POST"))
+                    .to("direct:errorHandler")
+                .otherwise()
+                    .doTry()
+                       .to("direct:inboundInternal")
+                    .doCatch(Exception.class)
+                        .log(LoggingLevel.DEBUG, "headers:${headers}\nbody:\n${in.body}")
+                        .log(LoggingLevel.ERROR, "${exception.message}\n${exception.stacktrace}")
+                        .setHeader(EbmsConstants.MESSAGE_STATUS, constant(MessageStatusType.FAILED))
+                        .setHeader(EbmsConstants.MESSAGE_STATUS_DESCRIPTION, simple("${exception.message}"))
+                        .to(messageUpdateEndpoint)
+                        .inOnly(EventNotificationRouteBuilder.SEND_NOTIFICATION_ENDPOINT) //hmm can't use wiretap in onException block
+                        .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(500))
+                        .to("direct:errorHandler")
+                    .doFinally()
+                        .process(new Processor() {
+                            @Override
+                            public void process(Exchange exchange) throws Exception {
+                                exchange.getOut().setHeader(EbmsConstants.CONTENT_TYPE, EbmsConstants.SOAP_XML_CONTENT_TYPE);
+                                exchange.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
+                                exchange.getOut().setHeader("X-Jentrata-Version", System.getProperty("jentrataVersion", "DEV"));
+                                exchange.getOut().setBody(exchange.getIn().getBody());
+                            }
+                        })
+                    .end()
+                .end()
             .end()
+        .routeId("_jentataInboundHttp");
+
+        from(ebmsResponseInbound, "direct:inboundInternal")
+            .streamCaching()
+            .setHeader(EbmsConstants.MESSAGE_DIRECTION, constant(EbmsConstants.MESSAGE_DIRECTION_INBOUND))
             .bean(messageDetector, "parse") //Determine what type of message it is for example SOAP 1.1 or SOAP 1.2 ebms2 or ebms3 etc
-            .log(LoggingLevel.INFO,"Received ebms Message msgId:${headers.JentrataMessageID} - type:${headers.JentrataMessageType}")
+            .choice()
+                .when(header(EbmsConstants.MESSAGE_ID).isNull())
+                    .throwException(new EbmsException(EbmsError.EBMS_0004, "Invalid ebms message, eb:MessageId not found"))
+                .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.UNKNOWN.name()))
+                    .throwException(new EbmsException(EbmsError.EBMS_0004, "Invalid ebms message, request does not contain valid ebms message"))
+            .end()
+            .log(LoggingLevel.INFO, "Received ebms Message msgId:${headers.JentrataMessageID} - type:${headers.JentrataMessageType}")
             .to(messgeStoreEndpoint) //essentially we claim check the raw incoming message/payload
             .unmarshal(new SoapMessageDataFormat()) //extract the SOAP Envelope as set it has the message body
             .setHeader(EbmsConstants.MESSAGE_STATUS, constant(MessageStatusType.RECEIVED.name()))
@@ -93,8 +103,8 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
             .setHeader(EbmsConstants.MESSAGE_ACTION, ns.xpath("//eb3:CollaborationInfo/eb3:Action/text()", String.class))
             .setHeader(EbmsConstants.MESSAGE_CONVERSATION_ID, ns.xpath("//eb3:CollaborationInfo/eb3:ConversationId/text()", String.class))
             .to("direct:lookupCpaId")
-            .setHeader(EbmsConstants.MESSAGE_RECEIPT_PATTERN,simple("${headers.JentrataCPA.security.sendReceiptReplyPattern.name()}"))
-            .setHeader(EbmsConstants.MESSAGE_DUP_DETECTION,simple("${headers.JentrataCPA.receptionAwareness.duplicateDetectionEnabled}"))
+            .setHeader(EbmsConstants.MESSAGE_RECEIPT_PATTERN, simple("${headers.JentrataCPA.security.sendReceiptReplyPattern.name()}"))
+            .setHeader(EbmsConstants.MESSAGE_DUP_DETECTION, simple("${headers.JentrataCPA.receptionAwareness.duplicateDetectionEnabled}"))
             .to(messageInsertEndpoint) //create a message entry in the message store to track the state of the message
             .to("direct:securityCheck")
             .choice()
@@ -106,6 +116,7 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
                     .wireTap(EventNotificationRouteBuilder.SEND_NOTIFICATION_ENDPOINT)
                     .to("direct:removeHeaders")
                     .setHeader("X-Jentrata-Version", simple("${sys.jentrataVersion}"))
+                    .setHeader(EbmsConstants.CONTENT_TYPE, constant(EbmsConstants.SOAP_XML_CONTENT_TYPE))
         .routeId("_jentrataEbmsInbound");
 
         from("direct:securityCheck")
@@ -188,21 +199,24 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
             .end()
             .to("direct:removeHeaders")
             .setHeader("X-Jentrata-Version", simple("${sys.jentrataVersion}"))
+            .setHeader(EbmsConstants.CONTENT_TYPE,constant(EbmsConstants.SOAP_XML_CONTENT_TYPE))
         .routeId("_jentrataHandleSecurityException");
 
         from("direct:errorHandler")
             .to("direct:removeHeaders")
-            .setHeader("CamelException",simple("${exception.message}"))
+            .setHeader("CamelException", simple("${exception.message}"))
             .setHeader("CamelExceptionStackTrace",simple("${exception.stacktrace}"))
-            .setHeader("X-JentrataVersion",simple("${sys.jentrataVersion}"))
+            .setHeader("X-JentrataVersion", simple("${sys.jentrataVersion}"))
             .choice()
                 .when(header(Exchange.HTTP_RESPONSE_CODE).isNotEqualTo(500))
                     .setHeader(FreemarkerConstants.FREEMARKER_RESOURCE_URI, simple("html/${headers.CamelHttpResponseCode}.html"))
+                .setHeader(EbmsConstants.CONTENT_TYPE, constant("text/html"))
                     .to("freemarker:html/500.html")
                     .convertBodyTo(String.class)
                 .otherwise()
+                    .setHeader(EbmsConstants.CONTENT_TYPE, constant(EbmsConstants.SOAP_XML_CONTENT_TYPE))
                     .to("freemarker:templates/soap-fault.ftl")
-                    .convertBodyTo(String.class,"UTF-8")
+                    .convertBodyTo(String.class, "UTF-8")
         .routeId("_jentrataErrorHandler");
 
         from("direct:removeHeaders")
