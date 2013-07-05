@@ -167,6 +167,42 @@ public class WSSERouteBuilderTest extends CamelTestSupport {
     }
 
     @Test
+    public void testSignedMessageWithMutipleAttachments() throws Exception {
+
+        byte [] data = IOUtils.toByteArray(new FileInputStream(fileFromClasspath("sample-payload.xml")));
+        Attachment attachment = new Attachment();
+        attachment.setId("attachment1234@jentrata.org");
+        attachment.setMimeType("application/xml");
+        attachment.setSourceStream(new ByteArrayInputStream(data));
+        AttachmentDataSource dataSource = new AttachmentDataSource(attachment);
+
+        Attachment attachment2 = new Attachment();
+        attachment2.setId("attachment1234_2@jentrata.org");
+        attachment2.setMimeType("application/xml");
+        attachment2.setSourceStream(new ByteArrayInputStream(data));
+        AttachmentDataSource dataSource2 = new AttachmentDataSource(attachment2);
+
+        Exchange request = new DefaultExchange(context);
+        request.getIn().setBody(generateSoapMessage("jentrata", attachment,attachment2));
+        request.getIn().setHeader(EbmsConstants.MESSAGE_ID, "testMSG-0001");
+        request.getIn().setHeader(EbmsConstants.CPA_ID,"JentrataTestCPA");
+        request.getIn().setHeader(EbmsConstants.CPA,generateAgreement("jentrata"));
+        request.getIn().addAttachment(attachment.getId(),new DataHandler(dataSource));
+        request.getIn().addAttachment(attachment2.getId(),new DataHandler(dataSource2));
+
+        //perform the signing verification and security check
+        Exchange response = context().createProducerTemplate().send("direct:wsseSecurityCheck",request);
+        assertThat(request.isFailed(),is(false));
+        assertThat(response.getIn().getHeader(EbmsConstants.SECURITY_CHECK,Boolean.class),is(true));
+        assertThat(response.getIn().hasAttachments(),is(true));
+        assertThat(response.getIn().getAttachment("attachment1234@jentrata.org"),notNullValue());
+        assertThat(IOUtils.toByteArray(request.getIn().getAttachment("attachment1234@jentrata.org").getInputStream()),equalTo(data));
+        assertThat(response.getIn().getAttachment("attachment1234_2@jentrata.org"),notNullValue());
+        assertThat(IOUtils.toByteArray(request.getIn().getAttachment("attachment1234_2@jentrata.org").getInputStream()),equalTo(data));
+
+    }
+
+    @Test
     public void testSignedMessageWithCompressedAttachments() throws Exception {
 
         byte [] data = EbmsUtils.compress("application/gzip",IOUtils.toByteArray(new FileInputStream(fileFromClasspath("sample-payload.xml"))));
@@ -452,7 +488,9 @@ public class WSSERouteBuilderTest extends CamelTestSupport {
                         if (callbacks[i] instanceof AttachmentRequestCallback) {
                             AttachmentRequestCallback attachmentRequestCallback = (AttachmentRequestCallback) callbacks[i];
                             List<Attachment> attachmentList = new ArrayList<>();
-                            attachmentList.add(attachments[i]);
+                            for(Attachment a : attachments) {
+                                attachmentList.add(a);
+                            }
                             attachmentRequestCallback.setAttachments(attachmentList);
                         } else {
                             AttachmentResultCallback attachmentResultCallback = (AttachmentResultCallback) callbacks[i];
