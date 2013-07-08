@@ -11,6 +11,7 @@ import org.jentrata.ebms.EbmsConstants;
 public class FileOutboundMessageRouter extends RouteBuilder {
 
     private String fileEndpoint;
+    private String messageId;
     private String cpaId;
     private String service;
     private String action;
@@ -34,7 +35,13 @@ public class FileOutboundMessageRouter extends RouteBuilder {
             convId = conversationId;
         }
 
+        String msgID = "${bean:uuidGenerator.generateId}";
+        if(messageId != null && !messageId.isEmpty()) {
+            msgID = messageId;
+        }
+
         from(fileEndpoint)
+            .setHeader(EbmsConstants.MESSAGE_ID,simple(msgID))
             .setHeader(EbmsConstants.CPA_ID, constant(cpaId))
             .setHeader(EbmsConstants.MESSAGE_SERVICE, constant(service))
             .setHeader(EbmsConstants.MESSAGE_ACTION, constant(action))
@@ -170,5 +177,13 @@ public class FileOutboundMessageRouter extends RouteBuilder {
 
     public void setDeliveryQueue(String deliveryQueue) {
         this.deliveryQueue = deliveryQueue;
+    }
+
+    public String getMessageId() {
+        return messageId;
+    }
+
+    public void setMessageId(String messageId) {
+        this.messageId = messageId;
     }
 }

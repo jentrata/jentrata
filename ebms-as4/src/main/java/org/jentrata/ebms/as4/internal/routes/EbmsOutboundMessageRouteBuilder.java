@@ -85,7 +85,11 @@ public class  EbmsOutboundMessageRouteBuilder extends RouteBuilder {
                             exchange.getIn().setBody(payloads);
                         }
                     })
-                    .setHeader(EbmsConstants.MESSAGE_ID, simple("${bean:uuidGenerator.generateId}"))
+                    .choice()
+                        .when(header(EbmsConstants.MESSAGE_ID).isNull())
+                            .setHeader(EbmsConstants.MESSAGE_ID, simple("${bean:uuidGenerator.generateId}"))
+                        .end()
+                    .end()
                     .setHeader(EbmsConstants.MESSAGE_TYPE, constant(MessageType.USER_MESSAGE))
                     .setHeader(EbmsConstants.MESSAGE_DIRECTION, constant(EbmsConstants.MESSAGE_DIRECTION_OUTBOUND))
                     .setHeader(EbmsConstants.MESSAGE_PAYLOADS,body())

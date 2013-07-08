@@ -15,6 +15,7 @@ import org.jentrata.ebms.cpa.PartnerAgreement;
 import org.jentrata.ebms.messaging.UUIDGenerator;
 import org.jentrata.ebms.utils.EbmsUtils;
 import org.junit.Test;
+import org.w3c.dom.Document;
 
 import javax.xml.soap.AttachmentPart;
 import javax.xml.soap.MessageFactory;
@@ -248,6 +249,41 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
         Exchange response = context().createProducerTemplate().send("direct:testDeliveryQueue",request);
 
         assertMockEndpointsSatisfied();
+    }
+
+    @Test
+    public void testOverrideMessageID() throws Exception {
+        mockEbmsOutbound.setExpectedMessageCount(1);
+        mockEbmsOutbound.expectedHeaderReceived(EbmsConstants.MESSAGE_ID,"test-exchange-id@jentrata.org");
+        mockMessageStore.setExpectedMessageCount(1);
+        mockUpdateMessageStore.setExpectedMessageCount(1);
+        mockWSSEAddSecurityToHeader.setExpectedMessageCount(1);
+
+        Exchange request = new DefaultExchange(context());
+        request.getIn().setHeader(EbmsConstants.MESSAGE_ID,"test-exchange-id@jentrata.org");
+        request.getIn().setHeader(EbmsConstants.MESSAGE_FROM,"123456789");
+        request.getIn().setHeader(EbmsConstants.MESSAGE_TO,"987654321");
+        request.getIn().setHeader(EbmsConstants.CONTENT_TYPE,"text/xml");
+        request.getIn().setHeader(EbmsConstants.CPA_ID,"testCPAId");
+        request.getIn().setHeader(EbmsConstants.PAYLOAD_ID,"testpayload@jentrata.org");
+        request.getIn().setHeader(EbmsConstants.MESSAGE_CONVERSATION_ID,"MESSAGE_CONVERSATION_ID");
+        request.getIn().setHeader(EbmsConstants.MESSAGE_PAYLOAD_SCHEMA,"http://jentrata.org/schema/example");
+        request.getIn().setHeader(EbmsConstants.MESSAGE_AGREEMENT_REF,"http://jentrata.org/agreement");
+
+        request.getIn().setHeader(EbmsConstants.MESSAGE_PART_PROPERTIES,"PartID=testpayload@jentrata.org;SourceABN=123456789;test=");
+
+        request.getIn().setHeader(EbmsConstants.MESSAGE_DIRECTION,EbmsConstants.MESSAGE_DIRECTION_OUTBOUND);
+
+        request.getIn().setBody(new FileInputStream(fileFromClasspath("sample-payload.xml")));
+        Exchange response = context().createProducerTemplate().send("direct:testDeliveryQueue",request);
+
+        assertMockEndpointsSatisfied();
+
+        Exchange exchange = mockEbmsOutbound.getExchanges().get(0);
+        System.out.println(exchange.getIn().getBody());
+        SOAPMessage message = EbmsUtils.parse(exchange);
+        Document ebmsMessage = message.getSOAPPart().getEnvelope().getHeader().getOwnerDocument();
+        assertThat(ebmsMessage,hasXPath("//*[local-name()='MessageId' and text()='test-exchange-id@jentrata.org']"));
     }
 
     @Override
