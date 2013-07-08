@@ -17,7 +17,7 @@ public class ReceptionAwareness {
 
     static {
         DEFAULT_RETRY.put("enabled",false);
-        DEFAULT_DUP_DETECTION.put("enabled",false);
+        DEFAULT_DUP_DETECTION.put("enabled",true);
     }
 
     private Map<String,Object> retry = DEFAULT_RETRY;
