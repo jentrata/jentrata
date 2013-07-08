@@ -11,6 +11,7 @@ import org.jentrata.ebms.MessageStatusType;
 import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.messaging.Message;
 import org.jentrata.ebms.messaging.MessageStore;
+import org.jentrata.ebms.messaging.UUIDGenerator;
 import org.jentrata.ebms.messaging.internal.sql.RepositoryManagerFactory;
 import org.junit.Test;
 
@@ -27,6 +28,7 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.notNullValue;
 
 /**
  * unit test for org.jentrata.ebms.messaging.internal.JDBCMessageStore
@@ -118,7 +120,19 @@ public class JDBCMessageStoreTest extends CamelTestSupport {
 
     }
 
-    private void assertStoredMessage(String messageId, String contentType, File body, MessageType messageType) throws SQLException, IOException {
+    @Test
+    public void testDuplicateMessage() throws Exception{
+        File body = fileFromClasspath("simple-as4-receipt.xml");
+        String contentType = "Multipart/Related; boundary=\"----=_Part_7_10584188.1123489648993\"; type=\"application/soap+xml\"; start=\"<soapPart@jentrata.org>\"";
+        String messageId = "testMimeMessage1";
+        assertStoredMessage(messageId, contentType, body, MessageType.USER_MESSAGE);
+        Exchange response = assertStoredMessage(messageId, contentType, body, MessageType.USER_MESSAGE);
+        assertThat(response.getIn().getHeader(EbmsConstants.DUPLICATE_MESSAGE,boolean.class),is(true));
+        assertThat(response.getIn().getHeader(EbmsConstants.MESSAGE_ID,String.class),is(messageId));
+        assertThat(response.getIn().getHeader(EbmsConstants.DUPLICATE_MESSAGE_ID,String.class),notNullValue());
+    }
+
+    private Exchange assertStoredMessage(String messageId, String contentType, File body, MessageType messageType) throws SQLException, IOException {
         Exchange request = new DefaultExchange(context());
         request.getIn().setHeader(EbmsConstants.EBMS_VERSION,EbmsConstants.EBMS_V3);
         request.getIn().setHeader(EbmsConstants.MESSAGE_ID,messageId);
@@ -128,7 +142,8 @@ public class JDBCMessageStoreTest extends CamelTestSupport {
         request.getIn().setHeader(EbmsConstants.CPA_ID,"testCPAId");
 
         request.getIn().setBody(body);
-        context().createProducerTemplate().send(MessageStore.DEFAULT_MESSAGE_STORE_ENDPOINT,request);
+        Exchange response = context().createProducerTemplate().send(MessageStore.DEFAULT_MESSAGE_STORE_ENDPOINT,request);
+        messageId = response.getIn().getHeader(EbmsConstants.MESSAGE_ID,String.class);
         try(Connection conn = dataSource.getConnection()) {
             try (PreparedStatement st = conn.prepareStatement("select * from repository where message_id = ?")) {
                 st.setString(1,messageId);
@@ -149,6 +164,7 @@ public class JDBCMessageStoreTest extends CamelTestSupport {
                 assertThat(resultSet.getDate("time_stamp"),notNullValue());
             }
         }
+        return response;
     }
 
     @Override
@@ -158,6 +174,7 @@ public class JDBCMessageStoreTest extends CamelTestSupport {
         RepositoryManagerFactory repositoryManagerFactory = new RepositoryManagerFactory();
         repositoryManagerFactory.setDataSource(dataSource);
         messageStore = new JDBCMessageStore();
+        messageStore.setUuidGenerator(new UUIDGenerator());
         messageStore.setRepositoryManager(repositoryManagerFactory.createRepositoryManager());
         messageStore.init();
         return new RouteBuilder() {

@@ -12,6 +12,7 @@ import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.messaging.Message;
 import org.jentrata.ebms.messaging.MessageStore;
 import org.jentrata.ebms.messaging.MessageStoreException;
+import org.jentrata.ebms.messaging.UUIDGenerator;
 import org.jentrata.ebms.messaging.internal.sql.RepositoryManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,7 @@ public class JDBCMessageStore implements MessageStore {
     private static final Logger LOG = LoggerFactory.getLogger(JDBCMessageStore.class);
 
     private RepositoryManager repositoryManager;
+    private UUIDGenerator uuidGenerator;
     private boolean createTables = true;
 
     public void init() throws IOException {
@@ -58,9 +60,17 @@ public class JDBCMessageStore implements MessageStore {
         String messageDirection = exchange.getIn().getHeader(EbmsConstants.MESSAGE_DIRECTION,String.class);
         String contentType = exchange.getIn().getHeader(EbmsConstants.CONTENT_TYPE,String.class);
         long contentLength = exchange.getIn().getHeader(EbmsConstants.CONTENT_LENGTH,0L,Long.class);
-        String cpaId = exchange.getIn().getHeader(EbmsConstants.CPA_ID,String.class);
-        repositoryManager.insertIntoRepository(messageId, contentType, messageDirection, contentLength, message);
-
+        boolean duplicate = repositoryManager.isDuplicate(messageId,messageDirection);
+        String duplicateMessageId = null;
+        if(duplicate) {
+            duplicateMessageId = uuidGenerator.generateId();
+            LOG.info("Message " + messageId + " is a duplicate new message Id " + duplicateMessageId);
+            exchange.getIn().setHeader(EbmsConstants.DUPLICATE_MESSAGE,true);
+            exchange.getIn().setHeader(EbmsConstants.DUPLICATE_MESSAGE_ID,duplicateMessageId);
+            repositoryManager.insertIntoRepository(duplicateMessageId, contentType, messageDirection, contentLength, message, messageId);
+        }  else {
+            repositoryManager.insertIntoRepository(messageId, contentType, messageDirection, contentLength, message, messageId);
+        }
     }
 
     public void storeMessage(Exchange exchange) {
@@ -70,7 +80,12 @@ public class JDBCMessageStore implements MessageStore {
         String cpaId = exchange.getIn().getHeader(EbmsConstants.CPA_ID,String.class);
         String conversationId = exchange.getIn().getHeader(EbmsConstants.MESSAGE_CONVERSATION_ID,String.class);
         String refMessageID = exchange.getIn().getHeader(EbmsConstants.REF_TO_MESSAGE_ID, String.class);
-        repositoryManager.insertMessage(messageId,messageDirection,messageType,cpaId,conversationId,refMessageID);
+        String duplicateMessageId = exchange.getIn().getHeader(EbmsConstants.DUPLICATE_MESSAGE_ID, String.class);
+       if(duplicateMessageId != null) {
+           repositoryManager.insertMessage(duplicateMessageId,messageDirection,messageType,cpaId,conversationId,refMessageID);
+       } else {
+            repositoryManager.insertMessage(messageId,messageDirection,messageType,cpaId,conversationId,refMessageID);
+       }
     }
 
     @Override
@@ -121,5 +136,13 @@ public class JDBCMessageStore implements MessageStore {
 
     public void setCreateTables(boolean createTables) {
         this.createTables = createTables;
+    }
+
+    public UUIDGenerator getUuidGenerator() {
+        return uuidGenerator;
+    }
+
+    public void setUuidGenerator(UUIDGenerator uuidGenerator) {
+        this.uuidGenerator = uuidGenerator;
     }
 }

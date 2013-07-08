@@ -218,8 +218,7 @@ public class JSONCPARepositoryTest {
         repository.init();
 
         Map<String,Object> fields = new ImmutableMap.Builder<String, Object>()
-                .put(EbmsConstants.MESSAGE_SERVICE, "service1")
-                .put(EbmsConstants.MESSAGE_ACTION,"action1")
+                .put(EbmsConstants.CPA, repository.getActivePartnerAgreements().get(0))
                 .build();
         assertThat(repository.isValidPartnerAgreement(fields),is(true));
 

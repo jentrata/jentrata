@@ -100,12 +100,7 @@ public class JSONCPARepository implements CPARepository {
     }
 
     public boolean isValidPartnerAgreement(final Map<String, Object> fields) {
-        String service = (String) fields.get(EbmsConstants.MESSAGE_SERVICE);
-        String action = (String) fields.get(EbmsConstants.MESSAGE_ACTION);
         PartnerAgreement agreement = (PartnerAgreement) fields.get(EbmsConstants.CPA);
-        if(agreement == null) {
-            agreement = findByServiceAndAction(service,action);
-        }
         return  agreement != null;
     }
 

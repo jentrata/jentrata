@@ -71,4 +71,6 @@ public class EbmsConstants {
     public static final String MESSAGE_DATE = "JentrataMessageDate";
     public static final String MESSAGE_RECEIPT_PATTERN = "JentrataMessageReceipt";
     public static final String MESSAGE_DUP_DETECTION = "JentrataDupDetection";
+    public static final String DUPLICATE_MESSAGE = "JentrataIsDuplicateMessage";
+    public static final String DUPLICATE_MESSAGE_ID = "JentrataDuplicateMessageId";
 }

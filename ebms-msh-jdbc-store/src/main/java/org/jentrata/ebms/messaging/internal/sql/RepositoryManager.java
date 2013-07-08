@@ -15,7 +15,8 @@ import java.util.Map;
  */
 public interface RepositoryManager {
     void createTablesIfNotExists();
-    void insertIntoRepository(String messageId, String contentType, String messageDirection, long contentLength, InputStream content);
+    boolean isDuplicate(String messageId, String messageDirection);
+    void insertIntoRepository(String messageId, String contentType, String messageDirection, long contentLength, InputStream content, String duplicateMessageId);
     void updateMessage(String messageId, String messageDirection, MessageStatusType status, String statusDescription);
     void insertMessage(String messageId, String messageDirection, MessageType messageType, String cpaId, String conversationId, String refMessageID);
     List<Message> selectMessageBy(String columnName, String value);

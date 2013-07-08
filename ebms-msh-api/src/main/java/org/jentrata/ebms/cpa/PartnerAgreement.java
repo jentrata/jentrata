@@ -20,7 +20,7 @@ public class PartnerAgreement {
     private boolean active = true;
     private String transportReceiverEndpoint;
     private List<Service> services;
-    private Security security;
+    private Security security = Security.DEFAULT_SECURITY;
     private PayloadService payloadService = PayloadService.DEFAULT_PAYLOAD_SERVICE;
     private ReceptionAwareness receptionAwareness = ReceptionAwareness.DEFAULT;
 

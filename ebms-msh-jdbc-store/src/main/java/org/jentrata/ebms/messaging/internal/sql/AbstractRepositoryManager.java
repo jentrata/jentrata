@@ -56,7 +56,16 @@ public abstract class AbstractRepositoryManager implements RepositoryManager {
     }
 
     @Override
-    public void insertIntoRepository(String messageId, String contentType, String messageDirection, long contentLength, InputStream content) {
+    public boolean isDuplicate(String messageId, String messageDirection) {
+        Map<String,Object> fields = new HashMap<>();
+        fields.put("message_id",messageId);
+        fields.put("message_box",messageDirection);
+        List<Message> messages = selectMessageBy(fields);
+        return !messages.isEmpty();
+    }
+
+    @Override
+    public void insertIntoRepository(String messageId, String contentType, String messageDirection, long contentLength, InputStream content, String duplicateMessageId) {
         try(Connection connection = dataSource.getConnection()) {
             String sql = getInsertSQL();
             try(PreparedStatement stmt = connection.prepareStatement(sql)) {

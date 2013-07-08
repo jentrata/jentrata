@@ -3,6 +3,7 @@
     "direction":"${headers.JentrataMessageDirection}",
     "cpaId":"${headers.JentrataCPAId!'UNKNOWN'}",
     "refMessageId":"${headers.JentrataRefMessageID!}",
+    "duplicateMessageId":"${headers.JentrataDuplicateMessageId!}",
     "conversationId":"${headers.JentrataConversationId!}",
     "status":"${headers.JentrataMessageStatus}",
     "statusDescription":"${headers.JentrataMessageStatusDesc!}",

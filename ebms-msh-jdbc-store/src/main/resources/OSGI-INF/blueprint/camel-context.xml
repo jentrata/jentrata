@@ -74,9 +74,12 @@
 
     <bean id="repositoryManager" factory-ref="repositoryManagerFactory" factory-method="createRepositoryManager" />
 
+    <bean id="uuidGenerator" class="org.jentrata.ebms.messaging.UUIDGenerator"/>
+
     <bean id="messageStore" class="org.jentrata.ebms.messaging.internal.JDBCMessageStore" init-method="init">
         <property name="repositoryManager" ref="repositoryManager"/>
         <property name="createTables" value="${jentrata.messagestore.autoCreateTables}"/>
+        <property name="uuidGenerator" ref="uuidGenerator"/>
     </bean>
     <service ref="messageStore" interface="org.jentrata.ebms.messaging.MessageStore" ranking="5"/>
 

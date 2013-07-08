@@ -16,6 +16,7 @@ public class H2RepositoryManager extends AbstractRepositoryManager implements Re
                     " content bytea,\n" +
                     " time_stamp timestamp,\n" +
                     " message_box varchar,\n" +
+                    " dup_message_id varchar,\n" +
                     " PRIMARY KEY (message_id, message_box)\n" +
                     ");",
             "CREATE TABLE IF NOT EXISTS message (\n" +

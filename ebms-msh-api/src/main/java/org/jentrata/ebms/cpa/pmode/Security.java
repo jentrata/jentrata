@@ -7,6 +7,8 @@ package org.jentrata.ebms.cpa.pmode;
  */
 public class Security {
 
+    public static final Security DEFAULT_SECURITY = new Security();
+
     public enum ReplyPatternType {
         Callback,
         Response
