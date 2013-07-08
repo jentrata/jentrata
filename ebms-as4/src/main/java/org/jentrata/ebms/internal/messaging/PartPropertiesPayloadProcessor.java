@@ -18,7 +18,7 @@ public class PartPropertiesPayloadProcessor implements SoapPayloadProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(PartPropertiesPayloadProcessor.class);
 
-    private String partPropertyXpath = "//*[local-name()='Property' and @name[.='PartID' and ../text()='%s']]/..";
+    private String partPropertyXpath = "//*[local-name()='PartInfo' and @href[.='cid:%s']]";
 
     @Override
     public void process(String soapMessage, String payloadId, Exchange exchange) {
