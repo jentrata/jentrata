@@ -28,6 +28,10 @@
             <cm:property name="activemq.broker.url" value="tcp://localhost:61616"/>
             <cm:property name="activemq.broker.username" value="jentrata"/>
             <cm:property name="activemq.broker.password" value="jentrata"/>
+            <cm:property name="activemq.broker.maxConnections" value="20"/>
+            <cm:property name="activemq.broker.concurrentConsumers" value="5"/>
+            <!-- idleTimeout=0 disables ActiveMQMessageConsumer.checkClosed() logic -->
+            <cm:property name="activemq.broker.idleTimeout" value="0"/>
 
             <cm:property name="jentrata.ebms.dlq" value=""/>
 
@@ -169,13 +173,14 @@
     </bean>
 
     <bean id="pooledConnectionFactory" class="org.apache.activemq.pool.PooledConnectionFactory" init-method="start" destroy-method="stop">
-        <property name="maxConnections" value="20" />
+        <property name="maxConnections" value="${activemq.broker.maxConnections}" />
         <property name="connectionFactory" ref="jmsConnectionFactory" />
+        <property name="idleTimeout" value="${activemq.broker.idleTimeout}" />
     </bean>
 
     <bean id="jmsConfig" class="org.apache.camel.component.jms.JmsConfiguration">
         <property name="connectionFactory" ref="pooledConnectionFactory"/>
-        <property name="concurrentConsumers" value="10"/>
+        <property name="concurrentConsumers" value="${activemq.broker.concurrentConsumers}"/>
     </bean>
 
     <bean id="activemq" class="org.apache.activemq.camel.component.ActiveMQComponent">
