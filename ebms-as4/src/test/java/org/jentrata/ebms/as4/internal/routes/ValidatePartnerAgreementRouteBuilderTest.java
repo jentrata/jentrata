@@ -10,11 +10,9 @@ import org.apache.camel.impl.DefaultExchange;
 import org.apache.camel.impl.JndiRegistry;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.jentrata.ebms.EbmsConstants;
+import org.jentrata.ebms.EbmsError;
 import org.jentrata.ebms.MessageType;
-import org.jentrata.ebms.cpa.CPARepository;
-import org.jentrata.ebms.cpa.InvalidPartnerAgreementException;
-import org.jentrata.ebms.cpa.PartnerAgreement;
-import org.jentrata.ebms.cpa.Service;
+import org.jentrata.ebms.cpa.*;
 import org.jentrata.ebms.messaging.Message;
 import org.jentrata.ebms.messaging.MessageStore;
 import org.jentrata.ebms.utils.EbmsUtils;
@@ -25,6 +23,7 @@ import javax.xml.xpath.XPathExpressionException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -37,6 +36,8 @@ import static org.mockito.Mockito.*;
  * @author aaronwalker
  */
 public class ValidatePartnerAgreementRouteBuilderTest extends CamelTestSupport {
+
+    private CPARepository cpaRepository;
 
     @Test
     public void testHasValidPartnerAgreement() throws Exception {
@@ -125,6 +126,43 @@ public class ValidatePartnerAgreementRouteBuilderTest extends CamelTestSupport {
         assertThat(response.getIn().getHeader(EbmsConstants.CPA_ID, String.class),equalTo(EbmsConstants.CPA_ID_UNKNOWN));
     }
 
+    @Test
+    public void testValidationErrors() throws Exception {
+        Exchange request = new DefaultExchange(context());
+        request.getIn().setBody(loadEbmsMessage());
+        request.getIn().setHeader(EbmsConstants.MESSAGE_ID, "testMsgID");
+        request.getIn().setHeader(EbmsConstants.REF_TO_MESSAGE_ID, "testRefMsgID");
+        request.getIn().setHeader(EbmsConstants.MESSAGE_SERVICE, "testServiceValidation");
+        request.getIn().setHeader(EbmsConstants.MESSAGE_ACTION,"testActionValidation");
+        request.getIn().setHeader(EbmsConstants.MESSAGE_TYPE, MessageType.USER_MESSAGE);
+        request.getIn().setHeader(EbmsConstants.CPA,createPartnerAgreement());
+        Exchange response = context().createProducerTemplate().send("direct:validatePartner",request);
+
+        assertThat(response.isFailed(),is(true));
+        assertThat(response.getException(),instanceOf(InvalidPartnerAgreementException.class));
+        InvalidPartnerAgreementException exception = response.getException(InvalidPartnerAgreementException.class);
+        assertThat(exception.getValidationErrors(),hasSize(1));
+        assertThat(exception.getValidationErrors().get(0).getError(),equalTo(EbmsError.EBMS_0003));
+
+
+    }
+
+    private PartnerAgreement createPartnerAgreement() {
+        PartnerAgreement agreement = new PartnerAgreement();
+        agreement.setCpaId("validationErrors");
+        Service service = new Service("testServiceValidation","testActionValidation");
+        ValidationPredicate predicate = new ValidationPredicate() {
+            @Override
+            public boolean matches(Exchange exchange) {
+                exchange.getIn().setHeader(EbmsConstants.VALIDATION_ERROR_DESC,"message invalid....just because I don't like you");
+                return false;
+            }
+        };
+        service.setValidations(Arrays.asList(predicate));
+        agreement.setServices(Arrays.asList(service));
+        return agreement;
+    }
+
     private InputStream loadEbmsMessage() throws IOException {
         return loadEbmsMessage("sample-ebms-user-message.xml");
     }
@@ -136,7 +174,8 @@ public class ValidatePartnerAgreementRouteBuilderTest extends CamelTestSupport {
     @Override
     protected JndiRegistry createRegistry() throws Exception {
         JndiRegistry registry = super.createRegistry();
-        registry.bind("cpaRepository",new MockCpaRepository());
+        cpaRepository = new MockCpaRepository();
+        registry.bind("cpaRepository", cpaRepository);
         registry.bind("messageStore", mockMessageStore());
         return registry;
     }
@@ -183,6 +222,8 @@ public class ValidatePartnerAgreementRouteBuilderTest extends CamelTestSupport {
                             .build()
                     );
                     return partnerAgreement;
+                case "testServiceValidation|testActionValidation":
+                   return createPartnerAgreement();
                 default:
                     return null;
             }

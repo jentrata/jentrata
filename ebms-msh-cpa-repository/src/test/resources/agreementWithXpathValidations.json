@@ -1,0 +1,20 @@
+[
+    {
+        "cpaId":"testCPAId1",
+        "active":"true",
+        "transportReceiverEndpoint":"http://example.jentrata.org",
+        "services" : [
+            {
+                "service":"service1",
+                "action":"action1",
+                "validations": [
+                    {
+                        "type":"xpath",
+                        "name":"AgreementRef",
+                        "expression":"//eb://AgreementRef[text()='http://agreement1234']"
+                    }
+                ]
+            }
+        ]
+    }
+]

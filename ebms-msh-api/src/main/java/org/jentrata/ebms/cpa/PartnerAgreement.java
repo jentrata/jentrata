@@ -66,6 +66,15 @@ public class PartnerAgreement {
         return s.iterator().hasNext();
     }
 
+    public Service getService(String serviceName, String action) {
+        for(Service service : services) {
+            if(service.getService().equals(serviceName) && service.getAction().equals(action)) {
+                return service;
+            }
+        }
+        return null;
+    }
+
     public Security getSecurity() {
         return security;
     }

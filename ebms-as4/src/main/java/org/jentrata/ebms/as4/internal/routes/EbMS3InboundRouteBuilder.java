@@ -7,6 +7,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
 import org.apache.camel.component.freemarker.FreemarkerConstants;
 import org.jentrata.ebms.*;
+import org.jentrata.ebms.cpa.InvalidPartnerAgreementException;
 import org.jentrata.ebms.cpa.pmode.Security;
 import org.jentrata.ebms.internal.messaging.MessageDetector;
 import org.jentrata.ebms.messaging.MessageStore;
@@ -65,8 +66,6 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
                         .setHeader(EbmsConstants.MESSAGE_STATUS, constant(MessageStatusType.FAILED))
                         .setHeader(EbmsConstants.MESSAGE_STATUS_DESCRIPTION, simple("${exception.message}"))
                         .to(messageUpdateEndpoint)
-                        .inOnly(EventNotificationRouteBuilder.SEND_NOTIFICATION_ENDPOINT) //hmm can't use wiretap in onException block
-                        .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(500))
                         .to("direct:errorHandler")
                     .doFinally()
                         .process(new Processor() {
@@ -105,6 +104,7 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
             .to("direct:lookupCpaId")
             .setHeader(EbmsConstants.MESSAGE_RECEIPT_PATTERN, simple("${headers.JentrataCPA.security.sendReceiptReplyPattern.name()}"))
             .setHeader(EbmsConstants.MESSAGE_DUP_DETECTION, simple("${headers.JentrataCPA.receptionAwareness.duplicateDetectionEnabled}"))
+            .to("direct:setHttpResponseCode")
             .to(messageInsertEndpoint) //create a message entry in the message store to track the state of the message
             .to("direct:securityCheck")
             .choice()
@@ -142,15 +142,12 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
                     .choice()
                         .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.SIGNAL_MESSAGE_ERROR.name()))
                             .inOnly(inboundEbmsSignalsQueue)
-                            .setHeader(Exchange.HTTP_RESPONSE_CODE,constant(204))
                             .setBody(constant(null))
                         .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.SIGNAL_MESSAGE.name()))
                             .inOnly(inboundEbmsSignalsQueue)
-                            .setHeader(Exchange.HTTP_RESPONSE_CODE,constant(204))
                             .setBody(constant(null))
                         .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.SIGNAL_MESSAGE_WITH_USER_MESSAGE.name()))
                             .inOnly(inboundEbmsSignalsQueue)
-                            .setHeader(Exchange.HTTP_RESPONSE_CODE,constant(204))
                             .setBody(constant(null))
                         .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.USER_MESSAGE.name()))
                             .choice()
@@ -197,47 +194,46 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
             .choice()
                 .when(header(EbmsConstants.MESSAGE_RECEIPT_PATTERN).isEqualTo(Security.ReplyPatternType.Callback.name()))
                     .inOnly(inboundEbmsQueue)
-                    .setHeader(Exchange.HTTP_RESPONSE_CODE,constant(204))
                     .setBody(constant(null))
                 .otherwise()
                     .to(inboundEbmsQueue)
-                    .setHeader(Exchange.HTTP_RESPONSE_CODE,constant(200))
             .end()
         .routeId("_jentrataGenerateReceipt");
 
         from("direct:handleSecurityException")
+            .choice()
+                .when(header(EbmsConstants.MESSAGE_RECEIPT_PATTERN).isEqualTo(Security.ReplyPatternType.Callback.name()))
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(204))
+                .otherwise()
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(500))
+            .end()
             .setHeader(EbmsConstants.EBMS_ERROR_CODE, constant(EbmsError.EBMS_0101.getErrorCode()))
             .setHeader(EbmsConstants.EBMS_ERROR_DESCRIPTION, simple("${headers.JentrataSecurityResults?.message}"))
             .setHeader(EbmsConstants.SECURITY_ERROR_CODE, simple("${headers.JentrataSecurityResults?.errorCode}"))
             .log(LoggingLevel.INFO, "Security Exception for msgId:${headers.JentrataMessageID} - errorCode:${headers.JentrataSecurityErrorCode} - ${headers.JentrataEbmsErrorDesc}")
             .wireTap(EventNotificationRouteBuilder.SEND_NOTIFICATION_ENDPOINT)
-            .convertBodyTo(String.class)
-            .choice()
-                .when(header(EbmsConstants.MESSAGE_RECEIPT_PATTERN).isEqualTo(Security.ReplyPatternType.Callback.name()))
-                    .inOnly(securityErrorQueue)
-                    .setBody(constant(null))
-                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(204))
-                .otherwise()
-                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(500))
-                    .to(securityErrorQueue)
-            .end()
-            .to("direct:removeHeaders")
-            .setHeader("X-Jentrata-Version", simple("${sys.jentrataVersion}"))
-            .setHeader(EbmsConstants.CONTENT_TYPE,constant(EbmsConstants.SOAP_XML_CONTENT_TYPE))
+            .to("direct:generateEbmsError")
         .routeId("_jentrataHandleSecurityException");
 
         from("direct:errorHandler")
-            .to("direct:removeHeaders")
             .setHeader("CamelException", simple("${exception.message}"))
             .setHeader("CamelExceptionStackTrace",simple("${exception.stacktrace}"))
             .setHeader("X-JentrataVersion", simple("${sys.jentrataVersion}"))
             .choice()
-                .when(header(Exchange.HTTP_RESPONSE_CODE).isNotEqualTo(500))
+                .when(header(EbmsConstants.EBMS_VALIDATION_ERROR).isNotNull())
+                    .log(LoggingLevel.INFO, "Validation Exception for msgId:${headers.JentrataMessageID} - errors:${headers.JentrataValidationError}")
+                    .setHeader(EbmsConstants.EBMS_ERROR_CODE, simple("headers.JentrataValidationError[0]?.error.errorCode"))
+                    .setHeader(EbmsConstants.EBMS_ERROR_DESCRIPTION, simple("${headers.JentrataValidationError[0]?.description}"))
+                    .to("direct:generateEbmsError")
+                    .convertBodyTo(String.class, "UTF-8")
+                .when(header(Exchange.HTTP_RESPONSE_CODE).isEqualTo(405))
                     .setHeader(FreemarkerConstants.FREEMARKER_RESOURCE_URI, simple("html/${headers.CamelHttpResponseCode}.html"))
-                .setHeader(EbmsConstants.CONTENT_TYPE, constant("text/html"))
+                    .setHeader(EbmsConstants.CONTENT_TYPE, constant("text/html"))
                     .to("freemarker:html/500.html")
                     .convertBodyTo(String.class)
                 .otherwise()
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(500))
+                    .wireTap(EventNotificationRouteBuilder.SEND_NOTIFICATION_ENDPOINT)
                     .setHeader(EbmsConstants.CONTENT_TYPE, constant(EbmsConstants.SOAP_XML_CONTENT_TYPE))
                     .to("freemarker:templates/soap-fault.ftl")
                     .convertBodyTo(String.class, "UTF-8")
@@ -254,6 +250,30 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
             .removeHeader("JSESSIONID")
             .removeHeader("breadcrumbId")
         .routeId("_jentrataRemoveHeaders");
+
+        from("direct:generateEbmsError")
+            .wireTap(EventNotificationRouteBuilder.SEND_NOTIFICATION_ENDPOINT)
+            .convertBodyTo(String.class)
+            .choice()
+                .when(header(EbmsConstants.MESSAGE_RECEIPT_PATTERN).isEqualTo(Security.ReplyPatternType.Callback.name()))
+                    .inOnly(securityErrorQueue)
+                    .setBody(constant(null))
+                .otherwise()
+                    .to(securityErrorQueue)
+            .end()
+            .setHeader(EbmsConstants.CONTENT_TYPE, constant(EbmsConstants.SOAP_XML_CONTENT_TYPE))
+       .routeId("_jentrataGenerateEbmsError");
+
+        from("direct:setHttpResponseCode")
+                .choice()
+                    .when(header(EbmsConstants.MESSAGE_RECEIPT_PATTERN).isEqualTo(Security.ReplyPatternType.Callback.name()))
+                        .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(204))
+                    .otherwise()
+                        .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(200))
+                .end()
+        .routeId("_jentrataSetHttpResponseCode");
+
+
     }
 
     public String getEbmsHttpEndpoint() {

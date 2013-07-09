@@ -35,6 +35,7 @@
             org.jentrata.ebms;provide:=true,
             org.jentrata.ebms.cpa;provide:=true,
             org.jentrata.ebms.cpa.pmode;provide:=true,
+            org.jentrata.ebms.cpa.validation;provide:=true,
             org.jentrata.ebms.utils;provide:=true,
             *
         </osgi.import>

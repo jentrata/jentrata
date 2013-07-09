@@ -4,11 +4,13 @@ import com.google.common.collect.ImmutableMap;
 import org.hamcrest.Matchers;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.cpa.PartnerAgreement;
+import org.jentrata.ebms.cpa.ValidationPredicate;
 import org.jentrata.ebms.cpa.pmode.PayloadService;
 import org.jentrata.ebms.cpa.pmode.ReceptionAwareness;
 import org.jentrata.ebms.cpa.pmode.Security;
 import org.jentrata.ebms.cpa.pmode.Signature;
 import org.jentrata.ebms.cpa.pmode.UsernameToken;
+import org.jentrata.ebms.cpa.validation.XPathPredicate;
 import org.jentrata.ebms.utils.EbmsUtils;
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -324,6 +326,20 @@ public class JSONCPARepositoryTest {
         assertThat((Integer) receptionAwareness.getRetry().get("period"), equalTo(3000));
         assertThat((String) receptionAwareness.getDuplicateDetection().get("checkwindow"), equalTo("7D"));
 
+    }
+
+    @Test
+    public void testXpathValidations() throws Exception {
+        JSONCPARepository repository = new JSONCPARepository();
+        repository.setCpaJsonFile(fileFromClasspath("agreementWithXpathValidations.json"));
+        repository.init();
+        assertThat(repository.getActivePartnerAgreements(),hasSize(1));
+        List<ValidationPredicate> validations = repository.getActivePartnerAgreements().get(0).getService("service1","action1").getValidations();
+        assertThat(validations,hasSize(1));
+        assertThat(validations.get(0),instanceOf(XPathPredicate.class));
+        XPathPredicate predicate = (XPathPredicate) validations.get(0);
+        assertThat(predicate.getName(), Matchers.equalTo("AgreementRef"));
+        assertThat(predicate.getExpression(), Matchers.equalTo("//eb://AgreementRef[text()='http://agreement1234']"));
     }
 
     protected static File fileFromClasspath(String filename) {

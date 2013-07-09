@@ -73,4 +73,6 @@ public class EbmsConstants {
     public static final String MESSAGE_DUP_DETECTION = "JentrataDupDetection";
     public static final String DUPLICATE_MESSAGE = "JentrataIsDuplicateMessage";
     public static final String DUPLICATE_MESSAGE_ID = "JentrataDuplicateMessageId";
+    public static final String VALIDATION_ERROR_DESC = "JentrataValidationErrorDesc";
+    public static final String EBMS_VALIDATION_ERROR = "JentrataValidationError";
 }

@@ -1,5 +1,7 @@
 package org.jentrata.ebms.cpa;
 
+import java.util.List;
+
 /**
  * A service agreement between trading partners
  *
@@ -10,6 +12,7 @@ public class Service {
     private String service;
     private String action;
     private ServiceIdentifier identifier = null;
+    private List<ValidationPredicate> validations;
 
     public Service() {}
 
@@ -41,5 +44,13 @@ public class Service {
 
     public void setIdentifier(ServiceIdentifier identifier) {
         this.identifier = identifier;
+    }
+
+    public List<ValidationPredicate> getValidations() {
+        return validations;
+    }
+
+    public void setValidations(List<ValidationPredicate> validations) {
+        this.validations = validations;
     }
 }

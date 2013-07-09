@@ -253,6 +253,7 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
         assertThat("should have gotten http 500 response code",response.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE,Integer.class),equalTo(500));
         assertThat("should have gotten error http response",response.getIn().getBody(),notNullValue());
         assertThat(response.getIn().getBody(Document.class),hasXPath("//*[local-name()='Text' and text()='failed doing something']"));
+        assertThat(response.getIn().getBody(Document.class),hasXPath("//*[local-name()='Detail' and contains(text(),'IOException')]"));
 
     }
 

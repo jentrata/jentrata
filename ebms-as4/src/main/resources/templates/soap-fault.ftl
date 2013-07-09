@@ -6,7 +6,12 @@
                 <soapenv:Value>soapenv:Sender</soapenv:Value>
             </soapenv:Code>
             <soapenv:Reason>
-                <soapenv:Text xml:lang="en-US">${headers['CamelException']}</soapenv:Text>
+                <soapenv:Text xml:lang="en-US">${headers['CamelException']!"unknown"}</soapenv:Text>
+                <#if headers['CamelExceptionStackTrace']?has_content><soapenv:Detail><![CDATA[
+                ${headers['CamelExceptionStackTrace']!"unknown"}
+                ]]>
+                </soapenv:Detail>
+                </#if>
             </soapenv:Reason>
         </soapenv:Fault>
     </soapenv:Body>
