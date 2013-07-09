@@ -2,6 +2,7 @@ package org.jentrata.ebms.internal.messaging;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.xml.XPathBuilder;
+import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.soap.SoapPayloadProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,13 +20,19 @@ public class PartPropertiesPayloadProcessor implements SoapPayloadProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(PartPropertiesPayloadProcessor.class);
 
     private String partPropertyXpath = "//*[local-name()='PartInfo' and @href[.='cid:%s']]";
+    private String soapPartPropertyXpath =  "//*[local-name()='PartInfo' and (not(@href) or string-length(@href)=0)]";
 
     @Override
     public void process(String soapMessage, String payloadId, Exchange exchange) {
-        //TODO: need to fix this to better handle the situation where partPropertyXpath doesn't find a match as the default one throws an exception
         try {
-            Node node = XPathBuilder.xpath(String.format(partPropertyXpath,payloadId)).evaluate(exchange.getContext(), soapMessage, Node.class);
-            NodeList partProperties = XPathBuilder.xpath("//*[local-name()='Property']").evaluate(exchange.getContext(), node, NodeList.class);
+            Node partInfo;
+            if(payloadId.equals(EbmsConstants.SOAP_BODY_PAYLOAD_ID)) {
+                partInfo = XPathBuilder.xpath(String.format(soapPartPropertyXpath,payloadId)).evaluate(exchange.getContext(), soapMessage, Node.class);
+            }
+            else {
+                partInfo = XPathBuilder.xpath(String.format(partPropertyXpath,payloadId)).evaluate(exchange.getContext(), soapMessage, Node.class);
+            }
+            NodeList partProperties = XPathBuilder.xpath("//*[local-name()='Property']").evaluate(exchange.getContext(), partInfo, NodeList.class);
             for (int i = 0; i < partProperties.getLength(); i++) {
                 Node property = partProperties.item(i);
                 String name = property.getAttributes().getNamedItem("name").getTextContent();
@@ -44,5 +51,13 @@ public class PartPropertiesPayloadProcessor implements SoapPayloadProcessor {
 
     public void setPartPropertyXpath(String partPropertyXpath) {
         this.partPropertyXpath = partPropertyXpath;
+    }
+
+    public String getSoapPartPropertyXpath() {
+        return soapPartPropertyXpath;
+    }
+
+    public void setSoapPartPropertyXpath(String soapPartPropertyXpath) {
+        this.soapPartPropertyXpath = soapPartPropertyXpath;
     }
 }

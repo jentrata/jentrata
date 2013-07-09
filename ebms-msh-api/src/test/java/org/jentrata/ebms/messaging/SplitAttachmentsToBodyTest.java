@@ -134,6 +134,21 @@ public class SplitAttachmentsToBodyTest extends CamelTestSupport {
         failIfHeaderExists(SplitAttachmentsToBody.ORIGINAL_MESSAGE_BODY,mockSplitter.getExchanges());
     }
 
+    @Test
+    public void testWithBodyOnly() throws Exception {
+        mockSplitter.setExpectedMessageCount(1);
+        mockSplitter.expectedHeaderValuesReceivedInAnyOrder(EbmsConstants.CONTENT_ID, EbmsConstants.SOAP_BODY_PAYLOAD_ID);
+        mockSplitter.expectedHeaderValuesReceivedInAnyOrder(EbmsConstants.CONTENT_TYPE, "text/xml");
+        mockSplitter.expectedHeaderValuesReceivedInAnyOrder(SplitAttachmentsToBody.ORIGINAL_MESSAGE_BODY, "test");
+        mockSplitter.expectedBodiesReceivedInAnyOrder("<test/>");
+
+        Exchange request = getExchange("<test/>");
+        request.getIn().setHeader(SplitAttachmentsToBody.ORIGINAL_MESSAGE_BODY,"test");
+        context().createProducerTemplate().send("direct:testWithBodyOnly",request);
+
+        assertMockEndpointsSatisfied();
+    }
+
     @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
@@ -157,6 +172,10 @@ public class SplitAttachmentsToBodyTest extends CamelTestSupport {
 
                 from("direct:testIncludeOriginalMessageSplitter")
                     .split(new SplitAttachmentsToBody(false, false, true))
+                        .to(mockSplitter);
+
+                from("direct:testWithBodyOnly")
+                    .split(new SplitAttachmentsToBody(true, false, true))
                         .to(mockSplitter);
             }
         };

@@ -88,10 +88,12 @@ public class SplitAttachmentsToBody extends ExpressionAdapter {
             String contentId = exchange.getIn().getHeader(EbmsConstants.CONTENT_ID,EbmsConstants.SOAP_BODY_PAYLOAD_ID,String.class);
             String contentType = exchange.getIn().getHeader(EbmsConstants.CONTENT_ID,EbmsConstants.TEXT_XML_CONTENT_TYPE,String.class);
 
-            answer.add(createNewMessage(contentId,
+            Message soapBodyMessage = createNewMessage(contentId,
                     contentType,
                     exchange.getIn().getBody(InputStream.class),
-                    exchange));
+                    exchange);
+            copyOriginalMessage(exchange, originalBody, soapBodyMessage);
+            answer.add(soapBodyMessage);
         }
 
         for (Map.Entry<String, DataHandler> entry : exchange.getIn().getAttachments().entrySet()) {
@@ -100,20 +102,24 @@ public class SplitAttachmentsToBody extends ExpressionAdapter {
                         entry.getValue().getContentType(),
                         entry.getValue().getInputStream(),
                         exchange);
-                if(copyOriginalMessage) {
-                    Object body = exchange.getIn().getHeader(ORIGINAL_MESSAGE_BODY);
-                    if(body != null) {
-                        copy.setHeader(ORIGINAL_MESSAGE_BODY,body);
-                    } else {
-                        copy.setHeader(ORIGINAL_MESSAGE_BODY,originalBody);
-                    }
-                }
+                copyOriginalMessage(exchange, originalBody, copy);
                 answer.add(copy);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
         return answer;
+    }
+
+    private void copyOriginalMessage(Exchange exchange, String originalBody, Message copy) {
+        if(copyOriginalMessage) {
+            Object body = exchange.getIn().getHeader(ORIGINAL_MESSAGE_BODY);
+            if(body != null) {
+                copy.setHeader(ORIGINAL_MESSAGE_BODY,body);
+            } else {
+                copy.setHeader(ORIGINAL_MESSAGE_BODY,originalBody);
+            }
+        }
     }
 
     private Message createNewMessage(String contentId, String contentType, InputStream stream, Exchange exchange) {
