@@ -14,8 +14,9 @@ public abstract class AbstractXPathPredicate extends AbstractValidationPredicate
         try {
             Document body = exchange.getIn().getBody(Document.class);
             if(matches(body,expression)) {
-                exchange.getIn().setHeader(EbmsConstants.VALIDATION_ERROR_DESC,getValidationError());
                 return true;
+            } else {
+                exchange.getIn().setHeader(EbmsConstants.VALIDATION_ERROR_DESC,getValidationError());
             }
         }
         catch (Exception ex) {

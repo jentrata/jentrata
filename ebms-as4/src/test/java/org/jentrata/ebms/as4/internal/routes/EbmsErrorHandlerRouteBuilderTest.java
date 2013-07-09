@@ -39,8 +39,13 @@ public class EbmsErrorHandlerRouteBuilderTest extends CamelTestSupport {
     }
 
     @Test
-    public void testWitErrorCode() throws Exception {
-        assertEbmsError("test1234@jentrata.org",EbmsError.EBMS_0101,null);
+    public void testWithErrorCode() throws Exception {
+        assertEbmsError("test1234jentrata.org",EbmsError.EBMS_0101,null);
+    }
+
+    @Test
+    public void testWithUnsafeCharacters() throws Exception {
+        assertEbmsError("test1234&jentrata.org",EbmsError.EBMS_0101,"\"invalid &'<> chars\"");
     }
 
     @Test

@@ -17,8 +17,8 @@
                           errorCode="${headers.JentrataEbmsError.errorCode}"
                           severity="${headers.JentrataEbmsError.severity}"
                           shortDescription="${headers.JentrataEbmsError.shortDescription}"
-                          refToMessageInError="${headers.JentrataRefToMessageInError!}">
-                    <#if headers.JentrataEbmsErrorDesc?has_content><eb:Description xml:lang="en">${headers.JentrataEbmsErrorDesc}</eb:Description></#if>
+                          refToMessageInError="${headers.JentrataRefToMessageInError?xml!}">
+                    <#if headers.JentrataEbmsErrorDesc?has_content><eb:Description xml:lang="en">${headers.JentrataEbmsErrorDesc?xml}</eb:Description></#if>
                 </eb:Error>
             </eb:SignalMessage>
         </eb:Messaging>
