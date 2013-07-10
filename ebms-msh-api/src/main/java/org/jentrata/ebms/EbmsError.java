@@ -114,4 +114,15 @@ public class EbmsError {
     public ErrorOrigin getOrigin() {
         return origin;
     }
+
+    @Override
+    public String toString() {
+        return "EbmsError{" +
+                "errorCode='" + errorCode + '\'' +
+                ", origin=" + origin +
+                ", category=" + category +
+                ", severity=" + severity +
+                ", shortDescription='" + shortDescription + '\'' +
+                '}';
+    }
 }

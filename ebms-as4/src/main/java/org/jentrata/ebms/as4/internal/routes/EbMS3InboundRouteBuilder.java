@@ -3,17 +3,19 @@ package org.jentrata.ebms.as4.internal.routes;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.Processor;
+import org.apache.camel.ValidationException;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
 import org.apache.camel.component.freemarker.FreemarkerConstants;
 import org.jentrata.ebms.*;
-import org.jentrata.ebms.cpa.InvalidPartnerAgreementException;
 import org.jentrata.ebms.cpa.pmode.Security;
 import org.jentrata.ebms.internal.messaging.MessageDetector;
 import org.jentrata.ebms.messaging.MessageStore;
 import org.jentrata.ebms.messaging.SplitAttachmentsToBody;
 import org.jentrata.ebms.soap.SoapMessageDataFormat;
 import org.jentrata.ebms.soap.SoapPayloadProcessor;
+
+import java.io.InputStream;
 
 /**
  * Exposes an HTTP endpoint that consumes AS4 Messages
@@ -60,7 +62,15 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
                 .otherwise()
                     .doTry()
                        .to("direct:inboundInternal")
-                    .doCatch(Exception.class)
+                    .doCatch(ValidationException.class)
+                        .setHeader(EbmsConstants.MESSAGE_STATUS, constant(MessageStatusType.FAILED))
+                        .setHeader(EbmsConstants.MESSAGE_STATUS_DESCRIPTION, simple("${exception.message}"))
+                        .setHeader(EbmsConstants.EBMS_ERROR, constant(EbmsError.EBMS_0001))
+                        .setHeader(EbmsConstants.EBMS_ERROR_CODE, constant(EbmsError.EBMS_0001.getErrorCode()))
+                        .setHeader(EbmsConstants.EBMS_ERROR_DESCRIPTION, simple("exception.message"))
+                        .to(messageUpdateEndpoint)
+                        .to("direct:errorHandler")
+                .doCatch(Exception.class)
                         .log(LoggingLevel.DEBUG, "headers:${headers}\nbody:\n${in.body}")
                         .log(LoggingLevel.ERROR, "${exception.message}\n${exception.stacktrace}")
                         .setHeader(EbmsConstants.MESSAGE_STATUS, constant(MessageStatusType.FAILED))
@@ -96,6 +106,7 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
             .to(messgeStoreEndpoint) //essentially we claim check the raw incoming message/payload
             .unmarshal(new SoapMessageDataFormat()) //extract the SOAP Envelope as set it has the message body
             .setHeader(EbmsConstants.MESSAGE_STATUS, constant(MessageStatusType.RECEIVED.name()))
+            .to("direct:validateEbmsHeader")
             .setHeader(EbmsConstants.MESSAGE_TO, ns.xpath("//eb3:To/eb3:PartyId/text()", String.class))
             .setHeader(EbmsConstants.MESSAGE_FROM, ns.xpath("//eb3:From/eb3:PartyId/text()", String.class))
             .setHeader(EbmsConstants.MESSAGE_SERVICE, ns.xpath("//eb3:CollaborationInfo/eb3:Service/text()", String.class))
@@ -118,6 +129,19 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
                     .setHeader("X-Jentrata-Version", simple("${sys.jentrataVersion}"))
                     .setHeader(EbmsConstants.CONTENT_TYPE, constant(EbmsConstants.SOAP_XML_CONTENT_TYPE))
         .routeId("_jentrataEbmsInbound");
+
+        from("direct:validateEbmsHeader")
+             .choice()
+                .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.USER_MESSAGE))
+                    .setHeader("soapMessage",body())
+                    .setBody(xpath("//*[local-name()='Header']/*[1]"))
+                    .convertBodyTo(InputStream.class)
+                    .to("validator:schemas/ebms-header-3_0-200704.xsd")
+                    .setBody(header("soapMessage"))
+                    .removeHeader("soapMessage")
+                .end()
+             .end()
+        .routeId("_jentrataValidateEbmsHeader");
 
         from("direct:securityCheck")
             .choice()
@@ -224,6 +248,10 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
                     .log(LoggingLevel.INFO, "Validation Exception for msgId:${headers.JentrataMessageID} - errors:${headers.JentrataValidationError}")
                     .setHeader(EbmsConstants.EBMS_ERROR_CODE, simple("headers.JentrataValidationError[0]?.error.errorCode"))
                     .setHeader(EbmsConstants.EBMS_ERROR_DESCRIPTION, simple("${headers.JentrataValidationError[0]?.description}"))
+                    .to("direct:generateEbmsError")
+                    .convertBodyTo(String.class, "UTF-8")
+                .when(header(EbmsConstants.EBMS_ERROR).isNotNull())
+                    .log(LoggingLevel.INFO, "Ebms Error for msgId:${headers.JentrataMessageID} - errors:${headers.JentrataEbmsError}")
                     .to("direct:generateEbmsError")
                     .convertBodyTo(String.class, "UTF-8")
                 .when(header(Exchange.HTTP_RESPONSE_CODE).isEqualTo(405))

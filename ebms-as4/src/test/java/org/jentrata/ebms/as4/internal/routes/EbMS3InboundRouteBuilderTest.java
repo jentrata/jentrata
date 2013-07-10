@@ -337,6 +337,25 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
 
     }
 
+    @Test
+    public void testInvalidEbmsUserMessage() throws Exception {
+        mockEbmsInbound.setExpectedMessageCount(0);
+        mockEbmsInboundPayload.setExpectedMessageCount(0);
+        mockEbmsInboundSignals.setExpectedMessageCount(0);
+        mockEbmsErrors.setExpectedMessageCount(1);
+        mockEbmsErrors.expectedHeaderReceived(EbmsConstants.EBMS_ERROR_CODE,"EBMS:0001");
+
+
+        Exchange request = new DefaultExchange(context());
+        request.getIn().setHeader(Exchange.CONTENT_TYPE,"Multipart/Related; boundary=\"----=_Part_7_10584188.1123489648993\"; type=\"application/soap+xml\"; start=\"<soapPart@jentrata.org>\"");
+        request.getIn().setHeader(Exchange.HTTP_METHOD,"POST");
+        request.getIn().setBody(new FileInputStream(fileFromClasspath("simple-invalid-as4-user-message.txt")));
+        Exchange response = context().createProducerTemplate().send("direct:testEbmsInbound",request);
+
+        assertMockEndpointsSatisfied();
+        assertThat(mockEbmsErrors.getExchanges().get(0).getIn().getHeader(EbmsConstants.EBMS_ERROR_DESCRIPTION,String.class),containsString("Element 'eb:PartyId' must have no element"));
+    }
+
     private InputStream getCompressedPayload(String filename) throws Exception {
         byte [] payload = IOUtils.toByteArray(new FileInputStream(fileFromClasspath(filename)));
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
