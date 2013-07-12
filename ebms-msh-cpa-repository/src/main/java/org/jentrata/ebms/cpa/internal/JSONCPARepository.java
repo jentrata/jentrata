@@ -7,7 +7,7 @@ import org.codehaus.jackson.type.TypeReference;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.cpa.CPARepository;
 import org.jentrata.ebms.cpa.PartnerAgreement;
-import org.jentrata.ebms.cpa.Service;
+import org.jentrata.ebms.cpa.pmode.Service;
 import org.jentrata.ebms.utils.EbmsUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,7 +86,7 @@ public class JSONCPARepository implements CPARepository {
     @Override
     public PartnerAgreement findByMessage(Document message, String ebmsVersion) {
         for(PartnerAgreement partnerAgreement : getActivePartnerAgreements()) {
-            for(Service service :partnerAgreement.getServices()) {
+            for(Service service :partnerAgreement.getBusinessInfo().getServices()) {
                 try {
                     if(serviceMatches(message,service)) {
                         return partnerAgreement;

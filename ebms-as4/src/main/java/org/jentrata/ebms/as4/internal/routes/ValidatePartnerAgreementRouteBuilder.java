@@ -8,6 +8,7 @@ import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.EbmsError;
 import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.cpa.*;
+import org.jentrata.ebms.cpa.pmode.Service;
 
 import java.util.ArrayList;
 import java.util.List;

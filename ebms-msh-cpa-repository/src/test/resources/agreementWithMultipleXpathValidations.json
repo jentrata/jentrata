@@ -2,31 +2,35 @@
     {
         "cpaId":"testCPAId1",
         "active":"true",
-        "transportReceiverEndpoint":"http://example.jentrata.org",
-        "services" : [
-            {
-                "service":"service1",
-                "action":"action1",
-                "validations": [
-                    {
-                        "type":"xpath",
-                        "name":"AgreementRef",
-                        "expression":"//eb://AgreementRef[text()='http://agreement1234']"
-                    },
-                    {
-                        "type":"xpath_value",
-                        "name":"ConversationId",
-                        "expression":"//eb://ConversationId/text()",
-                        "value":"test"
-                    },
-                    {
-                        "type":"xpath_regex",
-                        "name":"MessageId",
-                        "expression":"//eb://MessageId/text()",
-                        "regex":"[A-Z0-9]"
-                    }
-                ]
-            }
-        ]
+        "protocol": {
+            "address":"http://example.jentrata.org"
+        },
+        "businessInfo": {
+            "services" : [
+                {
+                    "service":"service1",
+                    "action":"action1",
+                    "validations": [
+                        {
+                            "type":"xpath",
+                            "name":"AgreementRef",
+                            "expression":"//eb3:AgreementRef[text()='http://agreement1234']"
+                        },
+                        {
+                            "type":"xpath_value",
+                            "name":"ConversationId",
+                            "expression":"//eb3:ConversationId/text()",
+                            "value":"test"
+                        },
+                        {
+                            "type":"xpath_regex",
+                            "name":"MessageId",
+                            "expression":"//eb3:MessageId/text()",
+                            "regex":"^\\d{10}$"
+                        }
+                    ]
+                }
+            ]
+        }
     }
 ]

@@ -12,6 +12,7 @@ import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.cpa.CPARepository;
 import org.jentrata.ebms.cpa.PartnerAgreement;
+import org.jentrata.ebms.cpa.pmode.Protocol;
 import org.junit.Test;
 import org.w3c.dom.Document;
 
@@ -135,10 +136,15 @@ public class EbmsOutboundRouteBuilderTest extends CamelTestSupport {
         public List<PartnerAgreement> getActivePartnerAgreements() {
             PartnerAgreement agreement1 = new PartnerAgreement();
             agreement1.setCpaId("agreement1");
-            agreement1.setTransportReceiverEndpoint("direct:agreement1");
+            Protocol protocol = new Protocol();
+            protocol.setAddress("direct:agreement1");
+            agreement1.setProtocol(protocol);
+
             PartnerAgreement agreement2 = new PartnerAgreement();
             agreement2.setCpaId("agreement2");
-            agreement2.setTransportReceiverEndpoint("direct:agreement2");
+            Protocol protocol2 = new Protocol();
+            protocol2.setAddress("direct:agreement2");
+            agreement2.setProtocol(protocol2);
             return Arrays.asList(agreement1,agreement2);
         }
 

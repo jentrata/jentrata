@@ -12,6 +12,9 @@ public class EbmsConstants {
     public static final String VALID_PARTNER_AGREEMENT = "JentrataIsValidPartnerAgreement";
     public static final String EBMS_MESSAGE_MEP = "JentrataMEP";
 
+    public static final String SOAP_VERSION_1_1 = "1.1";
+    public static final String SOAP_VERSION_1_2 = "1.2";
+
     public static final String SOAP_1_1_NAMESPACE = "http://schemas.xmlsoap.org/soap/envelope/";
 
     public static final String SOAP_1_2_NAMESPACE = "http://www.w3.org/2003/05/soap-envelope";
@@ -21,6 +24,11 @@ public class EbmsConstants {
 
     public static final String EBMS_V2 = "ebMSV2";
     public static final String EBMS_V3 = "ebMSV3";
+
+    public static final String EBMS_V3_MEP_ONE_WAY = "http://docs.oasis-open.org/ebxml-msg/ebms/v3.0/ns/core/200704/oneWay";
+    public static final String EBMS_V3_MEP_TWO_WAY = "http://docs.oasis-open.org/ebxml-msg/ebms/v3.0/ns/core/200704/twoWay";
+
+    public static final String EBMS_V3_MEP_BINDING_PUSH = "ttp://docs.oasis-open.org/ebxml-msg/ebms/v3.0/ns/core/200704/push";
 
     public static final String EBMS_RECEIPT_REQUIRED = "JentrataReceiptRequired";
 
@@ -75,4 +83,5 @@ public class EbmsConstants {
     public static final String DUPLICATE_MESSAGE_ID = "JentrataDuplicateMessageId";
     public static final String VALIDATION_ERROR_DESC = "JentrataValidationErrorDesc";
     public static final String EBMS_VALIDATION_ERROR = "JentrataValidationError";
+
 }

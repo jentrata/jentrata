@@ -2,29 +2,25 @@
     {
         "cpaId":"testCPAId1",
         "active":"true",
-        "transportReceiverEndpoint":"http://example.jentrata.org",
-        "services" : [
-            {
-                "service":"service1",
-                "action":"action1"
-            },
-            {
-                "service":"service2",
-                "action":"action2"
-            }
-        ],
+        "protocol": {
+            "address":"http://example.jentrata.org"
+        },
+        "businessInfo": {
+            "services" : [
+                {
+                    "service":"service1",
+                    "action":"action1"
+                },
+                {
+                    "service":"service2",
+                    "action":"action2"
+                }
+            ]
+        },
         "security": {
             "sendReceipt":false,
             "sendReceiptReplyPattern":"Response",
             "sendReceiptNonRepudiation":true,
-            "securityToken": {
-                "tokenType":"UsernameToken",
-                "username":"jentrata",
-                "password":"verySecret",
-                "digest":false,
-                "nonce":false,
-                "created":false
-            },
             "signature": {
                 "signatureHashFunction":"http://www.w3.org/2001/04/xmlenc#sha256",
                 "signatureAlgorithm":"http://www.w3.org/2000/09/xmldsig#rsa-sha1",

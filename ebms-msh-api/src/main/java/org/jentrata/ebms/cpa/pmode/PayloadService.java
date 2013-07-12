@@ -7,7 +7,8 @@ package org.jentrata.ebms.cpa.pmode;
  */
 public class PayloadService {
 
-    public static final PayloadService DEFAULT_PAYLOAD_SERVICE = new PayloadService();
+    public static final PayloadService DEFAULT_PAYLOAD_SERVICE = new PayloadService("payload-id@jentrata.org");
+
 
     public enum CompressionType {
         NONE(""),
@@ -26,6 +27,13 @@ public class PayloadService {
 
     private CompressionType compressionType = CompressionType.NONE;
     private String payloadId;
+
+
+    public PayloadService() {}
+
+    public PayloadService(String payloadId) {
+        this.payloadId = payloadId;
+    }
 
     public CompressionType getCompressionType() {
         return compressionType;

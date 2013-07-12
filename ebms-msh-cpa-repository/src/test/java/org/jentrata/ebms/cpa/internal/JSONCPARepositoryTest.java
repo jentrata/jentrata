@@ -8,6 +8,7 @@ import org.jentrata.ebms.cpa.ValidationPredicate;
 import org.jentrata.ebms.cpa.pmode.PayloadService;
 import org.jentrata.ebms.cpa.pmode.ReceptionAwareness;
 import org.jentrata.ebms.cpa.pmode.Security;
+import org.jentrata.ebms.cpa.pmode.SecurityToken;
 import org.jentrata.ebms.cpa.pmode.Signature;
 import org.jentrata.ebms.cpa.pmode.UsernameToken;
 import org.jentrata.ebms.cpa.validation.XPathConstantPredicate;
@@ -67,7 +68,7 @@ public class JSONCPARepositoryTest {
 
         assertThat(repository.getActivePartnerAgreements().size(),equalTo(1));
         assertThat(repository.getActivePartnerAgreements().get(0).getCpaId(),equalTo("testCPAId1"));
-        assertThat(repository.getActivePartnerAgreements().get(0).getTransportReceiverEndpoint(),equalTo("http://example.jentrata.org"));
+        assertThat(repository.getActivePartnerAgreements().get(0).getProtocol().getAddress(),equalTo("http://example.jentrata.org"));
         assertThat(repository.getActivePartnerAgreements().get(0).isActive(),is(true));
     }
 
@@ -81,11 +82,11 @@ public class JSONCPARepositoryTest {
         assertThat(repository.getActivePartnerAgreements().size(),equalTo(2));
 
         assertThat(repository.getActivePartnerAgreements().get(0).getCpaId(),equalTo("testCPAId1"));
-        assertThat(repository.getActivePartnerAgreements().get(0).getTransportReceiverEndpoint(),equalTo("http://example.jentrata.org"));
+        assertThat(repository.getActivePartnerAgreements().get(0).getProtocol().getAddress(),equalTo("http://example.jentrata.org"));
         assertThat(repository.getActivePartnerAgreements().get(0).isActive(),is(true));
 
         assertThat(repository.getActivePartnerAgreements().get(1).getCpaId(),equalTo("testCPAId2"));
-        assertThat(repository.getActivePartnerAgreements().get(1).getTransportReceiverEndpoint(),equalTo("http://example2.jentrata.org"));
+        assertThat(repository.getActivePartnerAgreements().get(1).getProtocol().getAddress(),equalTo("http://example2.jentrata.org"));
         assertThat(repository.getActivePartnerAgreements().get(1).isActive(),is(true));
     }
 
@@ -99,7 +100,7 @@ public class JSONCPARepositoryTest {
         assertThat(repository.getActivePartnerAgreements().size(),equalTo(1));
 
         assertThat(repository.getActivePartnerAgreements().get(0).getCpaId(),equalTo("testCPAId2"));
-        assertThat(repository.getActivePartnerAgreements().get(0).getTransportReceiverEndpoint(),equalTo("http://example2.jentrata.org"));
+        assertThat(repository.getActivePartnerAgreements().get(0).getProtocol().getAddress(),equalTo("http://example2.jentrata.org"));
         assertThat(repository.getActivePartnerAgreements().get(0).isActive(),is(true));
     }
 
@@ -113,11 +114,11 @@ public class JSONCPARepositoryTest {
         List<PartnerAgreement> partnerAgreements = repository.getPartnerAgreements();
         assertThat(partnerAgreements.size(),equalTo(2));
         assertThat(partnerAgreements.get(0).getCpaId(),equalTo("testCPAId1"));
-        assertThat(partnerAgreements.get(0).getTransportReceiverEndpoint(),equalTo("http://example.jentrata.org"));
+        assertThat(partnerAgreements.get(0).getProtocol().getAddress(),equalTo("http://example.jentrata.org"));
         assertThat(partnerAgreements.get(0).isActive(),is(false));
 
         assertThat(partnerAgreements.get(1).getCpaId(),equalTo("testCPAId2"));
-        assertThat(partnerAgreements.get(1).getTransportReceiverEndpoint(),equalTo("http://example2.jentrata.org"));
+        assertThat(partnerAgreements.get(1).getProtocol().getAddress(),equalTo("http://example2.jentrata.org"));
         assertThat(partnerAgreements.get(1).isActive(),is(true));
     }
 
@@ -145,19 +146,11 @@ public class JSONCPARepositoryTest {
         repository.init();
 
         assertThat(repository.getActivePartnerAgreements(),hasSize(1));
-        assertThat(repository.getActivePartnerAgreements().get(0).hasSecurityToken(),is(true));
+
         assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().getSendReceiptReplyPattern(),is(Security.ReplyPatternType.Response));
         assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().isSendReceipt(),is(false));
         assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().isSendReceiptNonRepudiation(),is(true));
 
-        assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().getSecurityToken(), instanceOf(UsernameToken.class));
-        assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().getSecurityToken().getTokenType(),equalTo(UsernameToken.class.getName()));
-        UsernameToken usernameToken = (UsernameToken) repository.getActivePartnerAgreements().get(0).getSecurity().getSecurityToken();
-        assertThat(usernameToken.getUsername(),equalTo("jentrata"));
-        assertThat(usernameToken.getPassword(),equalTo("verySecret"));
-        assertThat(usernameToken.isDigest(),is(false));
-        assertThat(usernameToken.isNonce(),is(false));
-        assertThat(usernameToken.isCreated(),is(false));
     }
 
     @Test
@@ -167,17 +160,10 @@ public class JSONCPARepositoryTest {
         repository.init();
 
         assertThat(repository.getActivePartnerAgreements(),hasSize(1));
-        assertThat(repository.getActivePartnerAgreements().get(0).hasSecurityToken(),is(true));
         assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().getSendReceiptReplyPattern(),is(Security.ReplyPatternType.Callback));
         assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().isSendReceipt(),is(true));
         assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().isSendReceiptNonRepudiation(),is(false));
 
-        UsernameToken usernameToken = (UsernameToken) repository.getActivePartnerAgreements().get(0).getSecurity().getSecurityToken();
-        assertThat(usernameToken.getUsername(),nullValue());
-        assertThat(usernameToken.getPassword(),nullValue());
-        assertThat(usernameToken.isDigest(),is(true));
-        assertThat(usernameToken.isNonce(),is(true));
-        assertThat(usernameToken.isCreated(),is(true));
     }
 
     @Test
@@ -187,17 +173,9 @@ public class JSONCPARepositoryTest {
         repository.init();
 
         assertThat(repository.getActivePartnerAgreements(),hasSize(1));
-        assertThat(repository.getActivePartnerAgreements().get(0).hasSecurityToken(),is(true));
         assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().getSendReceiptReplyPattern(),is(Security.ReplyPatternType.Response));
         assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().isSendReceipt(),is(false));
         assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().isSendReceiptNonRepudiation(),is(true));
-
-        UsernameToken usernameToken = (UsernameToken) repository.getActivePartnerAgreements().get(0).getSecurity().getSecurityToken();
-        assertThat(usernameToken.getUsername(),equalTo("jentrata"));
-        assertThat(usernameToken.getPassword(),equalTo("verySecret"));
-        assertThat(usernameToken.isDigest(),is(false));
-        assertThat(usernameToken.isNonce(),is(false));
-        assertThat(usernameToken.isCreated(),is(false));
 
         Signature signature = repository.getActivePartnerAgreements().get(0).getSecurity().getSignature();
         assertThat(signature,notNullValue());
@@ -241,9 +219,9 @@ public class JSONCPARepositoryTest {
         repository.init();
 
         assertThat(repository.getActivePartnerAgreements(),hasSize(1));
-        assertThat(repository.getActivePartnerAgreements().get(0).getPayloadService(),notNullValue());
-        assertThat(repository.getActivePartnerAgreements().get(0).getPayloadService().getPayloadId(),nullValue());
-        assertThat(repository.getActivePartnerAgreements().get(0).getPayloadService().getCompressionType(), equalTo(PayloadService.CompressionType.NONE));
+        assertThat(repository.getActivePartnerAgreements().get(0).getPayloadProfile(null),notNullValue());
+        assertThat(repository.getActivePartnerAgreements().get(0).getPayloadProfile(null).getPayloadId(),notNullValue());
+        assertThat(repository.getActivePartnerAgreements().get(0).getPayloadProfile(null).getCompressionType(), equalTo(PayloadService.CompressionType.NONE));
 
     }
 
@@ -254,9 +232,9 @@ public class JSONCPARepositoryTest {
         repository.init();
 
         assertThat(repository.getActivePartnerAgreements(),hasSize(1));
-        assertThat(repository.getActivePartnerAgreements().get(0).getPayloadService(),notNullValue());
-        assertThat(repository.getActivePartnerAgreements().get(0).getPayloadService().getPayloadId(),nullValue());
-        assertThat(repository.getActivePartnerAgreements().get(0).getPayloadService().getCompressionType(), equalTo(PayloadService.CompressionType.GZIP));
+        assertThat(repository.getActivePartnerAgreements().get(0).getBusinessInfo().getPayloadProfile().get(0),notNullValue());
+        assertThat(repository.getActivePartnerAgreements().get(0).getBusinessInfo().getPayloadProfile().get(0).getPayloadId(),nullValue());
+        assertThat(repository.getActivePartnerAgreements().get(0).getBusinessInfo().getPayloadProfile().get(0).getCompressionType(), equalTo(PayloadService.CompressionType.GZIP));
 
     }
 
@@ -267,9 +245,9 @@ public class JSONCPARepositoryTest {
         repository.init();
 
         assertThat(repository.getActivePartnerAgreements(),hasSize(1));
-        assertThat(repository.getActivePartnerAgreements().get(0).getPayloadService(),notNullValue());
-        assertThat(repository.getActivePartnerAgreements().get(0).getPayloadService().getPayloadId(),equalTo("attachment1234@jentrata.org"));
-        assertThat(repository.getActivePartnerAgreements().get(0).getPayloadService().getCompressionType(), equalTo(PayloadService.CompressionType.NONE));
+        assertThat(repository.getActivePartnerAgreements().get(0).getBusinessInfo().getPayloadProfile().get(0),notNullValue());
+        assertThat(repository.getActivePartnerAgreements().get(0).getBusinessInfo().getPayloadProfile().get(0).getPayloadId(),equalTo("attachment1234@jentrata.org"));
+        assertThat(repository.getActivePartnerAgreements().get(0).getBusinessInfo().getPayloadProfile().get(0).getCompressionType(), equalTo(PayloadService.CompressionType.NONE));
 
     }
 
@@ -341,7 +319,7 @@ public class JSONCPARepositoryTest {
         assertThat(validations.get(0),instanceOf(XPathPredicate.class));
         XPathPredicate predicate = (XPathPredicate) validations.get(0);
         assertThat(predicate.getName(), equalTo("AgreementRef"));
-        assertThat(predicate.getExpression(), equalTo("//eb://AgreementRef[text()='http://agreement1234']"));
+        assertThat(predicate.getExpression(), equalTo("//eb3:AgreementRef[text()='http://agreement1234']"));
     }
 
     @Test
@@ -355,17 +333,44 @@ public class JSONCPARepositoryTest {
         assertThat(validations.get(0),instanceOf(XPathPredicate.class));
         XPathPredicate predicate = (XPathPredicate) validations.get(0);
         assertThat(predicate.getName(), Matchers.equalTo("AgreementRef"));
-        assertThat(predicate.getExpression(), equalTo("//eb://AgreementRef[text()='http://agreement1234']"));
+        assertThat(predicate.getExpression(), equalTo("//eb3:AgreementRef[text()='http://agreement1234']"));
 
         XPathConstantPredicate constantPredicate = (XPathConstantPredicate) validations.get(1);
         assertThat(constantPredicate.getName(), Matchers.equalTo("ConversationId"));
-        assertThat(constantPredicate.getExpression(), equalTo("//eb://ConversationId/text()"));
+        assertThat(constantPredicate.getExpression(), equalTo("//eb3:ConversationId/text()"));
         assertThat(constantPredicate.getValue(), equalTo("test"));
 
         XPathRegexPredicate regexPredicate = (XPathRegexPredicate) validations.get(2);
         assertThat(regexPredicate.getName(), Matchers.equalTo("MessageId"));
-        assertThat(regexPredicate.getExpression(), equalTo("//eb://MessageId/text()"));
-        assertThat(regexPredicate.getRegex(), equalTo("[A-Z0-9]"));
+        assertThat(regexPredicate.getExpression(), equalTo("//eb3:MessageId/text()"));
+        assertThat(regexPredicate.getRegex(), equalTo("^\\d{10}$"));
+    }
+
+    @Test
+    public void testInitiatorAndResponder() throws Exception {
+        JSONCPARepository repository = new JSONCPARepository();
+        repository.setCpaJsonFile(fileFromClasspath("agreementWithInitiatorAndResponder.json"));
+        repository.init();
+
+        assertThat(repository.getActivePartnerAgreements(),hasSize(1));
+        PartnerAgreement agreement = repository.getActivePartnerAgreements().get(0);
+        assertThat(agreement.getInitiator(),notNullValue());
+        assertThat(agreement.getInitiator().getPartyId(), equalTo("1234567890"));
+        assertThat(agreement.getInitiator().getPartyIdType(), equalTo("urn:oasis:names:tc:ebcore:partyid-type:iso6523:0088"));
+        UsernameToken authorization = (UsernameToken) agreement.getInitiator().getAuthorization();
+        assertThat(authorization.getTokenType(), containsString("UsernameToken"));
+        assertThat(authorization.getUsername(), equalTo("jentrata"));
+        assertThat(authorization.getPassword(), equalTo("gocDv4SEXRDxNjucDDfo7I7ACTc="));
+
+        assertThat(agreement.getResponder(),notNullValue());
+        assertThat(agreement.getResponder().getPartyId(), equalTo("0987654321"));
+        assertThat(agreement.getResponder().getPartyIdType(), equalTo("urn:oasis:names:tc:ebcore:partyid-type:iso6523:0088"));
+        authorization = (UsernameToken) agreement.getResponder().getAuthorization();
+        assertThat(authorization.getTokenType(), containsString("UsernameToken"));
+        assertThat(authorization.getUsername(), equalTo("other"));
+        assertThat(authorization.getPassword(), equalTo("otherpassword"));
+
+
     }
 
     protected static File fileFromClasspath(String filename) {

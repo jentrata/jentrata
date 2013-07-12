@@ -2,7 +2,9 @@
     {
         "cpaId":"testCPAId1",
         "active":"true",
-        "transportReceiverEndpoint":"http://example.jentrata.org",
+        "protocol": {
+            "address":"http://example.jentrata.org"
+        },
         "receptionAwareness":{
             "retry":{
                 "enabled":true,

@@ -1,10 +1,8 @@
 package org.jentrata.ebms.as4.internal.routes;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.camel.Body;
 import org.apache.camel.Exchange;
 import org.apache.camel.Header;
-import org.apache.camel.Headers;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.impl.DefaultExchange;
 import org.apache.camel.impl.JndiRegistry;
@@ -13,6 +11,9 @@ import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.EbmsError;
 import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.cpa.*;
+import org.jentrata.ebms.cpa.pmode.BusinessInfo;
+import org.jentrata.ebms.cpa.pmode.Protocol;
+import org.jentrata.ebms.cpa.pmode.Service;
 import org.jentrata.ebms.messaging.Message;
 import org.jentrata.ebms.messaging.MessageStore;
 import org.jentrata.ebms.utils.EbmsUtils;
@@ -150,6 +151,8 @@ public class ValidatePartnerAgreementRouteBuilderTest extends CamelTestSupport {
     private PartnerAgreement createPartnerAgreement() {
         PartnerAgreement agreement = new PartnerAgreement();
         agreement.setCpaId("validationErrors");
+        BusinessInfo businessInfo = new BusinessInfo();
+        agreement.setBusinessInfo(businessInfo);
         Service service = new Service("testServiceValidation","testActionValidation");
         ValidationPredicate predicate = new ValidationPredicate() {
             @Override
@@ -159,7 +162,7 @@ public class ValidatePartnerAgreementRouteBuilderTest extends CamelTestSupport {
             }
         };
         service.setValidations(Arrays.asList(predicate));
-        agreement.setServices(Arrays.asList(service));
+        agreement.getBusinessInfo().setServices(Arrays.asList(service));
         return agreement;
     }
 
@@ -202,11 +205,15 @@ public class ValidatePartnerAgreementRouteBuilderTest extends CamelTestSupport {
         public PartnerAgreement findByCPAId(@Header(EbmsConstants.CPA_ID) String cpaId) {
             PartnerAgreement partnerAgreement = new PartnerAgreement();
             partnerAgreement.setCpaId("testCPAId");
-            partnerAgreement.setTransportReceiverEndpoint("http://example.jentrata.com");
-            partnerAgreement.setServices(new ImmutableList.Builder<Service>()
+            Protocol protocol = new Protocol();
+            protocol.setAddress("http://example.jentrata.com");
+            partnerAgreement.setProtocol(protocol);
+            BusinessInfo businessInfo = new BusinessInfo();
+            businessInfo.setServices(new ImmutableList.Builder<Service>()
                     .add(new Service("service", "action"))
                     .build()
             );
+            partnerAgreement.setBusinessInfo(businessInfo);
             return partnerAgreement;
         }
 
@@ -216,8 +223,12 @@ public class ValidatePartnerAgreementRouteBuilderTest extends CamelTestSupport {
                 case "service1|action1":
                     PartnerAgreement partnerAgreement = new PartnerAgreement();
                     partnerAgreement.setCpaId("testCPAId");
-                    partnerAgreement.setTransportReceiverEndpoint("http://example.jentrata.com");
-                    partnerAgreement.setServices(new ImmutableList.Builder<Service>()
+                    Protocol protocol = new Protocol();
+                    protocol.setAddress("http://example.jentrata.com");
+                    partnerAgreement.setProtocol(protocol);
+                    BusinessInfo businessInfo = new BusinessInfo();
+                    partnerAgreement.setBusinessInfo(businessInfo);
+                    businessInfo.setServices(new ImmutableList.Builder<Service>()
                             .add(new Service(service, action))
                             .build()
                     );

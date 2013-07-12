@@ -1,4 +1,4 @@
-package org.jentrata.ebms.cpa;
+package org.jentrata.ebms.cpa.pmode;
 
 /**
  * Used to Identifier a Service

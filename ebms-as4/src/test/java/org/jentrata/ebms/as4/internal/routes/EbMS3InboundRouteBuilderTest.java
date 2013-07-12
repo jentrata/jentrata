@@ -13,6 +13,7 @@ import org.apache.commons.io.IOUtils;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.cpa.PartnerAgreement;
+import org.jentrata.ebms.cpa.pmode.Party;
 import org.jentrata.ebms.cpa.pmode.Security;
 import org.jentrata.ebms.cpa.pmode.Signature;
 import org.jentrata.ebms.cpa.pmode.UsernameToken;
@@ -459,11 +460,14 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
     private PartnerAgreement generateAgreement(String username, boolean signatureEnabled) {
         PartnerAgreement agreement = new PartnerAgreement();
         agreement.setCpaId("testCPAId");
+        Party party = new Party();
+        UsernameToken authorization = new UsernameToken();
+        authorization.setUsername(username);
+        authorization.setPassword("gocDv4SEXRDxNjucDDfo7I7ACTc=");
+        party.setAuthorization(authorization);
+        agreement.setInitiator(party);
+        agreement.setResponder(party);
         Security security = new Security();
-        UsernameToken token = new UsernameToken();
-        token.setUsername(username);
-        token.setPassword("gocDv4SEXRDxNjucDDfo7I7ACTc=");
-        security.setSecurityToken(token);
         security.setSendReceiptReplyPattern(Security.ReplyPatternType.Callback);
         agreement.setSecurity(security);
         if(signatureEnabled) {

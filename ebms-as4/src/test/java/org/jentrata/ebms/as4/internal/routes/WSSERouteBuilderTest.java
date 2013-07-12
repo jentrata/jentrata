@@ -23,6 +23,7 @@ import org.apache.xml.security.utils.Base64;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.cpa.PartnerAgreement;
+import org.jentrata.ebms.cpa.pmode.Party;
 import org.jentrata.ebms.cpa.pmode.Security;
 import org.jentrata.ebms.cpa.pmode.Signature;
 import org.jentrata.ebms.cpa.pmode.UsernameToken;
@@ -446,7 +447,6 @@ public class WSSERouteBuilderTest extends CamelTestSupport {
         WSSConfig.init();
         crypto = CryptoFactory.getInstance();
         WSSERouteBuilder routeBuilder = new WSSERouteBuilder();
-        routeBuilder.setUserTokenCallbackHandler(new EncodedPasswordCallbackHandler());
         routeBuilder.setCrypto(crypto);
         return routeBuilder;
     }
@@ -533,11 +533,14 @@ public class WSSERouteBuilderTest extends CamelTestSupport {
     private PartnerAgreement generateAgreement(String username, boolean signatureEnabled) {
         PartnerAgreement agreement = new PartnerAgreement();
         agreement.setCpaId("JentrataTestCPA");
+        Party party = new Party();
+        UsernameToken authorization = new UsernameToken();
+        authorization.setUsername(username);
+        authorization.setPassword(getEncodedPassword());
+        party.setAuthorization(authorization);
+        agreement.setInitiator(party);
+        agreement.setResponder(party);
         Security security = new Security();
-        UsernameToken token = new UsernameToken();
-        token.setUsername(username);
-        token.setPassword(getEncodedPassword());
-        security.setSecurityToken(token);
         agreement.setSecurity(security);
         if(signatureEnabled) {
             Signature signature = new Signature();

@@ -1,0 +1,29 @@
+[
+    {
+        "cpaId":"jentrataLoopback",
+        "active":"true",
+        "protocol": {
+            "address":"http://localhost:8081/jentrata/ebms/inbound"
+        },
+        "initiator": {
+            "partyId":"1234567890",
+            "partyIdType":"urn:oasis:names:tc:ebcore:partyid-type:iso6523:0088",
+            "role":"Buyer",
+            "authorization": {
+                "tokenType":"UsernameToken",
+                "username":"jentrata",
+                "password":"gocDv4SEXRDxNjucDDfo7I7ACTc="
+            }
+        },
+        "responder": {
+            "partyId":"0987654321",
+            "partyIdType":"urn:oasis:names:tc:ebcore:partyid-type:iso6523:0088",
+            "role":"Seller",
+            "authorization": {
+                "tokenType":"UsernameToken",
+                "username":"other",
+                "password":"otherpassword"
+            }
+        }
+    }
+]
