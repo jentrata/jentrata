@@ -12,9 +12,19 @@ import org.jentrata.ebms.cpa.pmode.Security;
 import org.jentrata.ebms.internal.messaging.MessageDetector;
 import org.jentrata.ebms.messaging.MessageStore;
 import org.jentrata.ebms.messaging.SplitAttachmentsToBody;
+import org.jentrata.ebms.messaging.XmlSchemaValidator;
 import org.jentrata.ebms.soap.SoapMessageDataFormat;
 import org.jentrata.ebms.soap.SoapPayloadProcessor;
+import org.jentrata.ebms.utils.EbmsUtils;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
+import javax.xml.XMLConstants;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
+import java.io.File;
 import java.io.InputStream;
 
 /**
@@ -38,6 +48,7 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
     private String validateTradingPartner = "direct:validatePartner";
     private MessageDetector messageDetector;
     private SoapPayloadProcessor payloadProcessor;
+    private XmlSchemaValidator xmlSchemaValidator;
 
     @Override
     public void configure() throws Exception {
@@ -133,10 +144,10 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
         from("direct:validateEbmsHeader")
              .choice()
                 .when(header(EbmsConstants.MESSAGE_TYPE).isEqualTo(MessageType.USER_MESSAGE))
-                    .setHeader("soapMessage",body())
-                    .setBody(xpath("//*[local-name()='Header']/*[1]"))
+                    .setHeader("soapMessage", body())
+                    .setBody(xpath("//*[local-name()='Messaging']"))
                     .convertBodyTo(InputStream.class)
-                    .to("validator:schemas/ebms-header-3_0-200704.xsd")
+                    .process(xmlSchemaValidator)
                     .setBody(header("soapMessage"))
                     .removeHeader("soapMessage")
                 .end()
@@ -414,5 +425,13 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
 
     public void setPayloadProcessor(SoapPayloadProcessor payloadProcessor) {
         this.payloadProcessor = payloadProcessor;
+    }
+
+    public XmlSchemaValidator getXmlSchemaValidator() {
+        return xmlSchemaValidator;
+    }
+
+    public void setXmlSchemaValidator(XmlSchemaValidator xmlSchemaValidator) {
+        this.xmlSchemaValidator = xmlSchemaValidator;
     }
 }

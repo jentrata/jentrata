@@ -19,6 +19,7 @@ import org.jentrata.ebms.cpa.pmode.UsernameToken;
 import org.jentrata.ebms.internal.messaging.MessageDetector;
 import org.jentrata.ebms.internal.messaging.PartPropertiesPayloadProcessor;
 import org.jentrata.ebms.messaging.MessageStore;
+import org.jentrata.ebms.messaging.XmlSchemaValidator;
 import org.jentrata.ebms.utils.EbmsUtils;
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -158,8 +159,8 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
     @Test
     public void testInvalidHttpMethod() throws Exception {
         Exchange request = new DefaultExchange(context());
-        request.getIn().setHeader(Exchange.CONTENT_TYPE,"application/soap+xml");
-        request.getIn().setHeader(Exchange.HTTP_METHOD,"GET");
+        request.getIn().setHeader(Exchange.CONTENT_TYPE, "application/soap+xml");
+        request.getIn().setHeader(Exchange.HTTP_METHOD, "GET");
         request.getIn().setBody(new FileInputStream(fileFromClasspath("simple-as4-receipt.xml")));
         Exchange response = context().createProducerTemplate().send("direct:testEbmsInbound",request);
 
@@ -215,21 +216,21 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
         mockEbmsInbound.setExpectedMessageCount(0);
         mockEbmsInboundPayload.setExpectedMessageCount(0);
         mockEbmsInboundSignals.setExpectedMessageCount(1);
-        mockEbmsInboundSignals.expectedHeaderReceived(EbmsConstants.MESSAGE_TYPE,MessageType.SIGNAL_MESSAGE_ERROR);
+        mockEbmsInboundSignals.expectedHeaderReceived(EbmsConstants.MESSAGE_TYPE, MessageType.SIGNAL_MESSAGE_ERROR);
         mockEbmsInboundSignals.expectedHeaderReceived(EbmsConstants.MESSAGE_ID,"9e81f6b8-c02c-4d43-91cf-d160983fa957@jentrata.org");
-        mockEbmsInboundSignals.expectedHeaderReceived(EbmsConstants.CPA_ID,"testCPAId");
+        mockEbmsInboundSignals.expectedHeaderReceived(EbmsConstants.CPA_ID, "testCPAId");
         mockEbmsErrors.setExpectedMessageCount(0);
 
         Exchange request = new DefaultExchange(context());
         request.getIn().setHeader(Exchange.CONTENT_TYPE,"application/soap+xml");
-        request.getIn().setHeader(Exchange.HTTP_METHOD,"POST");
+        request.getIn().setHeader(Exchange.HTTP_METHOD, "POST");
         request.getIn().setBody(new FileInputStream(fileFromClasspath("simple-as4-error.xml")));
         Exchange response = context().createProducerTemplate().send("direct:testEbmsInbound",request);
 
         assertMockEndpointsSatisfied();
 
         //assert the response from the route
-        assertThat("should have gotten http 204 response code",response.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE,Integer.class),equalTo(204));
+        assertThat("should have gotten http 204 response code",response.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE, Integer.class),equalTo(204));
         assertThat("should have gotten no content in the http response",response.getIn().getBody(),nullValue());
     }
 
@@ -241,8 +242,8 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
         mockEbmsErrors.setExpectedMessageCount(0);
 
         Exchange request = new DefaultExchange(context());
-        request.getIn().setHeader(Exchange.CONTENT_TYPE,"Multipart/Related; boundary=\"----=_Part_7_10584188.1123489648993\"; type=\"application/soap+xml\"; start=\"<soapPart@jentrata.org>\"");
-        request.getIn().setHeader(Exchange.HTTP_METHOD,"POST");
+        request.getIn().setHeader(Exchange.CONTENT_TYPE, "Multipart/Related; boundary=\"----=_Part_7_10584188.1123489648993\"; type=\"application/soap+xml\"; start=\"<soapPart@jentrata.org>\"");
+        request.getIn().setHeader(Exchange.HTTP_METHOD, "POST");
         request.getIn().setHeader("cpaMEP","callback");
         request.getIn().setBody(new FileInputStream(fileFromClasspath("simple-as4-user-message.txt")));
         request.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE,500);
@@ -250,7 +251,7 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
 
         assertMockEndpointsSatisfied();
 
-        assertThat("should have gotten http 500 response code",response.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE,Integer.class),equalTo(500));
+        assertThat("should have gotten http 500 response code", response.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE, Integer.class), equalTo(500));
         assertThat("should have gotten error http response",response.getIn().getBody(),notNullValue());
         assertThat(response.getIn().getBody(Document.class),hasXPath("//*[local-name()='Text' and text()='failed doing something']"));
         assertThat(response.getIn().getBody(Document.class),hasXPath("//*[local-name()='Detail' and contains(text(),'IOException')]"));
@@ -284,8 +285,8 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
     public void testInboundCompressedPayload()throws Exception {
         SOAPMessage soapMessage = EbmsUtils.createSOAP12MessageFromClasspath("sample-user-message.xml");
         Map<String,String> headers = new HashMap<>();
-        headers.put(EbmsConstants.CONTENT_TRANSFER_ENCODING,"binary");
-        EbmsUtils.addAttachment(soapMessage,"attachment1234@jentrata.org","application/gzip",getCompressedPayload("sample-payload.xml"),headers);
+        headers.put(EbmsConstants.CONTENT_TRANSFER_ENCODING, "binary");
+        EbmsUtils.addAttachment(soapMessage, "attachment1234@jentrata.org", "application/gzip", getCompressedPayload("sample-payload.xml"), headers);
 
         mockEbmsInbound.setExpectedMessageCount(1);
         mockEbmsInboundPayload.setExpectedMessageCount(1);
@@ -323,17 +324,17 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
         mockEbmsErrors.setExpectedMessageCount(0);
 
         Exchange request = new DefaultExchange(context());
-        request.getIn().setHeader(Exchange.CONTENT_TYPE,"Multipart/Related; boundary=\"----=_Part_7_10584188.1123489648993\"; type=\"application/soap+xml\"; start=\"<soapPart@jentrata.org>\"");
-        request.getIn().setHeader(Exchange.HTTP_METHOD,"POST");
-        request.getIn().setHeader("cpaMEP","response");
+        request.getIn().setHeader(Exchange.CONTENT_TYPE, "Multipart/Related; boundary=\"----=_Part_7_10584188.1123489648993\"; type=\"application/soap+xml\"; start=\"<soapPart@jentrata.org>\"");
+        request.getIn().setHeader(Exchange.HTTP_METHOD, "POST");
+        request.getIn().setHeader("cpaMEP", "response");
         request.getIn().setBody(new FileInputStream(fileFromClasspath("simple-as4-user-message.txt")));
         Exchange response = context().createProducerTemplate().send("direct:testEbmsInbound",request);
 
         assertMockEndpointsSatisfied();
 
         //assert the response from the route
-        assertThat("should have gotten http 200 response code",response.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE,Integer.class),equalTo(200));
-        assertThat(response.getIn().getBody(String.class),equalTo(exceptedResponse));
+        assertThat("should have gotten http 200 response code", response.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE, Integer.class), equalTo(200));
+        assertThat(response.getIn().getBody(String.class), equalTo(exceptedResponse));
 
     }
 
@@ -343,7 +344,7 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
         mockEbmsInboundPayload.setExpectedMessageCount(0);
         mockEbmsInboundSignals.setExpectedMessageCount(0);
         mockEbmsErrors.setExpectedMessageCount(1);
-        mockEbmsErrors.expectedHeaderReceived(EbmsConstants.EBMS_ERROR_CODE,"EBMS:0001");
+        mockEbmsErrors.expectedHeaderReceived(EbmsConstants.EBMS_ERROR_CODE, "EBMS:0001");
 
 
         Exchange request = new DefaultExchange(context());
@@ -377,6 +378,8 @@ public class EbMS3InboundRouteBuilderTest extends CamelTestSupport {
         routeBuilder.setSecurityErrorQueue(mockEbmsErrors.getEndpointUri());
         routeBuilder.setMessageDetector(new MessageDetector());
         routeBuilder.setPayloadProcessor(new PartPropertiesPayloadProcessor());
+        XmlSchemaValidator xmlSchemaValidator = new XmlSchemaValidator(EbmsUtils.fileFromClasspath("schemas/ebms-header-3_0-200704.xsd"));
+        routeBuilder.setXmlSchemaValidator(xmlSchemaValidator);
         return new RouteBuilder[] {
                 routeBuilder,
                 new RouteBuilder() {

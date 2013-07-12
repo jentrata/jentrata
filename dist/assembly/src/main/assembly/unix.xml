@@ -93,6 +93,7 @@
             <outputDirectory>/etc/</outputDirectory>
             <includes>
                 <include>keys/*.*</include>
+                <include>schemas/**</include>
             </includes>
             <fileMode>0644</fileMode>
         </fileSet>
