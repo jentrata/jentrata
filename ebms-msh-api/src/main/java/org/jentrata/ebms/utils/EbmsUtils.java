@@ -6,6 +6,7 @@ import org.jentrata.ebms.EbmsConstants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -215,6 +216,26 @@ public class EbmsUtils {
         XPath xPath = XPathFactory.newInstance().newXPath();
         xPath.setNamespaceContext(Ebms3NamespaceContext.instance());
         return (String)xPath.evaluate(xpath,element, XPathConstants.STRING);
+    }
+
+    public static final Node ebmsXpathNode(String xml,String xpath) throws Exception {
+        return ebmsXpathNode(toXML(xml),xpath);
+    }
+
+    public static final Node ebmsXpathNode(Node xml,String xpath) throws Exception {
+        XPath xPath = XPathFactory.newInstance().newXPath();
+        xPath.setNamespaceContext(Ebms3NamespaceContext.instance());
+        return (Node)xPath.evaluate(xpath,xml,XPathConstants.NODE);
+    }
+
+    public static final NodeList ebmsXpathNodeList(String xml,String xpath) throws Exception {
+        return ebmsXpathNodeList(toXML(xml),xpath);
+    }
+
+    public static final NodeList ebmsXpathNodeList(Node xml,String xpath) throws Exception {
+        XPath xPath = XPathFactory.newInstance().newXPath();
+        xPath.setNamespaceContext(Ebms3NamespaceContext.instance());
+        return (NodeList)xPath.evaluate(xpath,xml, XPathConstants.NODESET);
     }
 
     public static boolean hasEbmsXpath(Document element, String query) throws XPathExpressionException {

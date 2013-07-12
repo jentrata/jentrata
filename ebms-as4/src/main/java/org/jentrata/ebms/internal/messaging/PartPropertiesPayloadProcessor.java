@@ -4,6 +4,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.builder.xml.XPathBuilder;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.soap.SoapPayloadProcessor;
+import org.jentrata.ebms.utils.EbmsUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Node;
@@ -27,12 +28,12 @@ public class PartPropertiesPayloadProcessor implements SoapPayloadProcessor {
         try {
             Node partInfo;
             if(payloadId.equals(EbmsConstants.SOAP_BODY_PAYLOAD_ID)) {
-                partInfo = XPathBuilder.xpath(String.format(soapPartPropertyXpath,payloadId)).evaluate(exchange.getContext(), soapMessage, Node.class);
+                partInfo = EbmsUtils.ebmsXpathNode(soapMessage,String.format(soapPartPropertyXpath,payloadId));
             }
             else {
-                partInfo = XPathBuilder.xpath(String.format(partPropertyXpath,payloadId)).evaluate(exchange.getContext(), soapMessage, Node.class);
+                partInfo = EbmsUtils.ebmsXpathNode(soapMessage,String.format(partPropertyXpath,payloadId));
             }
-            NodeList partProperties = XPathBuilder.xpath("//*[local-name()='Property']").evaluate(exchange.getContext(), partInfo, NodeList.class);
+            NodeList partProperties = EbmsUtils.ebmsXpathNodeList(partInfo,"//*[local-name()='Property']");
             for (int i = 0; i < partProperties.getLength(); i++) {
                 Node property = partProperties.item(i);
                 String name = property.getAttributes().getNamedItem("name").getTextContent();
