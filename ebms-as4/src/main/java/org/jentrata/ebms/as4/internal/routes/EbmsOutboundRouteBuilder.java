@@ -47,7 +47,7 @@ public class EbmsOutboundRouteBuilder extends RouteBuilder {
                     .to("direct:processFailure")
                 .end()
                 .setHeader(Exchange.HTTP_METHOD, constant("POST"))
-                .to(configureEndpoint(agreement.getTransportReceiverEndpoint()))
+                .to(configureEndpoint(agreement.getProtocol().getAddress()))
                 .convertBodyTo(String.class)
                 .choice()
                     .when(header(Exchange.HTTP_RESPONSE_CODE).isEqualTo(200))

@@ -2,10 +2,26 @@
     {
         "cpaId":"testCPAId1",
         "active":"true",
-        "transportReceiverEndpoint":"http://example.jentrata.org",
-        "payloadService": {
-            "compressionType":"NONE",
-            "payloadId":"attachment1234@jentrata.org"
+        "protocol": {
+            "address":"http://example.jentrata.org"
+        },
+        "businessInfo": {
+            "services" : [
+                {
+                    "service":"service1",
+                    "action":"action1"
+                },
+                {
+                    "service":"service2",
+                    "action":"action2"
+                }
+            ],
+            "payloadProfile":[
+                {
+                    "compressionType":"NONE",
+                    "payloadId":"attachment1234@jentrata.org"
+                }
+            ]
         }
     }
 ]

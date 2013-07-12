@@ -1,4 +1,6 @@
-package org.jentrata.ebms.cpa;
+package org.jentrata.ebms.cpa.pmode;
+
+import org.jentrata.ebms.cpa.ValidationPredicate;
 
 import java.util.List;
 

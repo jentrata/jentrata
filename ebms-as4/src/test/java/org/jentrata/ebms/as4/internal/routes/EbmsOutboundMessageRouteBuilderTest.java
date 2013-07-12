@@ -12,6 +12,7 @@ import org.apache.commons.io.IOUtils;
 import org.hamcrest.Matchers;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.cpa.PartnerAgreement;
+import org.jentrata.ebms.cpa.pmode.BusinessInfo;
 import org.jentrata.ebms.messaging.UUIDGenerator;
 import org.jentrata.ebms.utils.EbmsUtils;
 import org.junit.Test;
@@ -198,7 +199,7 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
         System.out.println(EbmsUtils.toString(soapMessage));
 
         assertThat(soapHeader.getOwnerDocument(),hasXPath("//*[local-name()='Timestamp']"));
-        assertThat(soapHeader.getOwnerDocument(),hasXPath("//*[local-name()='MessageId']"));
+        assertThat(soapHeader.getOwnerDocument(), hasXPath("//*[local-name()='MessageId']"));
         assertThat(soapHeader.getOwnerDocument(),hasXPath("//*[local-name()='PartyId' and text()='123456789']"));
         assertThat(soapHeader.getOwnerDocument(),hasXPath("//*[local-name()='PartyId' and text()='987654321']"));
         assertThat(soapHeader.getOwnerDocument(),hasXPath("//*[local-name()='AgreementRef' and text()='http://jentrata.org/agreement']"));
@@ -254,7 +255,7 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
     @Test
     public void testOverrideMessageID() throws Exception {
         mockEbmsOutbound.setExpectedMessageCount(1);
-        mockEbmsOutbound.expectedHeaderReceived(EbmsConstants.MESSAGE_ID,"test-exchange-id@jentrata.org");
+        mockEbmsOutbound.expectedHeaderReceived(EbmsConstants.MESSAGE_ID, "test-exchange-id@jentrata.org");
         mockMessageStore.setExpectedMessageCount(1);
         mockUpdateMessageStore.setExpectedMessageCount(1);
         mockWSSEAddSecurityToHeader.setExpectedMessageCount(1);
@@ -272,7 +273,7 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
 
         request.getIn().setHeader(EbmsConstants.MESSAGE_PART_PROPERTIES,"PartID=testpayload@jentrata.org;SourceABN=123456789;test=");
 
-        request.getIn().setHeader(EbmsConstants.MESSAGE_DIRECTION,EbmsConstants.MESSAGE_DIRECTION_OUTBOUND);
+        request.getIn().setHeader(EbmsConstants.MESSAGE_DIRECTION, EbmsConstants.MESSAGE_DIRECTION_OUTBOUND);
 
         request.getIn().setBody(new FileInputStream(fileFromClasspath("sample-payload.xml")));
         Exchange response = context().createProducerTemplate().send("direct:testDeliveryQueue",request);
@@ -283,7 +284,7 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
         System.out.println(exchange.getIn().getBody());
         SOAPMessage message = EbmsUtils.parse(exchange);
         Document ebmsMessage = message.getSOAPPart().getEnvelope().getHeader().getOwnerDocument();
-        assertThat(ebmsMessage,hasXPath("//*[local-name()='MessageId' and text()='test-exchange-id@jentrata.org']"));
+        assertThat(ebmsMessage, hasXPath("//*[local-name()='MessageId' and text()='test-exchange-id@jentrata.org']"));
     }
 
     @Override
@@ -322,6 +323,7 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
     private PartnerAgreement getAgreement() {
         PartnerAgreement partnerAgreement = new PartnerAgreement();
         partnerAgreement.setCpaId("testCPAId");
+        partnerAgreement.setBusinessInfo(new BusinessInfo());
         return partnerAgreement;
     }
 

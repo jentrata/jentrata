@@ -23,6 +23,7 @@ import org.jentrata.ebms.cpa.pmode.Signature;
 import org.jentrata.ebms.cpa.pmode.SignaturePart;
 import org.jentrata.ebms.cpa.pmode.UsernameToken;
 import org.jentrata.ebms.internal.messaging.AttachmentCallbackHandler;
+import org.jentrata.ebms.internal.security.UsernameTokenCallbackHandler;
 import org.w3c.dom.Document;
 
 import javax.activation.DataHandler;
@@ -43,7 +44,6 @@ public class WSSERouteBuilder extends RouteBuilder {
 
     private String wsseSecurityCheck = "direct:wsseSecurityCheck";
     private String wsseAddSecurityToHeader = "direct:wsseAddSecurityToHeader";
-    private CallbackHandler userTokenCallbackHandler;
     private Crypto crypto;
 
     @Override
@@ -58,9 +58,9 @@ public class WSSERouteBuilder extends RouteBuilder {
                 @Override
                 public void process(Exchange exchange) throws Exception {
                     PartnerAgreement agreement = exchange.getIn().getHeader(EbmsConstants.CPA, PartnerAgreement.class);
-                    if (agreement.hasSecurityToken() && agreement.getSecurity().getSecurityToken() instanceof UsernameToken) {
+                    if (agreement.hasSecurityToken() && agreement.getResponder().getAuthorization() instanceof UsernameToken) {
                         Document signedDoc = exchange.getIn().getBody(Document.class);
-                        UsernameToken token = (UsernameToken) agreement.getSecurity().getSecurityToken();
+                        UsernameToken token = (UsernameToken) agreement.getResponder().getAuthorization();
                         RequestData requestData = new RequestData();
                         AttachmentCallbackHandler attachmentCallback = null;
                         if(exchange.getIn().hasAttachments()) {
@@ -73,8 +73,7 @@ public class WSSERouteBuilder extends RouteBuilder {
                         requestData.getWssConfig().setPasswordsAreEncoded(token.isDigest());
                         requestData.setAddUsernameTokenCreated(token.isCreated());
                         requestData.setAddUsernameTokenNonce(token.isNonce());
-                        requestData.setCallbackHandler(userTokenCallbackHandler);
-                        requestData.setUsername(token.getUsername());
+                        requestData.setCallbackHandler(new UsernameTokenCallbackHandler(token));
                         requestData.setDisableBSPEnforcement(agreement.getSecurity().isDisableBSPEnforcement());
 
                         List<WSSecurityEngineResult> results;
@@ -114,10 +113,10 @@ public class WSSERouteBuilder extends RouteBuilder {
                     PartnerAgreement agreement = exchange.getIn().getHeader(EbmsConstants.CPA, PartnerAgreement.class);
                     MessageType messageType = exchange.getIn().getHeader(EbmsConstants.MESSAGE_TYPE, MessageType.class);
                     if (agreement.hasSecurityToken()
-                            && agreement.getSecurity().getSecurityToken() instanceof UsernameToken) {
+                            && agreement.getInitiator().getAuthorization() instanceof UsernameToken) {
                         if(agreement.getSecurity().getSendReceiptReplyPattern() == Security.ReplyPatternType.Callback
                                 || messageType == MessageType.USER_MESSAGE) {
-                            UsernameToken token = (UsernameToken) agreement.getSecurity().getSecurityToken();
+                            UsernameToken token = (UsernameToken) agreement.getInitiator().getAuthorization();
                             WSSecUsernameToken builder = new WSSecUsernameToken();
                             builder.setPasswordsAreEncoded(token.isDigest());
                             builder.setUserInfo(token.getUsername(), token.getPassword());
@@ -220,14 +219,6 @@ public class WSSERouteBuilder extends RouteBuilder {
 
     public void setWsseAddSecurityToHeader(String wsseAddSecurityToHeader) {
         this.wsseAddSecurityToHeader = wsseAddSecurityToHeader;
-    }
-
-    public CallbackHandler getUserTokenCallbackHandler() {
-        return userTokenCallbackHandler;
-    }
-
-    public void setUserTokenCallbackHandler(CallbackHandler userTokenCallbackHandler) {
-        this.userTokenCallbackHandler = userTokenCallbackHandler;
     }
 
     public Crypto getCrypto() {

@@ -10,6 +10,7 @@ import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.cpa.InvalidPartnerAgreementException;
 import org.jentrata.ebms.cpa.PartnerAgreement;
+import org.jentrata.ebms.cpa.pmode.PayloadService;
 import org.jentrata.ebms.messaging.MessageStore;
 import org.jentrata.ebms.soap.SoapMessageDataFormat;
 import org.jentrata.ebms.utils.EbmsUtils;
@@ -61,9 +62,13 @@ public class  EbmsOutboundMessageRouteBuilder extends RouteBuilder {
                             String body = exchange.getIn().getBody(String.class);
                             String contentType = exchange.getIn().getHeader(EbmsConstants.CONTENT_TYPE, String.class);
                             String contentCharset = exchange.getIn().getHeader(EbmsConstants.CONTENT_CHAR_SET, "UTF-8", String.class);
-                            String payloadId = exchange.getIn().getHeader(EbmsConstants.PAYLOAD_ID,agreement.getPayloadService().getPayloadId(), String.class);
+                            String payloadId = exchange.getIn().getHeader(EbmsConstants.PAYLOAD_ID, String.class);
+                            PayloadService payloadService = PayloadService.DEFAULT_PAYLOAD_SERVICE;
+                            if(payloadId != null) {
+                                payloadService = agreement.getPayloadProfile(payloadId);
+                            }
                             String schema = exchange.getIn().getHeader(EbmsConstants.MESSAGE_PAYLOAD_SCHEMA, String.class);
-                            String compressionType = exchange.getIn().getHeader(EbmsConstants.PAYLOAD_COMPRESSION,agreement.getPayloadService().getCompressionType().getType(),String.class);
+                            String compressionType = exchange.getIn().getHeader(EbmsConstants.PAYLOAD_COMPRESSION,payloadService.getCompressionType().getType(),String.class);
                             Map<String,String> mimeHeaders = extractMimeHeaders(contentType,exchange.getIn());
                             List<Map<String, Object>> partProperties = EbmsUtils.extractPartProperties(exchange.getIn().getHeader(EbmsConstants.MESSAGE_PART_PROPERTIES, String.class));
 
@@ -92,7 +97,7 @@ public class  EbmsOutboundMessageRouteBuilder extends RouteBuilder {
                     .end()
                     .setHeader(EbmsConstants.MESSAGE_TYPE, constant(MessageType.USER_MESSAGE))
                     .setHeader(EbmsConstants.MESSAGE_DIRECTION, constant(EbmsConstants.MESSAGE_DIRECTION_OUTBOUND))
-                    .setHeader(EbmsConstants.MESSAGE_PAYLOADS,body())
+                    .setHeader(EbmsConstants.MESSAGE_PAYLOADS, body())
                     .to("freemarker:templates/soap-envelope.ftl")
                     .to(wsseSecurityAddEndpoint)
                     .convertBodyTo(String.class)

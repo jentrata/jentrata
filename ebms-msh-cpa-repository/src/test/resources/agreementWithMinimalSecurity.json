@@ -2,21 +2,20 @@
     {
         "cpaId":"testCPAId1",
         "active":"true",
-        "transportReceiverEndpoint":"http://example.jentrata.org",
-        "services" : [
-            {
-                "service":"service1",
-                "action":"action1"
-            },
-            {
-                "service":"service2",
-                "action":"action2"
-            }
-        ],
-        "security": {
-            "securityToken": {
-                "tokenType":"UsernameToken"
-            }
+        "protocol": {
+            "address":"http://example.jentrata.org"
+        },
+        "businessInfo": {
+            "services" : [
+                {
+                    "service":"service1",
+                    "action":"action1"
+                },
+                {
+                    "service":"service2",
+                    "action":"action2"
+                }
+            ]
         }
     }
 ]

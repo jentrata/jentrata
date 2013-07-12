@@ -66,12 +66,6 @@
             <cm:property name="jentrata.ebms.security.keystore.alias" value="jentrata"/>
             <cm:property name="jentrata.ebms.security.keystore.password" value="security"/>
 
-            <!-- HACK - add a hardcode list of username/passwords -->
-            <!-- TODO - refactor this into the PartnerAgreement -->
-            <cm:property name="jentrata.ebms.inbound.username1" value="jentrata"/>
-            <cm:property name="jentrata.ebms.inbound.password1" value="gocDv4SEXRDxNjucDDfo7I7ACTc"/>
-
-
         </cm:default-properties>
     </cm:property-placeholder>
 
@@ -104,23 +98,6 @@
 
     <bean id="wsseRouteBuilder" class="org.jentrata.ebms.as4.internal.routes.WSSERouteBuilder">
         <property name="crypto" ref="crypto"/>
-        <property name="userTokenCallbackHandler">
-            <bean class="org.jentrata.ebms.internal.security.UsernamePasswordCallbackHandler">
-                <property name="users">
-                    <map key-type="java.lang.String" value-type="java.lang.String">
-                        <entry key="${jentrata.ebms.inbound.username1}" value="${jentrata.ebms.inbound.password1}"/>
-                        <entry key="${jentrata.ebms.inbound.username2}" value="${jentrata.ebms.inbound.password2}"/>
-                        <entry key="${jentrata.ebms.inbound.username3}" value="${jentrata.ebms.inbound.password3}"/>
-                        <entry key="${jentrata.ebms.inbound.username4}" value="${jentrata.ebms.inbound.password4}"/>
-                        <entry key="${jentrata.ebms.inbound.username5}" value="${jentrata.ebms.inbound.password5}"/>
-                        <entry key="${jentrata.ebms.inbound.username6}" value="${jentrata.ebms.inbound.password6}"/>
-                        <entry key="${jentrata.ebms.inbound.username7}" value="${jentrata.ebms.inbound.password7}"/>
-                        <entry key="${jentrata.ebms.inbound.username8}" value="${jentrata.ebms.inbound.password8}"/>
-                        <entry key="${jentrata.ebms.inbound.username9}" value="${jentrata.ebms.inbound.password9}"/>
-                    </map>
-                </property>
-            </bean>
-        </property>
     </bean>
 
     <bean id="xmlSchemaValidator" class="org.jentrata.ebms.messaging.XmlSchemaValidator">

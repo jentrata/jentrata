@@ -14,21 +14,11 @@ public class Security {
         Response
     }
 
-    private SecurityToken securityToken = null;
     private boolean sendReceipt = true;
     private ReplyPatternType sendReceiptReplyPattern = ReplyPatternType.Callback;
     private boolean sendReceiptNonRepudiation = false;
     private boolean disableBSPEnforcement = false;
     private Signature signature = null;
-
-
-    public SecurityToken getSecurityToken() {
-        return securityToken;
-    }
-
-    public void setSecurityToken(SecurityToken securityToken) {
-        this.securityToken = securityToken;
-    }
 
     public boolean isSendReceipt() {
         return sendReceipt;
