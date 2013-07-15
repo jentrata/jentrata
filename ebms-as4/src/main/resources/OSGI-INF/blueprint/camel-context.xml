@@ -35,6 +35,8 @@
 
             <cm:property name="jentrata.ebms.dlq" value=""/>
 
+            <cm:property name="jentrata.trace.enabled" value="false"/>
+
             <cm:property name="jentrata.ebms.inbound.httpPort" value="8081"/>
             <cm:property name="jentrata.ebms.inbound.httpHost" value="0.0.0.0"/>
             <cm:property name="jentrata.ebms.inbound.endpoint" value="jetty:http://${jentrata.ebms.inbound.httpHost}:${jentrata.ebms.inbound.httpPort}/jentrata/ebms/inbound"/>
@@ -170,7 +172,7 @@
         <property name="configuration" ref="jmsConfig"/>
     </bean>
 
-    <camelContext id="jentrata-ebms" xmlns="http://camel.apache.org/schema/blueprint">
+    <camelContext id="jentrata-ebms" xmlns="http://camel.apache.org/schema/blueprint" trace="{{jentrata.trace.enabled}}">
         <contextScan/>
     </camelContext>
 
