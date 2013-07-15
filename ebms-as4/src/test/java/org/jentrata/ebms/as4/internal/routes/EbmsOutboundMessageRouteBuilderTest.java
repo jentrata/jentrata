@@ -13,6 +13,7 @@ import org.hamcrest.Matchers;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.cpa.PartnerAgreement;
 import org.jentrata.ebms.cpa.pmode.BusinessInfo;
+import org.jentrata.ebms.cpa.pmode.Party;
 import org.jentrata.ebms.messaging.UUIDGenerator;
 import org.jentrata.ebms.utils.EbmsUtils;
 import org.junit.Test;
@@ -287,6 +288,37 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
         assertThat(ebmsMessage, hasXPath("//*[local-name()='MessageId' and text()='test-exchange-id@jentrata.org']"));
     }
 
+    @Test
+    public void testShouldUseCPADefaults() throws Exception {
+        mockEbmsOutbound.setExpectedMessageCount(1);
+        mockMessageStore.setExpectedMessageCount(1);
+        mockUpdateMessageStore.setExpectedMessageCount(1);
+        mockWSSEAddSecurityToHeader.setExpectedMessageCount(1);
+
+        Exchange request = new DefaultExchange(context());
+        request.getIn().setHeader(EbmsConstants.CONTENT_TYPE,"text/xml");
+        request.getIn().setHeader(EbmsConstants.CPA_ID,"testCPAId");
+        request.getIn().setHeader(EbmsConstants.PAYLOAD_ID,"testpayload@jentrata.org");
+        request.getIn().setHeader(EbmsConstants.MESSAGE_PAYLOAD_SCHEMA,"http://jentrata.org/schema/example");
+        request.getIn().setHeader(EbmsConstants.MESSAGE_PART_PROPERTIES,"PartID=testpayload@jentrata.org;SourceABN=123456789;test=");
+        request.getIn().setHeader(EbmsConstants.MESSAGE_DIRECTION, EbmsConstants.MESSAGE_DIRECTION_OUTBOUND);
+
+        request.getIn().setBody(new FileInputStream(fileFromClasspath("sample-payload.xml")));
+        Exchange response = context().createProducerTemplate().send("direct:testDeliveryQueue",request);
+
+        assertMockEndpointsSatisfied();
+
+        Exchange exchange = mockEbmsOutbound.getExchanges().get(0);
+        System.out.println(exchange.getIn().getBody(String.class));
+        SOAPMessage message = EbmsUtils.parse(exchange);
+        Document ebmsMessage = message.getSOAPPart().getEnvelope().getHeader().getOwnerDocument();
+        assertThat(ebmsMessage, hasXPath("//*[local-name()='PartyId' and text()='jentrata']"));
+        assertThat(ebmsMessage, hasXPath("//@*[name()='type' and .='urn:mypartyidtype']"));
+        assertThat(ebmsMessage, hasXPath("//*[local-name()='Role' and text()='buyer']"));
+        assertThat(ebmsMessage, hasXPath("//*[local-name()='Role' and text()='seller']"));
+
+    }
+
     @Override
     protected JndiRegistry createRegistry() throws Exception {
         JndiRegistry registry = super.createRegistry();
@@ -323,6 +355,17 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
     private PartnerAgreement getAgreement() {
         PartnerAgreement partnerAgreement = new PartnerAgreement();
         partnerAgreement.setCpaId("testCPAId");
+        Party from = new Party();
+        from.setPartyId("jentrata");
+        from.setPartyIdType("urn:mypartyidtype");
+        from.setRole("buyer");
+        partnerAgreement.setInitiator(from);
+        Party to = new Party();
+        to.setPartyId("other");
+        to.setPartyIdType("urn:mypartyidtype");
+        to.setRole("seller");
+        partnerAgreement.setResponder(to);
+
         partnerAgreement.setBusinessInfo(new BusinessInfo());
         return partnerAgreement;
     }

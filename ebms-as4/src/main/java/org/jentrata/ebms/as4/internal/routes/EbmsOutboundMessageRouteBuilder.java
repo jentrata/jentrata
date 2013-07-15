@@ -5,7 +5,6 @@ import org.apache.camel.LoggingLevel;
 import org.apache.camel.Message;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.commons.io.IOUtils;
 import org.jentrata.ebms.EbmsConstants;
 import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.cpa.InvalidPartnerAgreementException;
@@ -14,17 +13,16 @@ import org.jentrata.ebms.cpa.pmode.PayloadService;
 import org.jentrata.ebms.messaging.MessageStore;
 import org.jentrata.ebms.soap.SoapMessageDataFormat;
 import org.jentrata.ebms.utils.EbmsUtils;
+import org.jentrata.ebms.utils.ExpressionHelper;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.GZIPOutputStream;
+
+import static org.jentrata.ebms.utils.ExpressionHelper.headerWithDefault;
 
 /**
  * Pickup outbound messages generates the ebMS envelope
@@ -90,11 +88,7 @@ public class  EbmsOutboundMessageRouteBuilder extends RouteBuilder {
                             exchange.getIn().setBody(payloads);
                         }
                     })
-                    .choice()
-                        .when(header(EbmsConstants.MESSAGE_ID).isNull())
-                            .setHeader(EbmsConstants.MESSAGE_ID, simple("${bean:uuidGenerator.generateId}"))
-                        .end()
-                    .end()
+                    .to("direct:setMessageDefaults")
                     .setHeader(EbmsConstants.MESSAGE_TYPE, constant(MessageType.USER_MESSAGE))
                     .setHeader(EbmsConstants.MESSAGE_DIRECTION, constant(EbmsConstants.MESSAGE_DIRECTION_OUTBOUND))
                     .setHeader(EbmsConstants.MESSAGE_PAYLOADS, body())
@@ -106,6 +100,17 @@ public class  EbmsOutboundMessageRouteBuilder extends RouteBuilder {
                     .to(messageInsertEndpoint)
                     .to(outboundEbmsQueue)
         .routeId("_jentrataEbmsGenerateMessage");
+
+        from("direct:setMessageDefaults")
+            .setHeader(EbmsConstants.MESSAGE_ID, headerWithDefault(EbmsConstants.MESSAGE_ID, simple("${bean:uuidGenerator.generateId}")))
+            .setHeader(EbmsConstants.MESSAGE_FROM, headerWithDefault(EbmsConstants.MESSAGE_FROM, simple("${headers.JentrataCPA?.initiator?.partyId}")))
+            .setHeader(EbmsConstants.MESSAGE_FROM_TYPE, headerWithDefault(EbmsConstants.MESSAGE_FROM_TYPE, simple("${headers.JentrataCPA?.initiator?.partyIdType}")))
+            .setHeader(EbmsConstants.MESSAGE_FROM_ROLE, headerWithDefault(EbmsConstants.MESSAGE_FROM_ROLE, simple("${headers.JentrataCPA?.initiator?.role}")))
+            .setHeader(EbmsConstants.MESSAGE_TO, headerWithDefault(EbmsConstants.MESSAGE_TO, simple("${headers.JentrataCPA?.responder?.partyId}")))
+            .setHeader(EbmsConstants.MESSAGE_TO_TYPE, headerWithDefault(EbmsConstants.MESSAGE_TO_TYPE, simple("${headers.JentrataCPA?.responder?.partyIdType}")))
+            .setHeader(EbmsConstants.MESSAGE_TO_ROLE, headerWithDefault(EbmsConstants.MESSAGE_TO_ROLE, simple("${headers.JentrataCPA?.responder?.role}")))
+            .setHeader(EbmsConstants.MESSAGE_AGREEMENT_REF, headerWithDefault(EbmsConstants.MESSAGE_AGREEMENT_REF, simple("${headers.JentrataCPA?.agreementRef}")))
+        .routeId("_jentrataSetMessageDefaults");
 
     }
 

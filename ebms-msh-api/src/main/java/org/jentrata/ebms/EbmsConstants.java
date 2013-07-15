@@ -44,8 +44,10 @@ public class EbmsConstants {
     public static final String REF_TO_MESSAGE_ID = "JentrataRefMessageID";
     public static final String MESSAGE_FROM = "JentrataFrom";
     public static final String MESSAGE_FROM_TYPE = "JentrataFromPartyIdType";
+    public static final String MESSAGE_FROM_ROLE = "JentrataPartyFromRole";
     public static final String MESSAGE_TO = "JentrataTo";
     public static final String MESSAGE_TO_TYPE = "JentrataToPartyIdType";
+    public static final String MESSAGE_TO_ROLE = "JentrataPartyToRole";
     public static final String MESSAGE_AGREEMENT_REF = "JentrataAgreementRef";
     public static final String MESSAGE_PART_PROPERTIES = "JentraraPartProperties";
     public static final String MESSAGE_PAYLOAD_SCHEMA = "JentrataPayloadSchema";
