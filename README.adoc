@@ -9,7 +9,7 @@ Jentrata CI Build Status image:https://jentrata.ci.cloudbees.com/job/jentrata-ci
 
 
 === Getting Started
-TODO
+TODO:
 
 === Build from Source
 Requires maven 3.0+ and Java 7+
