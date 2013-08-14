@@ -53,8 +53,9 @@ public class EbmsOutboundRouteBuilder extends RouteBuilder {
                     .when(header(Exchange.HTTP_RESPONSE_CODE).isEqualTo(200))
                         .to("direct:processSuccess")
                         .setProperty(EbmsConstants.CPA_ID,header(EbmsConstants.CPA_ID))
+                        .setProperty(EbmsConstants.CONTENT_TYPE,header(Exchange.CONTENT_TYPE))
                         .removeHeaders("*")
-                        .setHeader(EbmsConstants.CONTENT_TYPE,constant(EbmsConstants.SOAP_XML_CONTENT_TYPE))
+                        .setHeader(EbmsConstants.CONTENT_TYPE,property(EbmsConstants.CONTENT_TYPE))
                         .setHeader(Exchange.HTTP_METHOD, constant("POST"))
                         .setHeader(EbmsConstants.CPA_ID,property(EbmsConstants.CPA_ID))
                         .inOnly(ebmsResponseInbound)
@@ -67,7 +68,7 @@ public class EbmsOutboundRouteBuilder extends RouteBuilder {
 
         from("direct:processSuccess")
             .log(LoggingLevel.INFO,"Successfully delivered cpaId:${headers.JentrataCPAId} - type:${headers.JentrataMessageType} - msgId:${headers.JentrataMessageId} - responseCode:${headers.CamelHttpResponseCode}")
-            .log(LoggingLevel.DEBUG, "responseCode:${headers.CamelHttpResponseCode}\n${body}")
+            .log(LoggingLevel.DEBUG, "responseCode:${headers.CamelHttpResponseCode}\nheaders:${headers}\n${body}")
             .setHeader(EbmsConstants.MESSAGE_STATUS, constant(MessageStatusType.DELIVERED))
             .setHeader(EbmsConstants.MESSAGE_STATUS_DESCRIPTION, constant(null))
             .to(messageUpdateEndpoint)
@@ -76,7 +77,7 @@ public class EbmsOutboundRouteBuilder extends RouteBuilder {
 
         from("direct:processFailure")
             .log(LoggingLevel.ERROR, "Failed to deliver cpaId:${headers.JentrataCPAId} - type:${headers.JentrataMessageType} - msgId:${headers.JentrataMessgeId} - responseCode:${headers.CamelHttpResponseCode}")
-            .log(LoggingLevel.DEBUG,"responseCode:${headers.CamelHttpResponseCode}\n${body}")
+            .log(LoggingLevel.DEBUG, "responseCode:${headers.CamelHttpResponseCode}\nheaders:${headers}\n${body}")
             .setHeader(EbmsConstants.MESSAGE_STATUS, constant(MessageStatusType.FAILED))
             .setHeader(EbmsConstants.MESSAGE_STATUS_DESCRIPTION, simple("${headers.CamelHttpResponseCode} - ${body}"))
             .to(messageUpdateEndpoint)
