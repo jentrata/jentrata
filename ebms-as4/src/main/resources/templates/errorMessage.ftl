@@ -6,7 +6,7 @@
         xsi:schemaLocation="http://docs.oasis-open.org/ebxml-msg/ebms/v3.0/ns/core/200704/
           http://docs.oasis-open.org/ebxml-msg/ebms/v3.0/core/ebms-header-3_0-200704.xsd">
     <S12:Header>
-        <eb:Messaging S12:mustUnderstand="1">
+        <eb:Messaging S12:mustUnderstand="true">
             <eb:SignalMessage>
                 <eb:MessageInfo>
                     <eb:Timestamp>${.now?iso("UTC")}</eb:Timestamp>
