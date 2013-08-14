@@ -143,14 +143,19 @@ public class EbmsOutboundRouteBuilder extends RouteBuilder {
 
     private String configureEndpoint(String endpoint) {
         if(endpoint.startsWith("http://") || endpoint.startsWith("https://")) {
-            return endpoint + "?" + configureOptions();
+            return endpoint + configureOptions(endpoint);
         } else {
             return endpoint;
         }
     }
 
-    protected String configureOptions() {
+    protected String configureOptions(String endpoint) {
         StringBuilder options = new StringBuilder();
+        if(endpoint.contains("?")) {
+            options.append("&");
+        } else {
+            options.append("?");
+        }
         options.append("throwExceptionOnFailure=false");
         if(isNotEmpty(httpClientOverride)) {
             options.append("&" + httpClientOverride);
