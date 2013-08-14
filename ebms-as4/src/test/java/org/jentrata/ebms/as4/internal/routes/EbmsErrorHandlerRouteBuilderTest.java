@@ -129,6 +129,7 @@ public class EbmsErrorHandlerRouteBuilderTest extends CamelTestSupport {
             Document error = exchange.getIn().getBody(Document.class);
             assertThat(error,hasXPath("//*[local-name()='Timestamp']"));
             assertThat(error,hasXPath("//*[local-name()='MessageId']"));
+            assertThat(error,hasXPath("//*[local-name()='RefToMessageId' and text()='" + exchange.getIn().getHeader("JentrataRefToMessageInError") + "']"));
             assertThat(error,hasXPath("//@*[name()='origin' and .='" + ebmsError.getOrigin() + "']"));
             assertThat(error,hasXPath("//@*[name()='category' and .='" + ebmsError.getCategory() + "']"));
             assertThat(error,hasXPath("//@*[name()='errorCode' and .='" + ebmsError.getErrorCode() + "']"));

@@ -11,6 +11,7 @@
                 <eb:MessageInfo>
                     <eb:Timestamp>${.now?iso("UTC")}</eb:Timestamp>
                     <eb:MessageId>${headers.JentrataMessageID}</eb:MessageId>
+                    <#if headers.JentrataRefToMessageInError?has_content><eb:RefToMessageId>${headers.JentrataRefToMessageInError?xml}</eb:RefToMessageId></#if>
                 </eb:MessageInfo>
                 <eb:Error origin="${headers.JentrataEbmsError.origin}"
                           category="${headers. JentrataEbmsError.category}"
