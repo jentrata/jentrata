@@ -275,6 +275,7 @@ public class JSONCPARepositoryTest {
         PartnerAgreement agreement1 = repository.findByMessage(ebmsMessage,EbmsConstants.EBMS_V3);
         assertThat(agreement1,notNullValue());
         assertThat(agreement1.getCpaId(),equalTo("testCPAId2"));
+        assertThat(agreement1.getAgreementRef(), equalTo("test123"));
     }
 
     @Test

@@ -29,6 +29,7 @@
     {
         "cpaId":"testCPAId2",
         "active":"true",
+        "agreementRef":"test123",
         "protocol": {
             "address":"http://example.jentrata.org"
         },
