@@ -154,6 +154,10 @@ public class WSSERouteBuilder extends RouteBuilder {
                             parts.add(new WSEncryptionPart(Signature.SOAP_BODY_PART.getElementName(), Signature.SOAP_BODY_PART.getNamespace(), Signature.SOAP_BODY_PART.getEncryptMethod()));
                             parts.add(new WSEncryptionPart(Signature.EBMS3_MESSAGE_PART.getElementName(), Signature.EBMS3_MESSAGE_PART.getNamespace(), Signature.EBMS3_MESSAGE_PART.getEncryptMethod()));
                         }
+
+                        WSSecHeader secHeader = new WSSecHeader();
+                        secHeader.insertSecurityHeader(message);
+
                         WSSecSignature signature = new WSSecSignature();
                         signature.setUserInfo(signatureAgreement.getKeyStoreAlias(), signatureAgreement.getKeyStorePass());
                         signature.setSignatureAlgorithm(signatureAgreement.getSignatureAlgorithm());
@@ -162,8 +166,7 @@ public class WSSERouteBuilder extends RouteBuilder {
 
                         AttachmentCallbackHandler attachmentCallbackHandler = createAttachmentCallbackHandler(exchange);
                         signature.setAttachmentCallbackHandler(attachmentCallbackHandler);
-                        WSSecHeader secHeader = new WSSecHeader();
-                        secHeader.insertSecurityHeader(message);
+
                         Document signedDoc = signature.build(message, crypto, secHeader);
 
                         exchange.getIn().setBody(signedDoc);
