@@ -58,23 +58,28 @@ public class WSSERouteBuilder extends RouteBuilder {
                 @Override
                 public void process(Exchange exchange) throws Exception {
                     PartnerAgreement agreement = exchange.getIn().getHeader(EbmsConstants.CPA, PartnerAgreement.class);
-                    if (agreement.hasSecurityToken() && agreement.getResponder().getAuthorization() instanceof UsernameToken) {
+                    MessageType messageType = exchange.getIn().getHeader(EbmsConstants.MESSAGE_TYPE,MessageType.class);
+                    if (agreement.hasResponderSecurityToken() || agreement.requiresSignature(messageType)) {
+
                         Document signedDoc = exchange.getIn().getBody(Document.class);
-                        UsernameToken token = (UsernameToken) agreement.getResponder().getAuthorization();
                         RequestData requestData = new RequestData();
+                        requestData.setWssConfig(securityEngine.getWssConfig());
+                        requestData.setSigVerCrypto(crypto);
+                        requestData.setDecCrypto(crypto);
+                        requestData.setDisableBSPEnforcement(agreement.getSecurity().isDisableBSPEnforcement());
+                        if(agreement.hasResponderSecurityToken()) {
+                            UsernameToken token = (UsernameToken) agreement.getResponder().getAuthorization();
+                            requestData.getWssConfig().setPasswordsAreEncoded(token.isDigest());
+                            requestData.setAddUsernameTokenCreated(token.isCreated());
+                            requestData.setAddUsernameTokenNonce(token.isNonce());
+                            requestData.setCallbackHandler(new UsernameTokenCallbackHandler(token));
+                        }
+
                         AttachmentCallbackHandler attachmentCallback = null;
                         if(exchange.getIn().hasAttachments()) {
                             attachmentCallback = createAttachmentCallbackHandler(exchange);
                             requestData.setAttachmentCallbackHandler(attachmentCallback);
                         }
-                        requestData.setSigVerCrypto(crypto);
-                        requestData.setDecCrypto(crypto);
-                        requestData.setWssConfig(securityEngine.getWssConfig());
-                        requestData.getWssConfig().setPasswordsAreEncoded(token.isDigest());
-                        requestData.setAddUsernameTokenCreated(token.isCreated());
-                        requestData.setAddUsernameTokenNonce(token.isNonce());
-                        requestData.setCallbackHandler(new UsernameTokenCallbackHandler(token));
-                        requestData.setDisableBSPEnforcement(agreement.getSecurity().isDisableBSPEnforcement());
 
                         List<WSSecurityEngineResult> results;
                         try {
@@ -85,7 +90,6 @@ public class WSSERouteBuilder extends RouteBuilder {
                                     exchange.getIn().setAttachments(attachmentCallback.getVerifiedAttachments());
                                 }
                             } else {
-                                MessageType messageType = exchange.getIn().getHeader(EbmsConstants.MESSAGE_TYPE,MessageType.class);
                                 if((messageType == MessageType.SIGNAL_MESSAGE_WITH_USER_MESSAGE || messageType == MessageType.SIGNAL_MESSAGE)
                                         && agreement.getSecurity().getSendReceiptReplyPattern() == Security.ReplyPatternType.Response) {
                                     exchange.getIn().setHeader(EbmsConstants.SECURITY_CHECK,Boolean.TRUE);
@@ -112,7 +116,7 @@ public class WSSERouteBuilder extends RouteBuilder {
                     Document message = exchange.getIn().getBody(Document.class);
                     PartnerAgreement agreement = exchange.getIn().getHeader(EbmsConstants.CPA, PartnerAgreement.class);
                     MessageType messageType = exchange.getIn().getHeader(EbmsConstants.MESSAGE_TYPE, MessageType.class);
-                    if (agreement.hasSecurityToken()
+                    if (agreement.hasInitiatorSecurityToken()
                             && agreement.getInitiator().getAuthorization() instanceof UsernameToken) {
                         if(agreement.getSecurity().getSendReceiptReplyPattern() == Security.ReplyPatternType.Callback
                                 || messageType == MessageType.USER_MESSAGE) {
@@ -127,6 +131,14 @@ public class WSSERouteBuilder extends RouteBuilder {
 
                             exchange.getIn().setBody(signedDoc);
                         }
+                    } else {
+                        WSSecHeader secHeader = new WSSecHeader();
+                        secHeader.insertSecurityHeader(message);
+                        WSSecUsernameToken builder = new WSSecUsernameToken();
+                        builder.setPasswordsAreEncoded(false);
+                        builder.setUserInfo("dummy","dummy");
+                        Document signedDoc = builder.build(message, secHeader);
+                        secHeader.removeSecurityHeader(signedDoc);
                     }
                 }
             })

@@ -189,7 +189,8 @@ public class JSONCPARepositoryTest {
         repository.init();
 
         assertThat(repository.getActivePartnerAgreements(),hasSize(1));
-        assertThat(repository.getActivePartnerAgreements().get(0).hasSecurityToken(),is(false));
+        assertThat(repository.getActivePartnerAgreements().get(0).hasInitiatorSecurityToken(),is(false));
+        assertThat(repository.getActivePartnerAgreements().get(0).hasResponderSecurityToken(),is(false));
     }
 
     @Test

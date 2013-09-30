@@ -150,8 +150,12 @@ public class PartnerAgreement {
         this.receptionAwareness = receptionAwareness;
     }
 
-    public boolean hasSecurityToken() {
+    public boolean hasResponderSecurityToken() {
         return responder != null && responder.getAuthorization() != null;
+    }
+
+    public boolean hasInitiatorSecurityToken() {
+        return initiator != null && initiator.getAuthorization() != null;
     }
 
     public boolean requiresSignature(MessageType messageType) {
