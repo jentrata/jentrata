@@ -62,6 +62,7 @@ public class EbMS3InboundRouteBuilder extends RouteBuilder {
 
         from(ebmsHttpEndpoint)
             .streamCaching()
+            .removeHeaders("Jentrata*")
             .log(LoggingLevel.INFO, "Request:${headers}")
             .log(LoggingLevel.DEBUG, "Request Body:\n${body}")
             .choice()

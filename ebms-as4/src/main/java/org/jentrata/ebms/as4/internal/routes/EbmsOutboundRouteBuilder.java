@@ -9,9 +9,6 @@ import org.jentrata.ebms.cpa.CPARepository;
 import org.jentrata.ebms.cpa.PartnerAgreement;
 import org.jentrata.ebms.messaging.MessageStore;
 
-import java.io.IOException;
-import java.net.ConnectException;
-
 /**
  * Setups and outbound route per trading partner
  *
@@ -30,6 +27,7 @@ public class EbmsOutboundRouteBuilder extends RouteBuilder {
     @Override
     public void configure() throws Exception {
         from(outboundEbmsQueue)
+            .log(LoggingLevel.DEBUG, "Outbound:${headers}\n${body}")
             .removeHeaders("Camel*")
             .removeHeaders("JMS*")
             .setHeader(EbmsConstants.MESSAGE_STATUS, constant(MessageStatusType.DELIVER))
@@ -40,14 +38,27 @@ public class EbmsOutboundRouteBuilder extends RouteBuilder {
 
         for(PartnerAgreement agreement : cpaRepository.getActivePartnerAgreements()) {
             from("direct:outbox_" + agreement.getCpaId())
-                .log(LoggingLevel.INFO,"Delivering message to cpaId:${headers.JentrataCPAId} - type:${headers.JentrataMessageType} - msgId:${headers.JentrataMessageId}")
+                .setProperty(EbmsConstants.CPA_ID,header(EbmsConstants.CPA_ID))
+                .setProperty(EbmsConstants.MESSAGE_ID,header(EbmsConstants.MESSAGE_ID))
+                .setProperty(EbmsConstants.MESSAGE_TYPE, header(EbmsConstants.MESSAGE_TYPE))
+                .setProperty(EbmsConstants.MESSAGE_DIRECTION, header(EbmsConstants.MESSAGE_DIRECTION))
+                .setProperty(EbmsConstants.MESSAGE_CONVERSATION_ID, header(EbmsConstants.MESSAGE_CONVERSATION_ID))
+                .setProperty(EbmsConstants.MESSAGE_DATE, header(EbmsConstants.MESSAGE_DATE))
+                .log(LoggingLevel.INFO, "Delivering message to cpaId:${property.JentrataCPAId} - type:${property.JentrataMessageType} - msgId:${property.JentrataMessageID}")
                 .onException(Exception.class)
                     .handled(true)
-                    .log(LoggingLevel.WARN,"Failed to send cpaId:${headers.JentrataCPAId} - type:${headers.JentrataMessageType} - msgId:${headers.JentrataMessgeId}: ${exception.message}")
+                    .log(LoggingLevel.WARN, "Failed to send cpaId:${property.JentrataCPAId} - type:${property.JentrataMessageType} - msgId:${property.JentrataMessageID}: ${exception.message}")
                     .to("direct:processFailure")
                 .end()
+                .removeHeaders("Jentrata*")
                 .setHeader(Exchange.HTTP_METHOD, constant("POST"))
                 .to(configureEndpoint(agreement.getProtocol().getAddress()))
+                .setHeader(EbmsConstants.CPA_ID, property(EbmsConstants.CPA_ID))
+                .setHeader(EbmsConstants.MESSAGE_ID, property(EbmsConstants.MESSAGE_ID))
+                .setHeader(EbmsConstants.MESSAGE_TYPE, property(EbmsConstants.MESSAGE_TYPE))
+                .setHeader(EbmsConstants.MESSAGE_DIRECTION, property(EbmsConstants.MESSAGE_DIRECTION))
+                .setHeader(EbmsConstants.MESSAGE_CONVERSATION_ID, property(EbmsConstants.MESSAGE_CONVERSATION_ID))
+                .setHeader(EbmsConstants.MESSAGE_DATE, property(EbmsConstants.MESSAGE_DATE))
                 .convertBodyTo(String.class)
                 .choice()
                     .when(header(Exchange.HTTP_RESPONSE_CODE).isEqualTo(200))
@@ -55,9 +66,9 @@ public class EbmsOutboundRouteBuilder extends RouteBuilder {
                         .setProperty(EbmsConstants.CPA_ID,header(EbmsConstants.CPA_ID))
                         .setProperty(EbmsConstants.CONTENT_TYPE,header(Exchange.CONTENT_TYPE))
                         .removeHeaders("*")
-                        .setHeader(EbmsConstants.CONTENT_TYPE,property(EbmsConstants.CONTENT_TYPE))
+                        .setHeader(EbmsConstants.CONTENT_TYPE, property(EbmsConstants.CONTENT_TYPE))
                         .setHeader(Exchange.HTTP_METHOD, constant("POST"))
-                        .setHeader(EbmsConstants.CPA_ID,property(EbmsConstants.CPA_ID))
+                        .setHeader(EbmsConstants.CPA_ID, property(EbmsConstants.CPA_ID))
                         .inOnly(ebmsResponseInbound)
                     .when(header(Exchange.HTTP_RESPONSE_CODE).isEqualTo(204))
                         .to("direct:processSuccess")
@@ -67,7 +78,7 @@ public class EbmsOutboundRouteBuilder extends RouteBuilder {
         }
 
         from("direct:processSuccess")
-            .log(LoggingLevel.INFO,"Successfully delivered cpaId:${headers.JentrataCPAId} - type:${headers.JentrataMessageType} - msgId:${headers.JentrataMessageId} - responseCode:${headers.CamelHttpResponseCode}")
+            .log(LoggingLevel.INFO,"Successfully delivered cpaId:${headers.JentrataCPAId} - type:${headers.JentrataMessageType} - msgId:${headers.JentrataMessageID} - responseCode:${headers.CamelHttpResponseCode}")
             .log(LoggingLevel.DEBUG, "responseCode:${headers.CamelHttpResponseCode}\nheaders:${headers}\n${body}")
             .setHeader(EbmsConstants.MESSAGE_STATUS, constant(MessageStatusType.DELIVERED))
             .setHeader(EbmsConstants.MESSAGE_STATUS_DESCRIPTION, constant(null))
@@ -76,7 +87,7 @@ public class EbmsOutboundRouteBuilder extends RouteBuilder {
         .routeId("_jentrataEbmsOutboundSuccess");
 
         from("direct:processFailure")
-            .log(LoggingLevel.ERROR, "Failed to deliver cpaId:${headers.JentrataCPAId} - type:${headers.JentrataMessageType} - msgId:${headers.JentrataMessgeId} - responseCode:${headers.CamelHttpResponseCode}")
+            .log(LoggingLevel.ERROR, "Failed to deliver cpaId:${headers.JentrataCPAId} - type:${headers.JentrataMessageType} - msgId:${headers.JentrataMessageID} - responseCode:${headers.CamelHttpResponseCode}")
             .log(LoggingLevel.DEBUG, "responseCode:${headers.CamelHttpResponseCode}\nheaders:${headers}\n${body}")
             .setHeader(EbmsConstants.MESSAGE_STATUS, constant(MessageStatusType.FAILED))
             .setHeader(EbmsConstants.MESSAGE_STATUS_DESCRIPTION, simple("${headers.CamelHttpResponseCode} - ${body}"))

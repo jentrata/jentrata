@@ -54,7 +54,6 @@ public class EbmsOutboundRouteBuilderTest extends CamelTestSupport {
         mockEbmsResponseInbound.setExpectedMessageCount(1);
         mockEbmsResponseInbound.expectedBodiesReceived(IOUtils.toString(new FileInputStream(fileFromClasspath("simple-as4-receipt.xml"))));
         mockEbmsResponseInbound.expectedHeaderReceived(EbmsConstants.CONTENT_TYPE,EbmsConstants.SOAP_XML_CONTENT_TYPE);
-        mockEbmsResponseInbound.expectedHeaderReceived(EbmsConstants.CPA_ID,"agreement2");
         mockEbmsResponseInbound.expectedHeaderReceived(Exchange.HTTP_METHOD,"POST");
 
 

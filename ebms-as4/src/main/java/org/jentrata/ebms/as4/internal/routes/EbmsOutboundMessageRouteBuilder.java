@@ -13,7 +13,6 @@ import org.jentrata.ebms.cpa.pmode.PayloadService;
 import org.jentrata.ebms.messaging.MessageStore;
 import org.jentrata.ebms.soap.SoapMessageDataFormat;
 import org.jentrata.ebms.utils.EbmsUtils;
-import org.jentrata.ebms.utils.ExpressionHelper;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -89,7 +88,7 @@ public class  EbmsOutboundMessageRouteBuilder extends RouteBuilder {
                         }
                     })
                     .to("direct:setMessageDefaults")
-                    .setHeader(EbmsConstants.MESSAGE_TYPE, constant(MessageType.USER_MESSAGE))
+                    .setHeader(EbmsConstants.MESSAGE_TYPE, constant(MessageType.USER_MESSAGE.name()))
                     .setHeader(EbmsConstants.MESSAGE_DIRECTION, constant(EbmsConstants.MESSAGE_DIRECTION_OUTBOUND))
                     .setHeader(EbmsConstants.MESSAGE_PAYLOADS, body())
                     .to("freemarker:templates/soap-envelope.ftl")
