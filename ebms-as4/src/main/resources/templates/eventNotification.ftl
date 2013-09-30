@@ -6,7 +6,7 @@
     "duplicateMessageId":"${headers.JentrataDuplicateMessageId!}",
     "conversationId":"${headers.JentrataConversationId!}",
     "status":"${headers.JentrataMessageStatus}",
-    "statusDescription":"${headers.JentrataMessageStatusDesc!}",
+    "statusDescription":"${headers.JentrataMessageStatusDesc!?json_string}",
     "messageDate":"${headers.JentrataMessageDate!}",
     "headers": {
         <#assign keys = request.headers?keys/>

@@ -127,6 +127,22 @@ public class EventNotificationRouteBuilderTest extends CamelTestSupport {
 
     }
 
+    @Test
+    public void testWireTrapEventNotificationWithException() throws Exception {
+        mockNotification.setExpectedMessageCount(1);
+        mockOther.setExpectedMessageCount(1);
+        String s = EbmsUtils.toStringFromClasspath("soapenv-user-message.xml");
+        mockOther.expectedBodiesReceived(s);
+
+        Exchange request = createRequest();
+        request.getIn().setHeader(EbmsConstants.MESSAGE_STATUS_DESCRIPTION,"500 - " + s);
+        context().createProducerTemplate().send("direct:testWireTap",request);
+
+        assertMockEndpointsSatisfied();
+        assertEventNotification(mockNotification.getExchanges().get(0),"500 - " + s);
+
+    }
+
     @Override
     protected RouteBuilder [] createRouteBuilders() throws Exception {
         System.setProperty("jentrataVersion","TEST");
@@ -164,6 +180,10 @@ public class EventNotificationRouteBuilderTest extends CamelTestSupport {
     }
 
     private Map<String,Object> assertEventNotification(Exchange event) throws IOException {
+        return assertEventNotification(event,"All Good");
+    }
+
+    private Map<String,Object> assertEventNotification(Exchange event, String statusDesc) throws IOException {
         assertThat(event.getIn().getBody(),notNullValue());
         System.out.println(event.getIn().getBody());
         Map<String,Object> message = fromJson(event.getIn().getBody(String.class));
@@ -174,7 +194,7 @@ public class EventNotificationRouteBuilderTest extends CamelTestSupport {
         assertThat((String) message.get("refMessageId"),equalTo(""));
         assertThat((String) message.get("conversationId"),equalTo("testConvId"));
         assertThat((String) message.get("status"),equalTo("RECEIVED"));
-        assertThat((String) message.get("statusDescription"),equalTo("All Good"));
+        assertThat((String) message.get("statusDescription"),equalTo(statusDesc));
         assertThat((String) message.get("messageDate"),equalTo("2013-06-12T10:45:00.000Z"));
         Map<String,Object> headers = (Map<String, Object>) message.get("headers");
         assertThat((String) headers.get("JentrataFrom"),equalTo("123456789"));
