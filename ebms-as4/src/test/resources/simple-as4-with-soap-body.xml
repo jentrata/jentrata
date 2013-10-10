@@ -27,17 +27,17 @@
                     <eb:ConversationId>2011-921</eb:ConversationId>
                 </eb:CollaborationInfo>
                 <eb:PayloadInfo>
-                    <eb:PartInfo href="cid:attachment1234@jentrata.org">
-                        <eb:PartProperties>
-                            <eb:Property name="MimeType">application/xml</eb:Property>
-                            <eb:Property name="PartID">attachment1234@jentrata.org</eb:Property>
-                            <eb:Property name="CharacterSet">utf-8</eb:Property>
-                        </eb:PartProperties>
-                    </eb:PartInfo>
                     <eb:PartInfo>
                         <eb:PartProperties>
                             <eb:Property name="MimeType">application/xml</eb:Property>
                             <eb:Property name="PartID">soapbody</eb:Property>
+                            <eb:Property name="CharacterSet">utf-8</eb:Property>
+                        </eb:PartProperties>
+                    </eb:PartInfo>
+                    <eb:PartInfo href="cid:attachment1234@jentrata.org">
+                        <eb:PartProperties>
+                            <eb:Property name="MimeType">application/xml</eb:Property>
+                            <eb:Property name="PartID">attachment1234@jentrata.org</eb:Property>
                             <eb:Property name="CharacterSet">utf-8</eb:Property>
                         </eb:PartProperties>
                     </eb:PartInfo>
