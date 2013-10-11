@@ -1,6 +1,6 @@
 {
-    "messageId":"${headers.JentrataMessageID}",
-    "direction":"${headers.JentrataMessageDirection}",
+    "messageId":"${headers.JentrataMessageID!'UNKNOWN'}",
+    "direction":"${headers.JentrataMessageDirection!'UNKNOWN'}",
     "cpaId":"${headers.JentrataCPAId!'UNKNOWN'}",
     "refMessageId":"${headers.JentrataRefMessageID!}",
     "duplicateMessageId":"${headers.JentrataDuplicateMessageId!}",

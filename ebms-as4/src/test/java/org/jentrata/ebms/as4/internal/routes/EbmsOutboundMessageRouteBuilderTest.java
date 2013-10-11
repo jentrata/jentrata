@@ -2,6 +2,7 @@ package org.jentrata.ebms.as4.internal.routes;
 
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Exchange;
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.Message;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
@@ -56,6 +57,10 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
     @EndpointInject(uri = "mock:mockWSSEAddSecurityToHeader")
     protected MockEndpoint mockWSSEAddSecurityToHeader;
 
+    @EndpointInject(uri = "mock:mockErrorQueue")
+    protected MockEndpoint mockErrorQueue;
+
+
     @Test
     public void testWrapPayloadAsMimeMessage() throws Exception {
 
@@ -63,6 +68,7 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
         mockMessageStore.setExpectedMessageCount(1);
         mockUpdateMessageStore.setExpectedMessageCount(1);
         mockWSSEAddSecurityToHeader.setExpectedMessageCount(1);
+        mockErrorQueue.setExpectedMessageCount(0);
 
         Exchange request = new DefaultExchange(context());
         request.getIn().setHeader(EbmsConstants.MESSAGE_FROM,"123456789");
@@ -118,6 +124,7 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
         mockMessageStore.setExpectedMessageCount(1);
         mockUpdateMessageStore.setExpectedMessageCount(1);
         mockWSSEAddSecurityToHeader.setExpectedMessageCount(1);
+        mockErrorQueue.setExpectedMessageCount(0);
 
         Exchange request = new DefaultExchange(context());
         request.getIn().setHeader(EbmsConstants.MESSAGE_FROM,"123456789");
@@ -175,6 +182,7 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
         mockMessageStore.setExpectedMessageCount(1);
         mockUpdateMessageStore.setExpectedMessageCount(1);
         mockWSSEAddSecurityToHeader.setExpectedMessageCount(1);
+        mockErrorQueue.setExpectedMessageCount(0);
 
         Exchange request = new DefaultExchange(context());
         request.getIn().setHeader(EbmsConstants.MESSAGE_FROM,"123456789");
@@ -230,6 +238,7 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
         mockMessageStore.setExpectedMessageCount(0);
         mockUpdateMessageStore.setExpectedMessageCount(0);
         mockWSSEAddSecurityToHeader.setExpectedMessageCount(0);
+        mockErrorQueue.setExpectedMessageCount(1);
 
         Exchange request = new DefaultExchange(context());
         request.getIn().setHeader(EbmsConstants.MESSAGE_FROM,"123456789");
@@ -260,6 +269,7 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
         mockMessageStore.setExpectedMessageCount(1);
         mockUpdateMessageStore.setExpectedMessageCount(1);
         mockWSSEAddSecurityToHeader.setExpectedMessageCount(1);
+        mockErrorQueue.setExpectedMessageCount(0);
 
         Exchange request = new DefaultExchange(context());
         request.getIn().setHeader(EbmsConstants.MESSAGE_ID,"test-exchange-id@jentrata.org");
@@ -294,6 +304,7 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
         mockMessageStore.setExpectedMessageCount(1);
         mockUpdateMessageStore.setExpectedMessageCount(1);
         mockWSSEAddSecurityToHeader.setExpectedMessageCount(1);
+        mockErrorQueue.setExpectedMessageCount(0);
 
         Exchange request = new DefaultExchange(context());
         request.getIn().setHeader(EbmsConstants.CONTENT_TYPE,"text/xml");
@@ -334,6 +345,7 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
         routeBuilder.setMessgeStoreEndpoint(mockMessageStore.getEndpointUri());
         routeBuilder.setMessageInsertEndpoint(mockUpdateMessageStore.getEndpointUri());
         routeBuilder.setWsseSecurityAddEndpoint(mockWSSEAddSecurityToHeader.getEndpointUri());
+        routeBuilder.setErrorQueue(mockErrorQueue.getEndpointUri());
         return new RouteBuilder [] {
                 routeBuilder,
                 new RouteBuilder() {
@@ -347,6 +359,10 @@ public class EbmsOutboundMessageRouteBuilderTest extends CamelTestSupport {
                             .otherwise()
                                 .setHeader(EbmsConstants.CPA,constant(getAgreement()))
                         .routeId("mockLookupCpaId");
+
+                        from(EventNotificationRouteBuilder.SEND_NOTIFICATION_ENDPOINT)
+                            .log(LoggingLevel.INFO, "mock event notification: ${headers}")
+                        .routeId("mockEventNotification");
                     }
                 }
         };

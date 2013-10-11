@@ -128,6 +128,19 @@ public class ValidatePartnerAgreementRouteBuilderTest extends CamelTestSupport {
     }
 
     @Test
+    public void testDefaultLookupCPAId() throws Exception {
+        Exchange request = new DefaultExchange(context());
+        request.getIn().setBody(loadEbmsMessage());
+        request.getIn().setHeader(EbmsConstants.MESSAGE_ID, "testMsgID");
+        request.getIn().setHeader(EbmsConstants.MESSAGE_SERVICE, "testService");
+        request.getIn().setHeader(EbmsConstants.MESSAGE_ACTION,"testAction2");
+        request.getIn().setHeader(EbmsConstants.DEFAULT_CPA_ID,"testCPAId");
+        Exchange response = context().createProducerTemplate().send("direct:lookupCpaId",request);
+        assertThat(response.getIn().getHeader(EbmsConstants.CPA, PartnerAgreement.class),is(notNullValue()));
+        assertThat(response.getIn().getHeader(EbmsConstants.CPA_ID, String.class),equalTo("testCPAId"));
+    }
+
+    @Test
     public void testValidationErrors() throws Exception {
         Exchange request = new DefaultExchange(context());
         request.getIn().setBody(loadEbmsMessage());

@@ -86,4 +86,6 @@ public class EbmsConstants {
     public static final String VALIDATION_ERROR_DESC = "JentrataValidationErrorDesc";
     public static final String EBMS_VALIDATION_ERROR = "JentrataValidationError";
 
+    public static final String DEFAULT_CPA_ID = "JentrataDefaultCPAId";
+    public static final String DELIVERY_ERROR = "JentrataDeliveryError";
 }

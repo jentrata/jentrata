@@ -62,6 +62,7 @@
             <cm:property name="jentrata.ebms.outbound.partProperties" value=""/>
             <cm:property name="jentrata.ebms.outbound.conversationId" value=""/>
             <cm:property name="jentrata.ebms.outbound.messageId" value=""/>
+            <cm:property name="jentrata.ebms.outbound.defaultCPAId" value=""/>
 
             <cm:property name="jentrata.ebms.security.keystore.file" value="etc/keys/jentrata.jks"/>
             <cm:property name="jentrata.ebms.security.keystore.type" value="jks"/>
@@ -125,7 +126,9 @@
         <property name="httpClientOverride" value="${jentrata.ebms.outbound.http.httpClientOverride}"/>
     </bean>
 
-    <bean id="ebmsOutboundMessageRouteBuilder" class="org.jentrata.ebms.as4.internal.routes.EbmsOutboundMessageRouteBuilder"/>
+    <bean id="ebmsOutboundMessageRouteBuilder" class="org.jentrata.ebms.as4.internal.routes.EbmsOutboundMessageRouteBuilder">
+        <property name="defaultCPAId" value="${jentrata.ebms.outbound.defaultCPAId}"/>
+    </bean>
 
     <bean id="ebmsErrorHandlerRouteBuilder"  class="org.jentrata.ebms.as4.internal.routes.EbmsErrorHandlerRouteBuilder"/>
 

@@ -6,6 +6,7 @@ import org.apache.camel.Message;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.jentrata.ebms.EbmsConstants;
+import org.jentrata.ebms.MessageStatusType;
 import org.jentrata.ebms.MessageType;
 import org.jentrata.ebms.cpa.InvalidPartnerAgreementException;
 import org.jentrata.ebms.cpa.PartnerAgreement;
@@ -31,20 +32,27 @@ import static org.jentrata.ebms.utils.ExpressionHelper.headerWithDefault;
 public class  EbmsOutboundMessageRouteBuilder extends RouteBuilder {
 
     private String deliveryQueue = "activemq:queue:jentrata_as4_outbound";
+    private String errorQueue = "activemq:queue:jentrata_as4_outbound_error";
     private String outboundEbmsQueue = "activemq:queue:jentrata_internal_ebms_outbound";
     private String messgeStoreEndpoint = MessageStore.DEFAULT_MESSAGE_STORE_ENDPOINT;
     private String messageInsertEndpoint = MessageStore.DEFAULT_MESSAGE_INSERT_ENDPOINT;
     private String wsseSecurityAddEndpoint = "direct:wsseAddSecurityToHeader";
+    private String defaultCPAId = null;
 
     @Override
     public void configure() throws Exception {
 
         from(deliveryQueue)
-            .onException(InvalidPartnerAgreementException.class)
+            .onException(Exception.class)
                 .log(LoggingLevel.DEBUG, "headers:${headers}\nbody:\n${in.body}")
                 .log(LoggingLevel.ERROR, "${exception.message}\n${exception.stacktrace}")
+                .setHeader(EbmsConstants.MESSAGE_STATUS, constant(MessageStatusType.FAILED.name()))
+                .setHeader(EbmsConstants.MESSAGE_STATUS_DESCRIPTION,simple("${exception.message}"))
+                .to(errorQueue)
+                .inOnly(EventNotificationRouteBuilder.SEND_NOTIFICATION_ENDPOINT)
                 .handled(true)
             .end()
+            .setHeader(EbmsConstants.DEFAULT_CPA_ID,constant(defaultCPAId))
             .to("direct:lookupCpaId")
             .choice()
                 .when(header(EbmsConstants.CPA_ID).isEqualTo(EbmsConstants.CPA_ID_UNKNOWN))
@@ -54,19 +62,29 @@ public class  EbmsOutboundMessageRouteBuilder extends RouteBuilder {
                         @Override
                         public void process(Exchange exchange) throws Exception {
 
-                            PartnerAgreement agreement = exchange.getIn().getHeader(EbmsConstants.CPA,PartnerAgreement.class);
+                            PartnerAgreement agreement = exchange.getIn().getHeader(EbmsConstants.CPA, PartnerAgreement.class);
+                            if (agreement == null) {
+                                throw new InvalidPartnerAgreementException("unable to find matching partner agreement");
+                            }
 
                             String body = exchange.getIn().getBody(String.class);
                             String contentType = exchange.getIn().getHeader(EbmsConstants.CONTENT_TYPE, String.class);
                             String contentCharset = exchange.getIn().getHeader(EbmsConstants.CONTENT_CHAR_SET, "UTF-8", String.class);
                             String payloadId = exchange.getIn().getHeader(EbmsConstants.PAYLOAD_ID, String.class);
                             PayloadService payloadService = PayloadService.DEFAULT_PAYLOAD_SERVICE;
-                            if(payloadId != null) {
+                            if (payloadId != null) {
                                 payloadService = agreement.getPayloadProfile(payloadId);
+                            } else {
+                                payloadId = payloadService.getPayloadId();
                             }
+
+                            if (contentType == null) {
+                                contentType = payloadService.getContentType();
+                            }
+
                             String schema = exchange.getIn().getHeader(EbmsConstants.MESSAGE_PAYLOAD_SCHEMA, String.class);
-                            String compressionType = exchange.getIn().getHeader(EbmsConstants.PAYLOAD_COMPRESSION,payloadService.getCompressionType().getType(),String.class);
-                            Map<String,String> mimeHeaders = extractMimeHeaders(contentType,exchange.getIn());
+                            String compressionType = exchange.getIn().getHeader(EbmsConstants.PAYLOAD_COMPRESSION, payloadService.getCompressionType().getType(), String.class);
+                            Map<String, String> mimeHeaders = extractMimeHeaders(contentType, exchange.getIn());
                             List<Map<String, Object>> partProperties = EbmsUtils.extractPartProperties(exchange.getIn().getHeader(EbmsConstants.MESSAGE_PART_PROPERTIES, String.class));
 
                             List<Map<String, Object>> payloads = new ArrayList<>();
@@ -76,13 +94,13 @@ public class  EbmsOutboundMessageRouteBuilder extends RouteBuilder {
                             payloadMap.put("charset", contentCharset);
                             payloadMap.put("partProperties", partProperties);
                             payloadMap.put("schema", schema);
-                            payloadMap.put("compressionType",compressionType);
-                            if(compressionType != null && compressionType.length() > 0) {
+                            payloadMap.put("compressionType", compressionType);
+                            if (compressionType != null && compressionType.length() > 0) {
                                 payloadMap.put("content", EbmsUtils.compress(compressionType, body.getBytes(contentCharset)));
                             } else {
                                 payloadMap.put("content", body.getBytes(contentCharset));
                             }
-                            payloadMap.put("mimeHeaders",mimeHeaders);
+                            payloadMap.put("mimeHeaders", mimeHeaders);
                             payloads.add(payloadMap);
                             exchange.getIn().setBody(payloads);
                         }
@@ -144,6 +162,14 @@ public class  EbmsOutboundMessageRouteBuilder extends RouteBuilder {
         this.deliveryQueue = deliveryQueue;
     }
 
+    public String getErrorQueue() {
+        return errorQueue;
+    }
+
+    public void setErrorQueue(String errorQueue) {
+        this.errorQueue = errorQueue;
+    }
+
     public String getOutboundEbmsQueue() {
         return outboundEbmsQueue;
     }
@@ -174,5 +200,13 @@ public class  EbmsOutboundMessageRouteBuilder extends RouteBuilder {
 
     public void setWsseSecurityAddEndpoint(String wsseSecurityAddEndpoint) {
         this.wsseSecurityAddEndpoint = wsseSecurityAddEndpoint;
+    }
+
+    public String getDefaultCPAId() {
+        return defaultCPAId;
+    }
+
+    public void setDefaultCPAId(String defaultCPAId) {
+        this.defaultCPAId = defaultCPAId;
     }
 }

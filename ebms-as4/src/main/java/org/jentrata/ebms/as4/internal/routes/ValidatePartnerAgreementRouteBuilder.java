@@ -75,6 +75,7 @@ public class ValidatePartnerAgreementRouteBuilder extends RouteBuilder {
         .routeId("_jentrataValidatePartnerAgreement");
 
         from("direct:lookupCpaId")
+            .to("direct:setDefaultCPAId")
             .choice()
                 .when(header(EbmsConstants.CPA_ID).isNotEqualTo(null))
                     .setHeader(EbmsConstants.CPA, simple("bean:cpaRepository?method=findByCPAId"))
@@ -110,5 +111,13 @@ public class ValidatePartnerAgreementRouteBuilder extends RouteBuilder {
             .end()
             .setHeader(EbmsConstants.MESSAGE_ID,header("JentrataOriginalMessageID"))
         .routeId("_jentrataLookupCpaIdByRefMessageId");
+
+        from("direct:setDefaultCPAId")
+            .choice()
+                .when(header(EbmsConstants.CPA_ID).isNull())
+                    .setHeader(EbmsConstants.CPA_ID,header(EbmsConstants.DEFAULT_CPA_ID))
+                .when(header(EbmsConstants.CPA_ID).isEqualTo(""))
+                    .setHeader(EbmsConstants.CPA_ID,header(EbmsConstants.DEFAULT_CPA_ID))
+                .routeId("_jentrataSetDefaultCPAId");
     }
 }
