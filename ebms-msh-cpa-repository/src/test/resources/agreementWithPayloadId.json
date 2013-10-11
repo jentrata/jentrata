@@ -19,7 +19,8 @@
             "payloadProfile":[
                 {
                     "compressionType":"NONE",
-                    "payloadId":"attachment1234@jentrata.org"
+                    "payloadId":"attachment1234@jentrata.org",
+                    "contentType":"text/xml"
                 }
             ]
         }

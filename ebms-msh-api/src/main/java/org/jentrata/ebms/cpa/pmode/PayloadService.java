@@ -7,7 +7,7 @@ package org.jentrata.ebms.cpa.pmode;
  */
 public class PayloadService {
 
-    public static final PayloadService DEFAULT_PAYLOAD_SERVICE = new PayloadService("payload-id@jentrata.org");
+    public static final PayloadService DEFAULT_PAYLOAD_SERVICE = new PayloadService("payload-id@jentrata.org","text/xml");
 
 
     public enum CompressionType {
@@ -27,12 +27,18 @@ public class PayloadService {
 
     private CompressionType compressionType = CompressionType.NONE;
     private String payloadId;
+    private String contentType;
 
 
     public PayloadService() {}
 
     public PayloadService(String payloadId) {
         this.payloadId = payloadId;
+    }
+
+    public PayloadService(String payloadId, String contentType) {
+        this.payloadId = payloadId;
+        this.contentType = contentType;
     }
 
     public CompressionType getCompressionType() {
@@ -49,5 +55,13 @@ public class PayloadService {
 
     public void setPayloadId(String payloadId) {
         this.payloadId = payloadId;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
     }
 }

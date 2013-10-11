@@ -249,6 +249,7 @@ public class JSONCPARepositoryTest {
         assertThat(repository.getActivePartnerAgreements().get(0).getBusinessInfo().getPayloadProfile().get(0),notNullValue());
         assertThat(repository.getActivePartnerAgreements().get(0).getBusinessInfo().getPayloadProfile().get(0).getPayloadId(),equalTo("attachment1234@jentrata.org"));
         assertThat(repository.getActivePartnerAgreements().get(0).getBusinessInfo().getPayloadProfile().get(0).getCompressionType(), equalTo(PayloadService.CompressionType.NONE));
+        assertThat(repository.getActivePartnerAgreements().get(0).getBusinessInfo().getPayloadProfile().get(0).getContentType(), equalTo("text/xml"));
 
     }
 
