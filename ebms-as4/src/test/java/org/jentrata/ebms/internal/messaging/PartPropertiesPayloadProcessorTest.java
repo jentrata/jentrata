@@ -52,6 +52,22 @@ public class PartPropertiesPayloadProcessorTest extends CamelTestSupport {
         assertThat(response.getIn().getHeader("CharacterSet",String.class),equalToIgnoringCase("UTF-8"));
     }
 
+    @Test
+    public void testSoapBodyPartPropertiesPayloadProcessorWithSchema() throws Exception{
+        Exchange request = new DefaultExchange(context());
+        request.getIn().setHeader(EbmsConstants.CONTENT_ID,EbmsConstants.SOAP_BODY_PAYLOAD_ID);
+        request.getIn().setHeader(Exchange.CONTENT_TYPE,"application/xml");
+        request.getIn().setHeader(SplitAttachmentsToBody.ORIGINAL_MESSAGE_BODY, IOUtils.toString(new FileInputStream(fileFromClasspath("simple-as4-with-soap-body-schema.xml"))));
+        request.getIn().setBody(" <invoice id=\"123\"/>");
+
+        Exchange response = context().createProducerTemplate().send("direct:testPartPropertiesPayloadProcessor",request);
+
+        assertThat(response.getIn().getHeader("PartID",String.class),equalTo("soapbody"));
+        assertThat(response.getIn().getHeader("MimeType",String.class),equalTo("application/xml"));
+        assertThat(response.getIn().getHeader("CharacterSet",String.class),equalToIgnoringCase("UTF-8"));
+        assertThat(response.getIn().getHeader("Schema",String.class),equalToIgnoringCase("default"));
+    }
+
     @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {

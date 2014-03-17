@@ -33,6 +33,10 @@ public class PartPropertiesPayloadProcessor implements SoapPayloadProcessor {
             else {
                 partInfo = EbmsUtils.ebmsXpathNode(soapMessage,String.format(partPropertyXpath,payloadId));
             }
+            Node schemaLocation = EbmsUtils.ebmsXpathNode(partInfo,".//*[local-name()='Schema']");
+            if(schemaLocation != null) {
+                exchange.getIn().setHeader("Schema",schemaLocation.getAttributes().getNamedItem("location").getNodeValue());
+            }
             NodeList partProperties = EbmsUtils.ebmsXpathNodeList(partInfo,".//*[local-name()='Property']");
             for (int i = 0; i < partProperties.getLength(); i++) {
                 Node property = partProperties.item(i);
