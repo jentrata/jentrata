@@ -481,6 +481,96 @@ public class WSSERouteBuilderTest extends CamelTestSupport {
         assertThat(body, hasXPath("//*[local-name()='Reference'][3]"));
     }
 
+    @Test
+    public void testAddSignatureWithInclusiveNamespaces() throws Exception {
+        byte [] data = IOUtils.toByteArray(new FileInputStream(fileFromClasspath("sample-payload.xml")));
+        List<Map<String,Object>> payloads = new ArrayList<>();
+        Map<String,Object> payload = new HashMap<>();
+        payload.put("payloadId", "attachment1234@jentrata.org");
+        payload.put("contentType", "application/xml");
+        payload.put("charset", "utf-8");
+        payload.put("partProperties", "sourceABN=123456789;targetABN=987654321");
+        payload.put("schema", "test");
+        payload.put("content", data);
+
+        payloads.add(payload);
+
+        Exchange request = new DefaultExchange(context);
+        request.getIn().setBody(loadSoapMessage());
+        request.getIn().setHeader(EbmsConstants.MESSAGE_ID, "testMSG-0001");
+        request.getIn().setHeader(EbmsConstants.CPA_ID,"JentrataTestCPA");
+        request.getIn().setHeader(EbmsConstants.CPA,generateAgreement(null,true));
+        request.getIn().setHeader(EbmsConstants.MESSAGE_PAYLOADS,payloads);
+        request.getIn().setHeader(EbmsConstants.MESSAGE_TYPE, MessageType.USER_MESSAGE);
+        Exchange response = context().createProducerTemplate().send("direct:wsseAddSecurityToHeader",request);
+
+        Document body = response.getIn().getBody(Document.class);
+        System.out.println(XMLUtils.PrettyDocumentToString(body));
+
+        assertThat(body, not(hasXPath("//*[local-name()='UsernameToken']")));
+        assertThat(body, not(hasXPath("//*[local-name()='Username' and text()='jentrata']")));
+        assertThat(body,not(hasXPath("//*[local-name()='Password']")));
+        assertThat(body,not(hasXPath("//*[local-name()='Created']")));
+
+
+        assertThat(body, hasXPath("//*[local-name()='Signature']"));
+        assertThat(body, hasXPath("//@*[name()='URI' and .='cid:attachment1234@jentrata.org']"));
+        assertThat(body, hasXPath("//@*[name()='href' and .='cid:attachment1234@jentrata.org']"));
+
+        assertThat(body, hasXPath("//*[local-name()='Reference'][1]"));
+        assertThat(body, hasXPath("//*[local-name()='Reference'][2]"));
+        assertThat(body, hasXPath("//*[local-name()='Reference'][3]"));
+
+        assertThat(body, hasXPath("//*[local-name()='InclusiveNamespaces'][1]"));
+
+    }
+
+    @Test
+    public void testAddSignatureWithoutInclusiveNamespaces() throws Exception {
+        byte [] data = IOUtils.toByteArray(new FileInputStream(fileFromClasspath("sample-payload.xml")));
+        List<Map<String,Object>> payloads = new ArrayList<>();
+        Map<String,Object> payload = new HashMap<>();
+        payload.put("payloadId", "attachment1234@jentrata.org");
+        payload.put("contentType", "application/xml");
+        payload.put("charset", "utf-8");
+        payload.put("partProperties", "sourceABN=123456789;targetABN=987654321");
+        payload.put("schema", "test");
+        payload.put("content", data);
+
+        payloads.add(payload);
+
+        Exchange request = new DefaultExchange(context);
+        request.getIn().setBody(loadSoapMessage());
+        request.getIn().setHeader(EbmsConstants.MESSAGE_ID, "testMSG-0001");
+        request.getIn().setHeader(EbmsConstants.CPA_ID,"JentrataTestCPA");
+        PartnerAgreement partnerAgreement = generateAgreement(null, true);
+        partnerAgreement.getSecurity().setInclusiveNamespacesEnabled(false);
+        request.getIn().setHeader(EbmsConstants.CPA, partnerAgreement);
+        request.getIn().setHeader(EbmsConstants.MESSAGE_PAYLOADS,payloads);
+        request.getIn().setHeader(EbmsConstants.MESSAGE_TYPE, MessageType.USER_MESSAGE);
+        Exchange response = context().createProducerTemplate().send("direct:wsseAddSecurityToHeader",request);
+
+        Document body = response.getIn().getBody(Document.class);
+        System.out.println(XMLUtils.PrettyDocumentToString(body));
+
+        assertThat(body, not(hasXPath("//*[local-name()='UsernameToken']")));
+        assertThat(body, not(hasXPath("//*[local-name()='Username' and text()='jentrata']")));
+        assertThat(body,not(hasXPath("//*[local-name()='Password']")));
+        assertThat(body,not(hasXPath("//*[local-name()='Created']")));
+
+
+        assertThat(body, hasXPath("//*[local-name()='Signature']"));
+        assertThat(body, hasXPath("//@*[name()='URI' and .='cid:attachment1234@jentrata.org']"));
+        assertThat(body, hasXPath("//@*[name()='href' and .='cid:attachment1234@jentrata.org']"));
+
+        assertThat(body, hasXPath("//*[local-name()='Reference'][1]"));
+        assertThat(body, hasXPath("//*[local-name()='Reference'][2]"));
+        assertThat(body, hasXPath("//*[local-name()='Reference'][3]"));
+
+        assertThat(body, not(hasXPath("//*[local-name()='InclusiveNamespaces'][1]")));
+
+    }
+
 
 
     @Override

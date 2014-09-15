@@ -175,6 +175,7 @@ public class WSSERouteBuilder extends RouteBuilder {
                         signature.setSignatureAlgorithm(signatureAgreement.getSignatureAlgorithm());
                         signature.setDigestAlgo(signatureAgreement.getSignatureHashFunction());
                         signature.setParts(parts);
+                        signature.getWsConfig().setAddInclusivePrefixes(agreement.getSecurity().isInclusiveNamespacesEnabled());
 
                         AttachmentCallbackHandler attachmentCallbackHandler = createAttachmentCallbackHandler(exchange);
                         signature.setAttachmentCallbackHandler(attachmentCallbackHandler);

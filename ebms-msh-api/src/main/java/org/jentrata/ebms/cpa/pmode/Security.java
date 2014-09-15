@@ -18,6 +18,7 @@ public class Security {
     private ReplyPatternType sendReceiptReplyPattern = ReplyPatternType.Callback;
     private boolean sendReceiptNonRepudiation = false;
     private boolean disableBSPEnforcement = false;
+    private boolean inclusiveNamespacesEnabled = true;
     private Signature signature = null;
 
     public boolean isSendReceipt() {
@@ -58,5 +59,13 @@ public class Security {
 
     public void setDisableBSPEnforcement(boolean disableBSPEnforcement) {
         this.disableBSPEnforcement = disableBSPEnforcement;
+    }
+
+    public boolean isInclusiveNamespacesEnabled() {
+        return inclusiveNamespacesEnabled;
+    }
+
+    public void setInclusiveNamespacesEnabled(boolean inclusiveNamespacesEnabled) {
+        this.inclusiveNamespacesEnabled = inclusiveNamespacesEnabled;
     }
 }

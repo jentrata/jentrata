@@ -176,6 +176,26 @@ public class JSONCPARepositoryTest {
         assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().getSendReceiptReplyPattern(),is(Security.ReplyPatternType.Response));
         assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().isSendReceipt(),is(false));
         assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().isSendReceiptNonRepudiation(),is(true));
+        assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().isInclusiveNamespacesEnabled(),is(true));
+
+
+        Signature signature = repository.getActivePartnerAgreements().get(0).getSecurity().getSignature();
+        assertThat(signature,notNullValue());
+        assertThat(signature.isEncrypt(),is(true));
+    }
+
+    @Test
+    public void testAgreementWithSignatureSecurityAndInclusiveNamespaces() throws IOException {
+        JSONCPARepository repository = new JSONCPARepository();
+        repository.setCpaJsonFile(fileFromClasspath("agreementWithInclusiveNamespaces.json"));
+        repository.init();
+
+        assertThat(repository.getActivePartnerAgreements(),hasSize(1));
+        assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().getSendReceiptReplyPattern(),is(Security.ReplyPatternType.Response));
+        assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().isSendReceipt(),is(false));
+        assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().isSendReceiptNonRepudiation(),is(true));
+        assertThat(repository.getActivePartnerAgreements().get(0).getSecurity().isInclusiveNamespacesEnabled(),is(false));
+
 
         Signature signature = repository.getActivePartnerAgreements().get(0).getSecurity().getSignature();
         assertThat(signature,notNullValue());
